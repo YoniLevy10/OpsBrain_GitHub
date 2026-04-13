@@ -32,10 +32,12 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import ActionButton from '@/components/ActionButton';
 import EmptyState from '@/components/EmptyState';
 
-const SmartSearch = lazy(() => import('@/components/documents/SmartSearch'));
-const DocumentAutoTagger = lazy(() => import('@/components/documents/DocumentAutoTagger'));
-const DocumentVersioning = lazy(() => import('@/components/documents/DocumentVersioning'));
-const OCRExtractor = lazy(() => import('@/components/documents/OCRExtractor'));
+// TODO v1.1: Document smart features (OCR, auto-tagging, versioning) - import kept for future but disabled in v1
+// These components are UI-only with no backend implementation. Showing them misleads users.
+const SmartSearch = lazy(() => import('@/components/documents/SmartSearch')); // Disabled for v1
+const DocumentAutoTagger = lazy(() => import('@/components/documents/DocumentAutoTagger')); // Disabled for v1
+const DocumentVersioning = lazy(() => import('@/components/documents/DocumentVersioning')); // Disabled for v1
+const OCRExtractor = lazy(() => import('@/components/documents/OCRExtractor')); // Disabled for v1
 
 export default function Documents() {
   const { language } = useLanguage();
@@ -215,9 +217,10 @@ export default function Documents() {
         </div>
       </div>
 
-      <Suspense fallback={<Skeleton className="h-24" />}>
+      {/* TODO v1.1: SmartSearch feature - disabled for v1. Requires backend scoring logic */}
+      {/* <Suspense fallback={<Skeleton className="h-24" />}>
         <SmartSearch onResultClick={(doc) => setSelectedDocument(doc)} />
-      </Suspense>
+      </Suspense> */}
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1">
@@ -525,11 +528,13 @@ export default function Documents() {
           </DialogHeader>
 
           <Tabs value={documentDetailTab} onValueChange={setDocumentDetailTab}>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-1">
               <TabsTrigger value="info">
                 <FileText className="w-4 h-4 ml-2" />
                 {language === 'he' ? 'מידע' : 'Info'}
               </TabsTrigger>
+              {/* TODO v1.1: AI, Tagging, OCR, Versioning - these require backend ML/OCR services. Disabled for v1. */}
+              {/* 
               <TabsTrigger value="ai">
                 <Sparkles className="w-4 h-4 ml-2" />
                 {language === 'he' ? 'AI & תיוג' : 'AI & Tagging'}
@@ -542,6 +547,7 @@ export default function Documents() {
                 <History className="w-4 h-4 ml-2" />
                 {language === 'he' ? 'גרסאות' : 'Versions'}
               </TabsTrigger>
+              */}
             </TabsList>
 
             <TabsContent value="info" className="space-y-4 mt-4">
@@ -572,6 +578,8 @@ export default function Documents() {
               </Card>
             </TabsContent>
 
+            {/* TODO v1.1: AI, OCR, Versioning content - disabled for v1. Uncomment when backend features are ready */}
+            {/* 
             <TabsContent value="ai" className="mt-4">
               <Suspense fallback={<LoadingSpinner />}>
                 {selectedDocument && (
@@ -597,6 +605,7 @@ export default function Documents() {
                 {selectedDocument && <DocumentVersioning document={selectedDocument} />}
               </Suspense>
             </TabsContent>
+            */}
           </Tabs>
         </DialogContent>
       </Dialog>

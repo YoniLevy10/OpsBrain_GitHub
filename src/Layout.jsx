@@ -44,7 +44,8 @@ function LayoutContent({ children, currentPageName }) {
     return saved ? JSON.parse(saved) : {};
   });
 
-  const mainPages = ['Dashboard', 'Chat', 'Finance', 'Settings'];
+  // OpsBrain v1: Main navigation pages
+  const mainPages = ['Dashboard', 'Clients', 'Projects', 'Documents', 'Settings'];
   const isChildRoute = !mainPages.includes(currentPageName);
   
   // Save scroll position and state before navigation
@@ -115,17 +116,21 @@ function LayoutContent({ children, currentPageName }) {
     });
   }, []);
 
-  // לשוניות ליבה - תמיד קיימות
+  // OpsBrain v1 Core Navigation
+  // Focused on: Dashboard, Clients, Projects, Documents, Chat, Team, Settings
+  // Deferred to v1.1: Calendar (needs event CRUD), Integrations (sync completely mocked)
+  // Deferred to v1.1+: Finance, Automations, Analytics, Reports, Invoices, etc.
+  // See OPSBRAIN_V1_GAP_CLOSING_PLAN.md and OPSBRAIN_V1_REALITY_CHECK.md
   const coreNav = [
-    { name: language === 'he' ? 'דף הבית' : 'Overview', href: createPageUrl('Dashboard'), icon: LayoutDashboard, page: 'Dashboard' },
-    { name: language === 'he' ? 'צ\'אט צוות' : 'Team Chat', href: createPageUrl('TeamChat'), icon: MessageSquare, page: 'TeamChat' },
-    { name: language === 'he' ? 'אנליטיקה' : 'Analytics', href: createPageUrl('WorkspaceAnalytics'), icon: TrendingUp, page: 'WorkspaceAnalytics' },
-    { name: language === 'he' ? 'אוטומציות' : 'Automations', href: createPageUrl('Automations'), icon: RefreshCw, page: 'Automations' },
-    { name: language === 'he' ? 'פיננסים' : 'Finance', href: createPageUrl('Finance'), icon: TrendingUp, page: 'Finance' },
+    { name: language === 'he' ? 'דף הבית' : 'Dashboard', href: createPageUrl('Dashboard'), icon: LayoutDashboard, page: 'Dashboard' },
     { name: language === 'he' ? 'לקוחות' : 'Clients', href: createPageUrl('Clients'), icon: Users, page: 'Clients' },
     { name: language === 'he' ? 'פרויקטים' : 'Projects', href: createPageUrl('Projects'), icon: FolderKanban, page: 'Projects' },
     { name: language === 'he' ? 'מסמכים' : 'Documents', href: createPageUrl('Documents'), icon: FileText, page: 'Documents' },
-    { name: language === 'he' ? 'העוזר האישי' : 'My Assistant', href: createPageUrl('Chat'), icon: Brain, page: 'Chat' },
+    { name: language === 'he' ? 'צ\'אט' : 'Chat', href: createPageUrl('Chat'), icon: Brain, page: 'Chat' },
+    // TODO v1.1: Calendar - needs event creation CRUD, Google Sync implementation
+    // { name: language === 'he' ? 'קלנדר' : 'Calendar', href: createPageUrl('Calendar'), icon: MessageSquare, page: 'Calendar' },
+    // TODO v1.1: Integrations - sync operations are currently mocked (random data); needs real OAuth + API
+    // { name: language === 'he' ? 'ביוטוח' : 'Integrations', href: createPageUrl('Integrations'), icon: RefreshCw, page: 'Integrations' },
   ];
 
   // Marketplace מוסתר זמנית
@@ -216,7 +221,7 @@ function LayoutContent({ children, currentPageName }) {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation */}
+      {/* OpsBrain v1: Mobile Bottom Navigation (4 tabs) */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 safe-area-inset-bottom">
         <div className="grid grid-cols-4 h-16">
           <button
@@ -239,39 +244,39 @@ function LayoutContent({ children, currentPageName }) {
           </button>
           <button
             onClick={() => {
-              if (currentPageName === 'Chat') {
+              if (currentPageName === 'Projects') {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               } else {
-                navigate(createPageUrl('Chat'));
+                navigate(createPageUrl('Projects'));
               }
             }}
             className={cn(
               "flex flex-col items-center justify-center gap-1 tap-target transition-colors",
-              currentPageName === 'Chat'
+              currentPageName === 'Projects'
                 ? "text-black dark:text-white"
                 : "text-gray-500 dark:text-gray-400"
             )}
           >
-            <Brain className="w-6 h-6" />
-            <span className="text-xs">{language === 'he' ? 'עוזר' : 'Chat'}</span>
+            <FolderKanban className="w-6 h-6" />
+            <span className="text-xs">{language === 'he' ? 'פרויקטים' : 'Projects'}</span>
           </button>
           <button
             onClick={() => {
-              if (currentPageName === 'Finance') {
+              if (currentPageName === 'Documents') {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               } else {
-                navigate(createPageUrl('Finance'));
+                navigate(createPageUrl('Documents'));
               }
             }}
             className={cn(
               "flex flex-col items-center justify-center gap-1 tap-target transition-colors",
-              currentPageName === 'Finance'
+              currentPageName === 'Documents'
                 ? "text-black dark:text-white"
                 : "text-gray-500 dark:text-gray-400"
             )}
           >
-            <DollarSign className="w-6 h-6" />
-            <span className="text-xs">{language === 'he' ? 'כספים' : 'Finance'}</span>
+            <FileText className="w-6 h-6" />
+            <span className="text-xs">{language === 'he' ? 'מסמכים' : 'Docs'}</span>
           </button>
           <button
             onClick={() => {

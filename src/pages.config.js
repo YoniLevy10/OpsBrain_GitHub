@@ -47,56 +47,113 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Analytics from './pages/Analytics';
-import AppWrapper from './pages/AppWrapper';
-import Automations from './pages/Automations';
+// ============================================
+// OpsBrain v1 Page Configuration
+// ============================================
+// 
+// This file controls which pages are routable in OpsBrain.
+// See: OPSBRAIN_V1_CLEANUP.md for page routing status
+//      OPSBRAIN_V1_STABILIZATION.md for architectural notes
+//
+// ============================================
+// SECTION 1: V1 CORE PAGES (Active)
+// ============================================
+// These pages are part of v1 launch and appear in navigation
 import Calendar from './pages/Calendar';
 import Chat from './pages/Chat';
 import Clients from './pages/Clients';
 import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
-import Finance from './pages/Finance';
-import FinancialAssistant from './pages/FinancialAssistant';
-import History from './pages/History';
 import Integrations from './pages/Integrations';
-import Invoices from './pages/Invoices';
-import Marketplace from './pages/Marketplace';
 import Onboarding from './pages/Onboarding';
-import Pricing from './pages/Pricing';
 import Projects from './pages/Projects';
-import Reports from './pages/Reports';
 import Settings from './pages/Settings';
-import Subscriptions from './pages/Subscriptions';
 import Team from './pages/Team';
-import TeamChat from './pages/TeamChat';
-import WorkspaceAnalytics from './pages/WorkspaceAnalytics';
+
+// ============================================
+// SECTION 2: V1.1+ DEFERRED PAGES (Disabled)
+// ============================================
+// Note: These pages exist in src/pages/ but are NOT routed.
+// To enable in v1.1, uncomment the imports AND add to PAGES export below.
+// See: OPSBRAIN_V1_CLEANUP.md for details on why each is deferred
+//
+// ANALYTICS & REPORTING (v1.1):
+/*
+import Analytics from './pages/Analytics';                    // Analytics dashboard
+import WorkspaceAnalytics from './pages/WorkspaceAnalytics'; // Advanced workspace analytics (consolidate with Analytics)
+import Reports from './pages/Reports';                        // Business reporting
+*/
+
+// AUTOMATION & AI (v1.1+):
+/*
+import Automations from './pages/Automations';                // Workflow automation
+import FinancialAssistant from './pages/FinancialAssistant';  // AI financial advisor
+*/
+
+// FINANCE & INVOICING (v1.1+):
+/*
+import Finance from './pages/Finance';                        // Financial tracking
+import Invoices from './pages/Invoices';                      // Invoice management
+*/
+
+// HISTORY & ACTIVITY (v1.1):
+/*
+import History from './pages/History';                        // Activity history
+*/
+
+// TEAM CHAT (v1.1_: to consolidate with Chat.jsx):
+/*
+import TeamChat from './pages/TeamChat';                      // Team chat (consolidate with Chat)
+*/
+
+// MARKETPLACE (v2.0):
+/*
+import Marketplace from './pages/Marketplace';                // App marketplace
+*/
+
+// BILLING (v1.1+ if paid tier):
+/*
+import Subscriptions from './pages/Subscriptions';            // Subscription management
+import Pricing from './pages/Pricing';                        // Pricing page
+*/
+
+// INTERNAL / UNUSED:
+/*
+import AppWrapper from './pages/AppWrapper';                  // Internal wrapper (verify usage)
+*/
+
 import __Layout from './Layout.jsx';
 
 
+// ============================================
+// ROUTES EXPORT
+// ============================================
 export const PAGES = {
-    "Analytics": Analytics,
-    "AppWrapper": AppWrapper,
-    "Automations": Automations,
+    // v1 Core (always active)
     "Calendar": Calendar,
     "Chat": Chat,
     "Clients": Clients,
     "Dashboard": Dashboard,
     "Documents": Documents,
-    "Finance": Finance,
-    "FinancialAssistant": FinancialAssistant,
-    "History": History,
     "Integrations": Integrations,
-    "Invoices": Invoices,
-    "Marketplace": Marketplace,
     "Onboarding": Onboarding,
-    "Pricing": Pricing,
     "Projects": Projects,
-    "Reports": Reports,
     "Settings": Settings,
-    "Subscriptions": Subscriptions,
     "Team": Team,
-    "TeamChat": TeamChat,
-    "WorkspaceAnalytics": WorkspaceAnalytics,
+    
+    // v1.1+ Deferred (comment IN to enable)
+    // "Analytics": Analytics,
+    // "WorkspaceAnalytics": WorkspaceAnalytics,
+    // "Reports": Reports,
+    // "Automations": Automations,
+    // "FinancialAssistant": FinancialAssistant,
+    // "Finance": Finance,
+    // "Invoices": Invoices,
+    // "History": History,
+    // "TeamChat": TeamChat,
+    // "Marketplace": Marketplace,
+    // "Subscriptions": Subscriptions,
+    // "Pricing": Pricing,
 }
 
 export const pagesConfig = {

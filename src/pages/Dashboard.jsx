@@ -3,14 +3,19 @@ import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import WelcomeCard from '../components/dashboard/WelcomeCard';
-import AssistantHero from '../components/dashboard/AssistantHero';
-import ProactiveAlerts from '../components/alerts/ProactiveAlerts';
 import CustomizableDashboard from '../components/dashboard/CustomizableDashboard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import DashboardWithRefresh from '../components/dashboard/DashboardWithRefresh';
 
-const ProactiveInsights = lazy(() => import('../components/ai/ProactiveInsights'));
-const CashFlowForecast = lazy(() => import('../components/ai/CashFlowForecast'));
+// TODO v1.1+: Deferred features - Uncomment when backend services are ready
+// - AssistantHero: AI assistant interface (requires chat backend)
+// - ProactiveAlerts: AI-generated alerts (requires ML service)
+// - ProactiveInsights: AI analytics (requires ML service)
+// - CashFlowForecast: Financial forecasting (requires ML service)
+// import AssistantHero from '../components/dashboard/AssistantHero';
+// import ProactiveAlerts from '../components/alerts/ProactiveAlerts';
+// const ProactiveInsights = lazy(() => import('../components/ai/ProactiveInsights'));
+// const CashFlowForecast = lazy(() => import('../components/ai/CashFlowForecast'));
 
 export default function Dashboard() {
   const { t } = useLanguage();
@@ -32,24 +37,24 @@ export default function Dashboard() {
             businessName={activeWorkspace?.name}
           />
 
-          {/* AI Assistant Hero */}
-          <AssistantHero />
+          {/* V1.1+: AI Assistant Hero - Deferred */}
+          {/* <AssistantHero /> */}
 
-          {/* Proactive Alerts */}
-          <ProactiveAlerts />
+          {/* V1.1+: Proactive Alerts - Deferred */}
+          {/* <ProactiveAlerts /> */}
 
           {/* Main Dashboard Grid */}
           <CustomizableDashboard />
 
-          {/* AI Insights */}
-          <div className="space-y-6">
+          {/* V1.1+: AI Insights - Deferred */}
+          {/* <div className="space-y-6">
             <Suspense fallback={<div className="flex items-center justify-center py-12"><LoadingSpinner /></div>}>
               <ProactiveInsights />
             </Suspense>
             <Suspense fallback={<div className="flex items-center justify-center py-12"><LoadingSpinner /></div>}>
               <CashFlowForecast />
             </Suspense>
-          </div>
+          </div> */}
 
         </div>
       </div>

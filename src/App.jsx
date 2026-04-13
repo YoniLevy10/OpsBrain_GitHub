@@ -8,6 +8,21 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
+// ============================================
+// OpsBrain v1 Root App Component
+// ============================================
+// 
+// App Structure:
+// 1. AuthProvider — Handles Base44 auth, session, app validation
+// 2. QueryClientProvider — TanStack React Query for data fetching
+// 3. Router — React Router for page navigation
+// 4. NavigationTracker — Logs page views (optional; can be disabled)
+// 5. AuthenticatedApp — Renders pages based on auth state
+//
+// See: src/pages.config.js for route definitions
+//      src/Layout.jsx for navigation structure
+//      OPSBRAIN_V1_STABILIZATION.md for architectural notes
+
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
@@ -79,4 +94,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
