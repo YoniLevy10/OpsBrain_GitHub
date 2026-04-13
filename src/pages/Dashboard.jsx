@@ -1,7 +1,9 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
+import { createPageUrl } from '../utils';
 import WelcomeCard from '../components/dashboard/WelcomeCard';
 import CustomizableDashboard from '../components/dashboard/CustomizableDashboard';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -20,7 +22,15 @@ import DashboardWithRefresh from '../components/dashboard/DashboardWithRefresh';
 export default function Dashboard() {
   const { t } = useLanguage();
   const { activeWorkspace } = useWorkspace();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
+
+  // Redirect to onboarding if workspace not yet set up
+  useEffect(() => {
+    if (activeWorkspace && !activeWorkspace.onboarding_completed) {
+      navigate(createPageUrl('Onboarding'));
+    }
+  }, [activeWorkspace, navigate]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
