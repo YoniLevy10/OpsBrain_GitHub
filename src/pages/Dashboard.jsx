@@ -14,6 +14,7 @@ import DashboardWithRefresh from '../components/dashboard/DashboardWithRefresh';
 import { generateInsights } from '@/lib/insightsEngine';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { fetchTasksWithFallback, fetchProjectsWithFallback, fetchClientsWithFallback } from '@/lib/supabaseClient';
 
 // TODO v1.1+: Deferred features - Uncomment when backend services are ready
 // - AssistantHero: AI assistant interface (requires chat backend)
@@ -42,34 +43,34 @@ export default function Dashboard() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Fetch tasks for Smart Insights
+  // Fetch tasks for Smart Insights (Supabase with Base44 fallback)
   const { data: tasks = [] } = useQuery({
     queryKey: ['tasks', activeWorkspace?.id],
     queryFn: async () => {
       if (!activeWorkspace) return [];
-      return await base44.entities.Task.filter({ workspace_id: activeWorkspace.id }) || [];
+      return await fetchTasksWithFallback(activeWorkspace.id, base44);
     },
     enabled: !!activeWorkspace,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch projects for Smart Insights
+  // Fetch projects for Smart Insights (Supabase with Base44 fallback)
   const { data: projects = [] } = useQuery({
     queryKey: ['projects', activeWorkspace?.id],
     queryFn: async () => {
       if (!activeWorkspace) return [];
-      return await base44.entities.Project.filter({ workspace_id: activeWorkspace.id }) || [];
+      return await fetchProjectsWithFallback(activeWorkspace.id, base44);
     },
     enabled: !!activeWorkspace,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch clients for Smart Insights
+  // Fetch clients for Smart Insights (Supabase with Base44 fallback)
   const { data: clients = [] } = useQuery({
     queryKey: ['clients', activeWorkspace?.id],
     queryFn: async () => {
       if (!activeWorkspace) return [];
-      return await base44.entities.Client.filter({ workspace_id: activeWorkspace.id }) || [];
+      return await fetchClientsWithFallback(activeWorkspace.id, base44);
     },
     enabled: !!activeWorkspace,
     staleTime: 5 * 60 * 1000, // 5 minutes

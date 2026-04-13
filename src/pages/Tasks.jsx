@@ -12,6 +12,7 @@ import TaskFilters from '@/components/tasks/TaskFilters';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { fetchTasksWithFallback, createTaskWithFallback, deleteTaskWithFallback, updateTaskWithFallback } from '@/lib/supabaseClient';
 
 export default function Tasks() {
   const { language } = useLanguage();
@@ -23,15 +24,12 @@ export default function Tasks() {
   const [editingTask, setEditingTask] = useState(null);
   const isRTL = language === 'he';
 
-  // Fetch tasks
+  // Fetch tasks (Supabase with Base44 fallback)
   const { data: tasks = [], isLoading, refetch } = useQuery({
     queryKey: ['tasks', activeWorkspace?.id],
     queryFn: async () => {
       if (!activeWorkspace) return [];
-      return await base44.entities.Task.filter(
-        { workspace_id: activeWorkspace.id },
-        '-created_date'
-      );
+      return await fetchTasksWithFallback(activeWorkspace.id, base44);
     },
     enabled: !!activeWorkspace,
     staleTime: 0
@@ -65,13 +63,17 @@ export default function Tasks() {
 
   // Create task mutation
   const createTaskMutation = useMutation({
-    mutationFn: (taskData) => {
+    mutationFn: async (taskData) => {
       if (!activeWorkspace) throw new Error('No workspace');
-      return base44.entities.Task.create({
-        ...taskData,
-        workspace_id: activeWorkspace.id,
-        status: 'open'
-      });
+      return await createTaskWithFallback(
+        {
+          ...taskData,
+          workspace_id: activeWorkspace.id,
+          status: 'open',
+          created_at: new Date().toISOString()
+        },
+        base44
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -86,8 +88,8 @@ export default function Tasks() {
 
   // Update task mutation
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, ...data }) => {
-      return base44.entities.Task.update(id, data);
+    mutationFn: async ({ id, ...data }) => {
+      return await updateTaskWithFallback(id, data, base44);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -102,7 +104,7 @@ export default function Tasks() {
 
   // Delete task mutation
   const deleteTaskMutation = useMutation({
-    mutationFn: (taskId) => base44.entities.Task.delete(taskId),
+    mutationFn: async (taskId) => await deleteTaskWithFallback(taskId, base44),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       toast.success(language === 'he' ? 'משימה נמחקה' : 'Task deleted');
