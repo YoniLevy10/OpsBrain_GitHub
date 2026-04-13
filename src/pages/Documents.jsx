@@ -474,7 +474,12 @@ export default function Documents() {
                             <Star className={cn("w-4 h-4 ml-2", doc.is_favorite && "fill-yellow-400 text-yellow-400")} />
                             {doc.is_favorite ? (language === 'he' ? 'הסר ממועדפים' : 'Remove from favorites') : (language === 'he' ? 'הוסף למועדפים' : 'Add to favorites')}
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600" onClick={(e) => { e.stopPropagation(); deleteDocMutation.mutate(doc.id); }}>
+                          <DropdownMenuItem className="text-red-600" onClick={(e) => { 
+                            e.stopPropagation();
+                            if (confirm(language === 'he' ? 'האם אתה בטוח שברצונך למחוק מסמך זה?' : 'Are you sure you want to delete this document?')) {
+                              deleteDocMutation.mutate(doc.id);
+                            }
+                          }}>
                             <Trash2 className="w-4 h-4 ml-2" />
                             {language === 'he' ? 'מחק' : 'Delete'}
                           </DropdownMenuItem>

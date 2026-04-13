@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Users, UserPlus, Mail, Trash2, Shield, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Users, UserPlus, Mail, Trash2, Shield, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { toast } from 'sonner';
@@ -225,7 +225,11 @@ export default function TeamManager() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => removeMutation.mutate(member.id)}
+                            onClick={() => {
+                              if (confirm(language === 'he' ? `האם אתה בטוח שברצונך להסיר את ${member.user?.full_name || 'חבר זה'}?` : `Are you sure you want to remove ${member.user?.full_name || 'this member'}?`)) {
+                                removeMutation.mutate(member.id);
+                              }
+                            }}
                             className="text-red-600 hover:bg-red-50"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -285,8 +289,17 @@ export default function TeamManager() {
                 disabled={inviteMutation.isPending}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                <Mail className="w-4 h-4 ml-2" />
-                {language === 'he' ? 'שלח הזמנה' : 'Send Invitation'}
+                {inviteMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                    {language === 'he' ? 'שולח...' : 'Sending...'}
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 ml-2" />
+                    {language === 'he' ? 'שלח הזמנה' : 'Send Invitation'}
+                  </>
+                )}
               </Button>
             </div>
           </div>
