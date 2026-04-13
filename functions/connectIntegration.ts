@@ -1,20 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
- * חיבור אינטגרציה חדשה ל-Workspace
- * מקבל: integration_name, integration_type, credentials, settings
+ * Connect a new integration to workspace
+ * Input: integration_name, integration_type, credentials, settings
+ * Stage 1: Security Hardened - verifies workspace membership
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // אימות משתמש
+    // Authenticate user
     const user = await base44.auth.me();
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // קבלת workspace פעיל
+    // Get active workspace
     const stateRecords = await base44.entities.UserWorkspaceState.filter({
       user_id: user.id
     });
@@ -25,7 +26,20 @@ Deno.serve(async (req) => {
 
     const workspaceId = stateRecords[0].active_workspace_id;
 
-    // קריאת body
+    // SECURITY: Stage 1 - Verify workspace membership before allowing mutation
+    const membership = await base44.entities.WorkspaceMember.filter({
+      workspace_id: workspaceId,
+      user_id: user.id
+    });
+
+    if (membership.length === 0) {
+      return Response.json(
+        { error: 'Access denied: not a member of this workspace' },
+        { status: 403 }
+      );
+    }
+
+    // Parse request body
     const { integration_name, integration_type, credentials, settings } = await req.json();
 
     if (!integration_name || !integration_type) {
@@ -34,7 +48,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // בדוק אם כבר קיים
+    // Check if integration already exists
     const existing = await base44.entities.WorkspaceIntegration.filter({
       workspace_id: workspaceId,
       integration_name
@@ -43,7 +57,7 @@ Deno.serve(async (req) => {
     let integration;
     
     if (existing.length > 0) {
-      // עדכן קיים
+      // Update existing
       integration = await base44.entities.WorkspaceIntegration.update(existing[0].id, {
         credentials,
         settings,
@@ -51,7 +65,7 @@ Deno.serve(async (req) => {
         last_sync: new Date().toISOString()
       });
     } else {
-      // צור חדש
+      // Create new
       integration = await base44.entities.WorkspaceIntegration.create({
         workspace_id: workspaceId,
         integration_name,

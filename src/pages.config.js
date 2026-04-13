@@ -59,12 +59,10 @@
 // SECTION 1: V1 CORE PAGES (Active)
 // ============================================
 // These pages are part of v1 launch and appear in navigation
-import Calendar from './pages/Calendar';
 import Chat from './pages/Chat';
 import Clients from './pages/Clients';
 import Dashboard from './pages/Dashboard';
 import Documents from './pages/Documents';
-import Integrations from './pages/Integrations';
 import Onboarding from './pages/Onboarding';
 import Projects from './pages/Projects';
 import Settings from './pages/Settings';
@@ -77,6 +75,12 @@ import Team from './pages/Team';
 // To enable in v1.1, uncomment the imports AND add to PAGES export below.
 // See: OPSBRAIN_V1_CLEANUP.md for details on why each is deferred
 //
+// CALENDARING & INTEGRATIONS (v1.1 - Stage 1 Deferred):
+/*
+import Calendar from './pages/Calendar';                      // Calendar sync - needs real OAuth + Google Sync
+import Integrations from './pages/Integrations';              // Integrations hub - sync operations mocked
+*/
+
 // ANALYTICS & REPORTING (v1.1):
 /*
 import Analytics from './pages/Analytics';                    // Analytics dashboard
@@ -130,18 +134,19 @@ import __Layout from './Layout.jsx';
 // ============================================
 export const PAGES = {
     // v1 Core (always active)
-    "Calendar": Calendar,
     "Chat": Chat,
     "Clients": Clients,
     "Dashboard": Dashboard,
     "Documents": Documents,
-    "Integrations": Integrations,
     "Onboarding": Onboarding,
     "Projects": Projects,
     "Settings": Settings,
     "Team": Team,
     
     // v1.1+ Deferred (comment IN to enable)
+    // STAGE 1 DEFERRED: Sync operations currently mocked, not real
+    // "Calendar": Calendar,
+    // "Integrations": Integrations,
     // "Analytics": Analytics,
     // "WorkspaceAnalytics": WorkspaceAnalytics,
     // "Reports": Reports,

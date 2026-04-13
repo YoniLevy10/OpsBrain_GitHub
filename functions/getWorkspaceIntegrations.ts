@@ -1,20 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
- * דוגמה ל-Backend Function מודע ל-Workspace
- * מחזיר את כל האינטגרציות המחוברות ל-Workspace הפעיל
+ * Get workspace integrations with workspace membership verification
+ * Returns all integrations connected to the active workspace (Stage 1: Security Hardened)
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // אימות משתמש
+    // Authenticate user
     const user = await base44.auth.me();
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // קבלת workspace פעיל
+    // Get active workspace
     const stateRecords = await base44.entities.UserWorkspaceState.filter({
       user_id: user.id
     });
@@ -25,7 +25,20 @@ Deno.serve(async (req) => {
 
     const workspaceId = stateRecords[0].active_workspace_id;
 
-    // קבלת אינטגרציות עבור workspace זה בלבד
+    // SECURITY: Stage 1 - Verify workspace membership before returning data
+    const membership = await base44.entities.WorkspaceMember.filter({
+      workspace_id: workspaceId,
+      user_id: user.id
+    });
+
+    if (membership.length === 0) {
+      return Response.json(
+        { error: 'Access denied: not a member of this workspace' },
+        { status: 403 }
+      );
+    }
+
+    // Get integrations for this workspace
     const integrations = await base44.entities.WorkspaceIntegration.filter({
       workspace_id: workspaceId
     });
