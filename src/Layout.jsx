@@ -18,7 +18,8 @@ import {
   DollarSign,
   Search,
   ArrowLeft,
-  ChevronLeft
+  ChevronLeft,
+  CheckSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,7 +46,7 @@ function LayoutContent({ children, currentPageName }) {
   });
 
   // OpsBrain v1: Main navigation pages
-  const mainPages = ['Dashboard', 'Clients', 'Projects', 'Documents', 'Settings'];
+  const mainPages = ['Dashboard', 'Clients', 'Projects', 'Documents', 'Chat', 'Tasks', 'Settings'];
   const isChildRoute = !mainPages.includes(currentPageName);
   
   // Save scroll position and state before navigation
@@ -117,7 +118,7 @@ function LayoutContent({ children, currentPageName }) {
   }, []);
 
   // OpsBrain v1 Core Navigation
-  // Focused on: Dashboard, Clients, Projects, Documents, Chat, Team, Settings
+  // Focused on: Dashboard, Clients, Projects, Documents, Chat, Tasks, Team, Settings
   // Deferred to v1.1: Calendar (needs event CRUD), Integrations (sync completely mocked)
   // Deferred to v1.1+: Finance, Automations, Analytics, Reports, Invoices, etc.
   // See OPSBRAIN_V1_GAP_CLOSING_PLAN.md and OPSBRAIN_V1_REALITY_CHECK.md
@@ -127,6 +128,7 @@ function LayoutContent({ children, currentPageName }) {
     { name: language === 'he' ? 'פרויקטים' : 'Projects', href: createPageUrl('Projects'), icon: FolderKanban, page: 'Projects' },
     { name: language === 'he' ? 'מסמכים' : 'Documents', href: createPageUrl('Documents'), icon: FileText, page: 'Documents' },
     { name: language === 'he' ? 'צ\'אט' : 'Chat', href: createPageUrl('Chat'), icon: Brain, page: 'Chat' },
+    { name: language === 'he' ? 'משימות' : 'Tasks', href: createPageUrl('Tasks'), icon: CheckSquare, page: 'Tasks' },
     // TODO v1.1: Calendar - needs event creation CRUD, Google Sync implementation
     // { name: language === 'he' ? 'קלנדר' : 'Calendar', href: createPageUrl('Calendar'), icon: MessageSquare, page: 'Calendar' },
     // TODO v1.1: Integrations - sync operations are currently mocked (random data); needs real OAuth + API

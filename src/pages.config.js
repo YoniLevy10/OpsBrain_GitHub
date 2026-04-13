@@ -66,6 +66,7 @@ import Documents from './pages/Documents';
 import Onboarding from './pages/Onboarding';
 import Projects from './pages/Projects';
 import Settings from './pages/Settings';
+import Tasks from './pages/Tasks';
 import Team from './pages/Team';
 
 // ============================================
@@ -141,6 +142,7 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "Projects": Projects,
     "Settings": Settings,
+    "Tasks": Tasks,
     "Team": Team,
     
     // v1.1+ Deferred (comment IN to enable)
