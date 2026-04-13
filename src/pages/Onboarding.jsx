@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { toast } from 'sonner';
 import { useLanguage } from '@/components/LanguageContext';
+import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import MessageBubble from '../components/chat/MessageBubble';
 import ModuleSelector from '../components/onboarding/ModuleSelector';
 
@@ -153,11 +154,13 @@ export default function Onboarding() {
   const [isComplete, setIsComplete] = useState(false);
   const [showModuleSelector, setShowModuleSelector] = useState(false);
   const [selectedModules, setSelectedModules] = useState(null);
+  const [checkingCompletion, setCheckingCompletion] = useState(true);
   const messagesEndRef = useRef(null);
   
   const { t, language } = useLanguage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { activeWorkspace } = useWorkspace();
 
   const questions = [
     {
@@ -186,9 +189,36 @@ export default function Onboarding() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Stage 3: Check if onboarding is already completed
   useEffect(() => {
-    initConversation();
-  }, []);
+    checkOnboardingStatus();
+  }, [activeWorkspace]);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      if (!activeWorkspace) {
+        setCheckingCompletion(false);
+        return;
+      }
+
+      // If workspace already completed onboarding, redirect to dashboard
+      if (activeWorkspace.onboarding_completed) {
+        navigate(createPageUrl('Dashboard'));
+        return;
+      }
+
+      setCheckingCompletion(false);
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      setCheckingCompletion(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!checkingCompletion) {
+      initConversation();
+    }
+  }, [checkingCompletion]);
 
   const initConversation = async () => {
     try {
@@ -385,97 +415,108 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4" dir={language === 'he' ? 'rtl' : 'ltr'}>
-      <div className="max-w-3xl w-full">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Brain className="w-8 h-8 text-white" />
+    <>
+      {checkingCompletion ? (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-gray-600 animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">{language === 'he' ? 'טוען...' : 'Loading...'}</p>
           </div>
-          <h1 className="text-3xl font-bold mb-2">
-            {language === 'he' ? 'ברוכים הבאים ל-OpsBrain' : 'Welcome to OpsBrain'}
-          </h1>
-          <p className="text-gray-500">
-            {language === 'he' 
-              ? 'העוזר האישי שלך מתכונן להכיר אותך'
-              : 'Your personal assistant is getting to know you'}
-          </p>
         </div>
-
-        <Card className="border-0 shadow-2xl">
-          <CardContent className="p-0">
-            <div className="h-[500px] overflow-y-auto p-6 space-y-4">
-              {messages.map((msg, idx) => (
-                <MessageBubble key={idx} message={msg} />
-              ))}
-              {isLoading && (
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">{language === 'he' ? 'מקליד...' : 'Typing...'}</span>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+      ) : (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4" dir={language === 'he' ? 'rtl' : 'ltr'}>
+          <div className="max-w-3xl w-full">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold mb-2">
+                {language === 'he' ? 'ברוכים הבאים ל-OpsBrain' : 'Welcome to OpsBrain'}
+              </h1>
+              <p className="text-gray-500">
+                {language === 'he' 
+                  ? 'העוזר האישי שלך מתכונן להכיר אותך'
+                  : 'Your personal assistant is getting to know you'}
+              </p>
             </div>
 
-            <div className="border-t border-gray-100 p-4">
-              {!isComplete ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    onKeyPress={handleKeyPress}
-                    placeholder={language === 'he' ? 'הקלד את תשובתך...' : 'Type your answer...'}
-                    disabled={isLoading}
-                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black text-sm"
-                    autoFocus
-                  />
-                </div>
-              ) : showModuleSelector ? (
-                <ModuleSelector
-                  businessType={businessData.business_type || 'consultant'}
-                  language={language}
-                  onConfirm={handleModuleConfirm}
-                />
-              ) : (
-                <Button
-                  onClick={() => navigate(createPageUrl('Dashboard'))}
-                  disabled={createMutation.isPending}
-                  className="w-full bg-black hover:bg-gray-800 rounded-xl py-6 text-base"
-                >
-                  {createMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      {language === 'he' ? 'מגדיר את המערכת...' : 'Setting up...'}
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      {language === 'he' ? 'בואו נתחיל!' : "Let's Start!"}
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </>
+            <Card className="border-0 shadow-2xl">
+              <CardContent className="p-0">
+                <div className="h-[500px] overflow-y-auto p-6 space-y-4">
+                  {messages.map((msg, idx) => (
+                    <MessageBubble key={idx} message={msg} />
+                  ))}
+                  {isLoading && (
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm">{language === 'he' ? 'מקליד...' : 'Typing...'}</span>
+                    </div>
                   )}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                  <div ref={messagesEndRef} />
+                </div>
 
-        {!isComplete && (
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-500">
-              {language === 'he' ? `שאלה ${currentQuestion + 1} מתוך ${questions.length}` : `Question ${currentQuestion + 1} of ${questions.length}`}
-            </p>
-            <div className="flex justify-center gap-1 mt-2">
-              {questions.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`h-1.5 rounded-full transition-all ${
-                    idx <= currentQuestion ? 'w-8 bg-black' : 'w-4 bg-gray-200'
-                  }`}
-                />
-              ))}
-            </div>
+                <div className="border-t border-gray-100 p-4">
+                  {!isComplete ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        onKeyPress={handleKeyPress}
+                        placeholder={language === 'he' ? 'הקלד את תשובתך...' : 'Type your answer...'}
+                        disabled={isLoading}
+                        className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                        autoFocus
+                      />
+                    </div>
+                  ) : showModuleSelector ? (
+                    <ModuleSelector
+                      businessType={businessData.business_type || 'consultant'}
+                      language={language}
+                      onConfirm={handleModuleConfirm}
+                    />
+                  ) : (
+                    <Button
+                      onClick={() => navigate(createPageUrl('Dashboard'))}
+                      disabled={createMutation.isPending}
+                      className="w-full bg-black hover:bg-gray-800 rounded-xl py-6 text-base"
+                    >
+                      {createMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          {language === 'he' ? 'מגדיר את המערכת...' : 'Setting up...'}
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-5 h-5 mr-2" />
+                          {language === 'he' ? 'בואו נתחיל!' : "Let's Start!"}
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {!isComplete && (
+              <div className="text-center mt-4">
+                <p className="text-sm text-gray-500">
+                  {language === 'he' ? `שאלה ${currentQuestion + 1} מתוך ${questions.length}` : `Question ${currentQuestion + 1} of ${questions.length}`}
+                </p>
+                <div className="flex justify-center gap-1 mt-2">
+                  {questions.map((_, idx) => (
+                    <div
+                      key={idx}
+                      className={`h-1.5 rounded-full transition-all ${
+                        idx <= currentQuestion ? 'w-8 bg-black' : 'w-4 bg-gray-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 }
