@@ -7,10 +7,13 @@ import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { createPageUrl } from '../utils';
 import WelcomeCard from '../components/dashboard/WelcomeCard';
 import SmartInsights from '../components/dashboard/SmartInsights';
+import StatCard from '../components/dashboard/StatCard';
 import CustomizableDashboard from '../components/dashboard/CustomizableDashboard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import DashboardWithRefresh from '../components/dashboard/DashboardWithRefresh';
 import { generateInsights } from '@/lib/insightsEngine';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // TODO v1.1+: Deferred features - Uncomment when backend services are ready
 // - AssistantHero: AI assistant interface (requires chat backend)
@@ -75,10 +78,18 @@ export default function Dashboard() {
   // Generate insights from data
   const insights = generateInsights({ tasks, projects, clients });
 
+  // Calculate completed tasks
+  const completedTasks = tasks.filter(t => t.status === 'completed').length;
+
+  const handleQuickAction = (path) => {
+    navigate(createPageUrl(path));
+  };
+
   return (
     <DashboardWithRefresh>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-8">
+          <div className="space-y-8">
           
           {/* Welcome */}
           <WelcomeCard 
@@ -88,6 +99,66 @@ export default function Dashboard() {
 
           {/* Smart Insights */}
           <SmartInsights insights={insights} />
+
+          {/* Quick Actions Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Button
+              onClick={() => handleQuickAction('Tasks')}
+              variant="outline"
+              className="h-12 rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 flex items-center justify-center gap-2 font-semibold transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              {t && t('language') === 'he' ? 'משימה' : 'Task'}
+            </Button>
+            <Button
+              onClick={() => handleQuickAction('Projects')}
+              variant="outline"
+              className="h-12 rounded-xl border-2 border-gray-200 hover:border-green-400 hover:bg-green-50 flex items-center justify-center gap-2 font-semibold transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              {t && t('language') === 'he' ? 'פרויקט' : 'Project'}
+            </Button>
+            <Button
+              onClick={() => handleQuickAction('Clients')}
+              variant="outline"
+              className="h-12 rounded-xl border-2 border-gray-200 hover:border-purple-400 hover:bg-purple-50 flex items-center justify-center gap-2 font-semibold transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              {t && t('language') === 'he' ? 'לקוח' : 'Client'}
+            </Button>
+            <Button
+              onClick={() => handleQuickAction('Documents')}
+              variant="outline"
+              className="h-12 rounded-xl border-2 border-gray-200 hover:border-orange-400 hover:bg-orange-50 flex items-center justify-center gap-2 font-semibold transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              {t && t('language') === 'he' ? 'מסמך' : 'Document'}
+            </Button>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard
+              title={t && t('language') === 'he' ? 'משימות' : 'Tasks'}
+              value={tasks.length}
+              color="blue"
+            />
+            <StatCard
+              title={t && t('language') === 'he' ? 'פרויקטים' : 'Projects'}
+              value={projects.length}
+              color="green"
+            />
+            <StatCard
+              title={t && t('language') === 'he' ? 'לקוחות' : 'Clients'}
+              value={clients.length}
+              color="purple"
+            />
+            <StatCard
+              title={t && t('language') === 'he' ? 'הושלמו' : 'Completed'}
+              value={completedTasks}
+              color="orange"
+            />
+          </div>
 
           {/* Quick Start Guidance for New Workspaces */}
           {activeWorkspace && (!activeWorkspace.clients_count || activeWorkspace.clients_count === 0) && (
@@ -131,6 +202,7 @@ export default function Dashboard() {
             </Suspense>
           </div> */}
 
+        </div>
         </div>
       </div>
     </DashboardWithRefresh>
