@@ -30,7 +30,8 @@
 - **תקציר (סבב 2):** ניתוב עם `ProtectedRoute` + `Layout` + `<Outlet />`; הפניות מנתיבים קטנים ל-PascalCase; תיקון `profiles` (ללא `email`); מסמכים ב-`data` jsonb; `ErrorBoundary` ב-`main.jsx`.  
 - **תקציר (סבב 1):** הפרויקט הופרד מ-Base44; שכבת API מבוססת Supabase; מיגרציות DB (כולל יישור למסמך Reference); הגדרות Vercel/סביבה; לקוח Bamakor נפרד; תיעוד למפתחים בקובץ זה.  
 - **Responsive:** נוספה תיקייה מרכזית `opsbrain/src/lib/responsive/` (breakpoints + `useBreakpoint` / `useMinWidth`) ו־`opsbrain/src/styles/responsive.css` (safe-area, touch-target) — הרוב עדיין ב-Tailwind (`md:`, `lg:`) בתוך הקומפוננטות.  
-- **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`), commit ראשון, merge עם `origin/main`, ו־**push ל־`main` ב־`https://github.com/YoniLevy10/OpsBrain_GitHub`**.
+- **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`), commit ראשון, merge עם `origin/main`, ו־**push ל־`main` ב־`https://github.com/YoniLevy10/OpsBrain_GitHub`**.  
+- **Vercel:** נוסף `vercel.json` **בשורש הריפו** — `installCommand` / `buildCommand` עם `--prefix ./opsbrain` ו־`outputDirectory: opsbrain/dist`, ו־`framework: null` כדי שלא יריצו `vite` גלובלי (`vite: command not found`). בפרויקט Vercel: Root Directory = **שורש הריפו** (ריק), או השאר Root = `opsbrain` ואז מספיק `opsbrain/vercel.json` עם `npm run build` — אל תגדיר Override ל־`vite build` ידנית.
 
 ---
 
@@ -41,7 +42,7 @@
 | OpsBrain | אפליקציית React (Vite) תחת `opsbrain/` — מודולים רבים (CRM, פיננסים, דשבורד וכו') |
 | Backend נתונים | Supabase (PostgreSQL + Auth + Storage + Realtime לפי צורך) |
 | Bamakor | מודול נפרד; **פרויקט Supabase נפרד** — משתני `VITE_BAMAKOR_*` ב-`.env.local` |
-| פריסה | Vercel מומלץ; `opsbrain/vercel.json` — SPA rewrites |
+| פריסה | Vercel מומלץ; `vercel.json` בשורש + `opsbrain/vercel.json` — SPA rewrites; build דרך `npm run build` (לא `vite` ישירות) |
 | Edge Functions | חלק מהפיצ'רים (LLM, מיילים, וכו') דורשים פונקציות ב-Supabase — ראו משימות פתוחות |
 
 ---
@@ -69,6 +70,7 @@
 ```
 OPSBRAIN/
 ├── DEVELOPER_LOG.md              ← קובץ זה
+├── vercel.json                   ← פריסה משורש הריפו (prefix → opsbrain/)
 ├── OPSBRAIN_CURSOR_TASKS.md      ← משימות Cursor (שלבים CRITICAL → NICE TO HAVE)
 ├── .gitignore
 ├── .vscode/                      ← הגדרות workspace (אופציונלי)
@@ -93,6 +95,11 @@ OPSBRAIN/
 ---
 
 ## יומן שינויים (כרונולוגי)
+
+### 2026-04-19 (Vercel — vite: command not found)
+
+- נוסף `vercel.json` בשורש הריפו: `npm install --prefix ./opsbrain`, `npm run build --prefix ./opsbrain`, `outputDirectory: opsbrain/dist`, `framework: null`.
+- עודכן `opsbrain/vercel.json`: `framework: null`, `installCommand` מפורש — מונע שימוש ב־`vite build` כפקודה גלובלית.
 
 ### 2026-04-19 (סבב 3)
 

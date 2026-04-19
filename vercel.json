@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --prefix ./opsbrain",
+  "buildCommand": "npm run build --prefix ./opsbrain",
+  "outputDirectory": "opsbrain/dist",
+  "framework": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
