@@ -54,20 +54,34 @@ export default function Dashboard() {
       setWorkspaceId(wsId);
       if (!wsId) return;
 
-      const [tasksRes, contactsRes, docsRes, financeRes, recentRes] = await Promise.all([
-        supabase.from('tasks').select('id', { count: 'exact' }).eq('workspace_id', wsId).neq('status', 'done'),
-        supabase.from('contacts').select('id', { count: 'exact' }).eq('workspace_id', wsId),
-        supabase.from('documents').select('id', { count: 'exact' }).eq('workspace_id', wsId),
-        supabase.from('finance_records').select('amount').eq('workspace_id', wsId).eq('type', 'income'),
+      const [tasksRes, clientsRes, docsRes, txsRes, recentRes] = await Promise.all([
+        supabase.from('tasks').select('id, status, data').eq('workspace_id', wsId),
+        supabase.from('clients').select('id', { count: 'exact', head: true }).eq('workspace_id', wsId),
+        supabase.from('documents').select('id', { count: 'exact', head: true }).eq('workspace_id', wsId),
+        supabase.from('transactions').select('data').eq('workspace_id', wsId),
         supabase.from('tasks').select('*').eq('workspace_id', wsId).order('created_at', { ascending: false }).limit(5),
       ]);
 
-      const income = (financeRes.data || []).reduce((s, r) => s + (Number(r.amount) || 0), 0);
+      const taskRows = tasksRes.data || [];
+      const openTasks = taskRows.filter((t) => {
+        const s = String(t.status || t.data?.status || '').toLowerCase();
+        return s !== 'done' && s !== 'completed';
+      }).length;
+
+      const income = (txsRes.data || []).reduce((sum, row) => {
+        const d = row.data || {};
+        const type = String(d.type || d.category || '').toLowerCase();
+        const amt = Number(d.amount ?? d.value ?? 0);
+        if (type === 'expense' || type === 'הוצאה') return sum;
+        if (type === 'income' || type === 'הכנסה') return sum + amt;
+        if (!type && amt > 0) return sum + amt;
+        return sum;
+      }, 0);
 
       setStats({
-        tasks: tasksRes.count || 0,
-        contacts: contactsRes.count || 0,
-        documents: docsRes.count || 0,
+        tasks: openTasks,
+        contacts: clientsRes.count ?? 0,
+        documents: docsRes.count ?? 0,
         income,
       });
       setRecentTasks(recentRes.data || []);
@@ -151,11 +165,11 @@ export default function Dashboard() {
             <div className="p-6 text-center text-gray-400 text-sm">אין משימות עדיין</div>
           ) : recentTasks.map(task => (
             <div key={task.id} className="flex items-center gap-3 px-4 py-3">
-              {statusIcons[task.status] || statusIcons.todo}
-              <span className="flex-1 text-sm text-gray-800 truncate">{task.title}</span>
-              {task.priority && (
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${priorityColors[task.priority] || priorityColors.medium}`}>
-                  {task.priority}
+              {statusIcons[task.status || task.data?.status] || statusIcons.todo}
+              <span className="flex-1 text-sm text-gray-800 truncate">{task.title || task.data?.title}</span>
+              {(task.priority || task.data?.priority) && (
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${priorityColors[task.priority || task.data?.priority] || priorityColors.medium}`}>
+                  {task.priority || task.data?.priority}
                 </span>
               )}
             </div>

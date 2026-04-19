@@ -25,9 +25,10 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-19  
-- **תקציר:** הפרויקט הופרד מ-Base44; שכבת API מבוססת Supabase; מיגרציות DB (כולל יישור למסמך Reference); הגדרות Vercel/סביבה; לקוח Bamakor נפרד; תיעוד למפתחים בקובץ זה.  
+- **תקציר (סבב 2):** ניתוב מאוחד עם `ProtectedRoute` + `Layout` + `<Outlet />`; הפניות מנתיבים באנגלית קטנה (`/dashboard` וכו') לנתיבים הקיימים ב-PascalCase; דשבורד נשען על טבלאות הסכימה האמיתיות (`clients`, `transactions`, `tasks`, `documents`); תיקון `profiles` (ללא עמודת `email`); מסמכים — `insert` ל־`data` jsonb; `ErrorBoundary` עוטף את האפליקציה ב־`main.jsx`.  
+- **תקציר (סבב 1):** הפרויקט הופרד מ-Base44; שכבת API מבוססת Supabase; מיגרציות DB (כולל יישור למסמך Reference); הגדרות Vercel/סביבה; לקוח Bamakor נפרד; תיעוד למפתחים בקובץ זה.  
 - **Responsive:** נוספה תיקייה מרכזית `opsbrain/src/lib/responsive/` (breakpoints + `useBreakpoint` / `useMinWidth`) ו־`opsbrain/src/styles/responsive.css` (safe-area, touch-target) — הרוב עדיין ב-Tailwind (`md:`, `lg:`) בתוך הקומפוננטות.  
-- **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש (`package.json`, `package-lock.json`, `src/`, `node_modules` בשורש) — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`), commit ראשון, merge עם `origin/main` (פותר קונפליקט ב־`.gitignore`), ו־**push ל־`main` ב־`https://github.com/YoniLevy10/OpsBrain_GitHub`**.
+- **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`), commit ראשון, merge עם `origin/main`, ו־**push ל־`main` ב־`https://github.com/YoniLevy10/OpsBrain_GitHub`**.
 
 ---
 
@@ -88,7 +89,18 @@ OPSBRAIN/
 
 ## יומן שינויים (כרונולוגי)
 
-### 2026-04-19
+### 2026-04-19 (סבב 2)
+
+- `App.jsx`: מבנה `ProtectedRoute` → `Layout` עם `<Outlet />`, נתיבים מקוננים תחת `/`, והפניות מנתיבים קטנים (`/login`, `/dashboard`, …) לנתיבי האפליקציה (`/Login`, `/Dashboard`, …).
+- `Layout.jsx`: שימוש ב-`Outlet` במקום `children`, חישוב `currentPageName` מ-`useLocation()`.
+- `Dashboard.jsx`: KPI לפי `tasks` (סטטוס לא done/completed), `clients`, `documents`, סכימת הכנסות מ-`transactions.data`; תצוגת משימות אחרונות עם `title`/`data` ממוזגים.
+- `Register.jsx` / `Settings.jsx`: עדכון/upsert ל-`profiles` בלי `email`; הגדרות — שמירה עם `toast` (sonner) והזמנת צוות placeholder (אין חיפוש משתמש לפי אימייל ב-DB ציבורי).
+- `Documents.jsx`: העלאה ורשומת DB עם `data` jsonb; תצוגה תומכת גם בשורות ישנות עם שדות שטוחים.
+- `main.jsx`: עטיפה ב-`ErrorBoundary`.
+- `ProtectedRoute.jsx`: מסך טעינה מיושר למפרט (רקע אפור, ספינר סגול).
+- `vite.config.js`: ללא שינוי — alias `@` → `./src` (דרך `node:path` + `fileURLToPath`, תואם ESM).
+
+### 2026-04-19 (סבב 1)
 
 - נוספה שכבת responsive מרכזית: `src/lib/responsive/*`, `src/styles/responsive.css`, ייבוא ב-`main.jsx`.
 - הוסרו `@base44/sdk` ו-`@base44/vite-plugin`; נוסף `resolve.alias` ל-`@` ב-`vite.config.js`.
@@ -103,7 +115,7 @@ OPSBRAIN/
 ## המשך / משימות פתוחות (למפתחים ולסבבים הבאים)
 
 - [ ] להריץ מיגרציות בפרויקט Supabase (SQL Editor או CLI) ולוודא RLS מתאים לפרודקשן.
-- [ ] ליצור bucket `uploads` ב-Supabase Storage + מדיניות גישה.
+- [ ] ליצור bucket `documents` ב-Supabase Storage (פרטי) + מדיניות גישה — הקוד ב-`Documents.jsx` / `supabase.js` משתמש בשם `documents`.
 - [ ] לפרוס Edge Functions: `invoke-llm`, `send-email`, `sendTeamInvitation`, `extract-data-from-file`, `agent-reply`, וכו' — לפי קריאות ב-`client.js`.
 - [ ] לאחד או להשאיר `ml_insights` מול `ai_insights` לפי מודול AI.
 - [ ] לבדוק צ'אט (`Chat.jsx`) מול FK `messages.sender_id` → `profiles` ו-embed `profiles(full_name)`.

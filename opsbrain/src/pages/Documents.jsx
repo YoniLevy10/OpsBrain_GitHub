@@ -66,11 +66,13 @@ export default function Documents() {
       const url = getFileUrl('documents', path);
       const { data: doc } = await supabase.from('documents').insert({
         workspace_id: workspaceId,
-        title: file.name,
-        file_url: url,
-        file_size: file.size,
-        file_type: file.type,
-        uploaded_by: user.id,
+        data: {
+          title: file.name,
+          file_url: url,
+          file_size: file.size,
+          file_type: file.type,
+          uploaded_by: user.id,
+        },
       }).select().single();
       if (doc) setFiles(prev => [doc, ...prev]);
     }
@@ -85,9 +87,13 @@ export default function Documents() {
     { key: 'other', label: 'אחר' },
   ];
 
+  const rowTitle = (f) => f.data?.title ?? f.title;
+  const rowSize = (f) => f.data?.file_size ?? f.file_size;
+  const rowUrl = (f) => f.data?.file_url ?? f.file_url;
+
   const filtered = files.filter(f => {
     if (filter === 'all') return true;
-    const ext = f.title?.split('.').pop()?.toLowerCase();
+    const ext = rowTitle(f)?.split('.').pop()?.toLowerCase();
     if (filter === 'pdf') return ext === 'pdf';
     if (filter === 'image') return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
     return !['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
@@ -137,20 +143,21 @@ export default function Documents() {
               <p>אין קבצים עדיין. העלה את הקובץ הראשון!</p>
             </div>
           ) : filtered.map(file => {
-            const Icon = getIcon(file.title);
+            const title = rowTitle(file);
+            const Icon = getIcon(title);
             return (
               <div key={file.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col items-center gap-2 group hover:shadow-md transition-shadow">
                 <Icon className="w-10 h-10 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                <p className="text-xs text-gray-700 text-center truncate w-full font-medium">{file.title}</p>
-                {file.file_size && (
-                  <p className="text-xs text-gray-400">{formatSize(file.file_size)}</p>
-                )}
+                <p className="text-xs text-gray-700 text-center truncate w-full font-medium">{title}</p>
+                {rowSize(file) ? (
+                  <p className="text-xs text-gray-400">{formatSize(rowSize(file))}</p>
+                ) : null}
                 <p className="text-xs text-gray-400">
                   {new Date(file.created_at).toLocaleDateString('he-IL')}
                 </p>
-                {file.file_url && (
+                {rowUrl(file) && (
                   <a
-                    href={file.file_url}
+                    href={rowUrl(file)}
                     target="_blank"
                     rel="noreferrer"
                     className="mt-1 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"

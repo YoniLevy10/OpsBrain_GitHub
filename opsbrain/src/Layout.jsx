@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import {
   LayoutDashboard,
@@ -27,12 +27,13 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from './components/GlobalSearch';
 
-function LayoutContent({ children, currentPageName }) {
+function LayoutContent() {
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const currentPageName = location.pathname.split('/').filter(Boolean)[0] || 'Dashboard';
 
   const fullName = user?.user_metadata?.full_name || user?.email || 'משתמש';
   const initial = fullName[0]?.toUpperCase() || '?';
@@ -221,7 +222,7 @@ function LayoutContent({ children, currentPageName }) {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
           >
-            {children}
+            <Outlet />
           </motion.div>
         </AnimatePresence>
       </main>
@@ -231,6 +232,6 @@ function LayoutContent({ children, currentPageName }) {
   );
 }
 
-export default function Layout(props) {
-  return <LayoutContent {...props} />;
+export default function Layout() {
+  return <LayoutContent />;
 }

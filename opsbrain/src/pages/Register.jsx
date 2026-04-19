@@ -50,11 +50,9 @@ export default function Register() {
         role: 'owner'
       });
 
-      // Create profile
       await supabase.from('profiles').upsert({
         id: userId,
         full_name: form.fullName,
-        email: form.email
       });
 
       navigate('/Dashboard');

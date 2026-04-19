@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { User, Building2, Users, Bell, Save, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 const TABS = [
   { key: 'profile', label: 'פרופיל', icon: User },
@@ -40,7 +41,7 @@ export default function Settings() {
       const { data: ws } = await supabase.from('workspaces').select('*').eq('id', wsId).single();
       if (ws) setWorkspace({ name: ws.name || '', slug: ws.slug || '' });
 
-      const { data: mems } = await supabase.from('workspace_members').select('*, profiles(full_name, email)').eq('workspace_id', wsId);
+      const { data: mems } = await supabase.from('workspace_members').select('*, profiles(full_name)').eq('workspace_id', wsId);
       setMembers(mems || []);
     }
   };
@@ -52,33 +53,39 @@ export default function Settings() {
 
   const saveProfile = async () => {
     setSaving(true);
-    await supabase.from('profiles').upsert({
-      id: user.id,
-      full_name: profile.full_name,
-      phone: profile.phone,
-      email: user.email,
-    });
+    const { error } = await supabase
+      .from('profiles')
+      .update({ full_name: profile.full_name, phone: profile.phone })
+      .eq('id', user.id);
     setSaving(false);
+    if (error) {
+      toast.error(error.message || 'שגיאה בשמירת הפרופיל');
+      return;
+    }
+    toast.success('הפרופיל נשמר בהצלחה');
     showSaved();
   };
 
   const saveBusiness = async () => {
     if (!workspaceId) return;
     setSaving(true);
-    await supabase.from('workspaces').update({ name: workspace.name, slug: workspace.slug }).eq('id', workspaceId);
+    const { error } = await supabase
+      .from('workspaces')
+      .update({ name: workspace.name, slug: workspace.slug })
+      .eq('id', workspaceId);
     setSaving(false);
+    if (error) {
+      toast.error(error.message || 'שגיאה בשמירה');
+      return;
+    }
+    toast.success('פרטי העסק נשמרו');
     showSaved();
   };
 
   const inviteMember = async () => {
     if (!inviteEmail.trim() || !workspaceId) return;
-    // Find user by email
-    const { data: userProfile } = await supabase.from('profiles').select('id').eq('email', inviteEmail.trim()).single();
-    if (userProfile) {
-      await supabase.from('workspace_members').insert({ workspace_id: workspaceId, user_id: userProfile.id, role: 'member' });
-      setInviteEmail('');
-      loadData();
-    }
+    toast.info('הזמנות לפי אימייל יתווספו בגרסה הבאה (נדרש שירות צד שרת או Edge Function).');
+    setInviteEmail('');
   };
 
   return (
@@ -153,11 +160,11 @@ export default function Settings() {
               {members.map(m => (
                 <div key={m.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                   <div className="w-8 h-8 bg-[#6C63FF] rounded-full flex items-center justify-center text-white text-xs font-bold">
-                    {(m.profiles?.full_name || m.profiles?.email || '?')[0]?.toUpperCase()}
+                    {(m.profiles?.full_name || m.user_id?.slice(0, 8) || '?')[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-800">{m.profiles?.full_name || '—'}</p>
-                    <p className="text-xs text-gray-500">{m.profiles?.email}</p>
+                    <p className="text-xs text-gray-500 font-mono">{m.user_id?.slice(0, 8)}…</p>
                   </div>
                   <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{m.role}</span>
                 </div>
