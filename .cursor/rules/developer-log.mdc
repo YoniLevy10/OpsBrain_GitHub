@@ -1,0 +1,12 @@
+---
+description: Keep DEVELOPER_LOG.md current for the team
+globs:
+alwaysApply: true
+---
+
+# OpsBrain developer log
+
+After completing meaningful work in this workspace (features, migrations, infra, refactors):
+
+1. Update `DEVELOPER_LOG.md` at the repo root: refresh **עדכון אחרון**, add a dated entry under **יומן שינויים**, and adjust **המשך / משימות פתוחות** if needed.
+2. Include `DEVELOPER_LOG.md` in the same git commit as the code changes.
