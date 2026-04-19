@@ -25,3 +25,9 @@ export const uploadFile = async (bucket, path, file) => {
 export const getFileUrl = (bucket, path) => {
   return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 };
+
+/** Bucket פרטי — קישור חתום לזמן קצר */
+export const createSignedUrl = async (bucket, path, expiresInSec = 3600) => {
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresInSec);
+  return { url: data?.signedUrl ?? null, error };
+};

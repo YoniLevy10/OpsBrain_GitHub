@@ -1,33 +1,19 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-
-export default function EmptyState({ 
-  icon: Icon, 
-  title, 
-  description, 
-  actionLabel, 
-  onAction,
-  className 
-}) {
+// @ts-nocheck
+export default function EmptyState({ icon = '📭', title, subtitle, action, onAction }) {
   return (
-    <Card className={className}>
-      <CardContent className="p-12 text-center">
-        {Icon && <Icon className="w-16 h-16 text-gray-300 mx-auto mb-4" />}
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {title}
-        </h3>
-        {description && (
-          <p className="text-gray-500 mb-6 max-w-md mx-auto">
-            {description}
-          </p>
-        )}
-        {actionLabel && onAction && (
-          <Button onClick={onAction} className="bg-black hover:bg-gray-800">
-            {actionLabel}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+    <div className="flex flex-col items-center justify-center py-16 text-center px-4" dir="rtl">
+      <div className="text-4xl mb-4" aria-hidden>{icon}</div>
+      <h3 className="text-lg font-medium text-gray-700 mb-2">{title}</h3>
+      {subtitle ? <p className="text-sm text-gray-400 mb-6 max-w-sm">{subtitle}</p> : null}
+      {action && onAction ? (
+        <button
+          type="button"
+          onClick={onAction}
+          className="px-4 py-2 min-h-[44px] bg-[#6C63FF] text-white rounded-lg text-sm hover:bg-[#5a52e0] transition-colors"
+        >
+          {action}
+        </button>
+      ) : null}
+    </div>
   );
 }

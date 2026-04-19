@@ -25,13 +25,14 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-19  
+- **תקציר (סבב 4 — Foundation / שלב 1):** `opsbrain/vercel.json` — רק **SPA rewrites** ל־`/index.html` (React Router). מומלץ ב-Vercel: **Root Directory = `opsbrain`**, משתני סביבה (`VITE_SUPABASE_*` וכו') ב-Settings → Environment Variables, ואז Redeploy. נוספו `Spinner.jsx` / `PageLoader` / `FullPageLoader`, `EmptyState.jsx`; `ProtectedRoute` משתמש ב-`FullPageLoader`. `Documents.jsx` — bucket `documents`, שמירת `storage_path`, הורדה ב-**Signed URL** ל-bucket פרטי; `Finance.jsx` — הוסר `created_by` (לא קיים ב-schema), `workspaceId` מה-context, `PageLoader`, בטיחות `records ?? []`. `Contacts.jsx` / `Calendar.jsx` — `workspaceId` מה-auth, `maybeSingle`, ריק/חיפוש ריק, `PageLoader`. `index.html` — `lang="he"`, `dir="rtl"`, title, description, `theme-color`. קובץ SQL: `supabase/storage_policies_documents.sql` (מדיניות Storage אחרי יצירת bucket). **יש לבצע ידנית:** יצירת bucket ב-Dashboard, הרצת SQL, הגדרת Vercel + E2E (רשימת VERIFY במסמך המשימות).  
 - **תקציר (סבב 3):** מיגרציה `20260421120000_v3_contacts_finance_policies_realtime.sql` — טבלאות `contacts` ו-`finance_records`, RLS לפי חברות ב-workspace, הוספת טבלאות ל-publication של Realtime (כשקיים `supabase_realtime`). `AuthContext` מחזיר `workspaceId`, `workspaceName`, `loadWorkspace`. `Dashboard` משתמש ב-`contacts` + `finance_records` (סכום `amount` להכנסות). `Register` — slug ייחודי (`baseSlug` + timestamp). `Chat` — שליפת הודעות עם `profiles(full_name, avatar_url)` ורענון אחרי INSERT ב-Realtime. `Tasks` — סטטוס ממוזג מ-`data`, כפתור "העבר לשלב הבא". `AIAgent` — הקשר מ-Supabase + OpenAI (`VITE_OPENAI_KEY`) או mock + שמירה ל-`ai_insights`. קובץ עזר `manual_storage_documents.sql` (הערות למדיניות Storage). **יש להריץ את המיגרציות ב-Supabase Dashboard** וליצור bucket `documents` ידנית לפי ההנחיות.  
 - **ניקוי ריפו:** הוסרו עותק ישן של אפליקציה בשורש ומסמכי stage/V1. נשמרו **`DEVELOPER_LOG.md`**, **`OPSBRAIN_CURSOR_TASKS.md`**, ותיקיית **`opsbrain/`**.  
 - **תקציר (סבב 2):** ניתוב עם `ProtectedRoute` + `Layout` + `<Outlet />`; הפניות מנתיבים קטנים ל-PascalCase; תיקון `profiles` (ללא `email`); מסמכים ב-`data` jsonb; `ErrorBoundary` ב-`main.jsx`.  
 - **תקציר (סבב 1):** הפרויקט הופרד מ-Base44; שכבת API מבוססת Supabase; מיגרציות DB (כולל יישור למסמך Reference); הגדרות Vercel/סביבה; לקוח Bamakor נפרד; תיעוד למפתחים בקובץ זה.  
 - **Responsive:** נוספה תיקייה מרכזית `opsbrain/src/lib/responsive/` (breakpoints + `useBreakpoint` / `useMinWidth`) ו־`opsbrain/src/styles/responsive.css` (safe-area, touch-target) — הרוב עדיין ב-Tailwind (`md:`, `lg:`) בתוך הקומפוננטות.  
 - **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`), commit ראשון, merge עם `origin/main`, ו־**push ל־`main` ב־`https://github.com/YoniLevy10/OpsBrain_GitHub`**.  
-- **Vercel:** נוסף `vercel.json` **בשורש הריפו** — `installCommand` / `buildCommand` עם `--prefix ./opsbrain` ו־`outputDirectory: opsbrain/dist`, ו־`framework: null` כדי שלא יריצו `vite` גלובלי (`vite: command not found`). בפרויקט Vercel: Root Directory = **שורש הריפו** (ריק), או השאר Root = `opsbrain` ואז מספיק `opsbrain/vercel.json` עם `npm run build` — אל תגדיר Override ל־`vite build` ידנית.
+- **Vercel:** קובץ **`opsbrain/vercel.json`** — rewrites ל-SPA בלבד. קובץ **`vercel.json` בשורש הריפו** (אם קיים) — build עם `--prefix ./opsbrain` כשה-Root Directory הוא שורש הריפו. **מומלץ:** Root Directory = **`opsbrain`**, בלי Override ל־`vite build`; הוסף `VITE_SUPABASE_URL` ו-`VITE_SUPABASE_ANON_KEY` ב-Environment Variables.
 
 ---
 
@@ -42,7 +43,7 @@
 | OpsBrain | אפליקציית React (Vite) תחת `opsbrain/` — מודולים רבים (CRM, פיננסים, דשבורד וכו') |
 | Backend נתונים | Supabase (PostgreSQL + Auth + Storage + Realtime לפי צורך) |
 | Bamakor | מודול נפרד; **פרויקט Supabase נפרד** — משתני `VITE_BAMAKOR_*` ב-`.env.local` |
-| פריסה | Vercel מומלץ; `vercel.json` בשורש + `opsbrain/vercel.json` — SPA rewrites; build דרך `npm run build` (לא `vite` ישירות) |
+| פריסה | Vercel: Root = `opsbrain`, `opsbrain/vercel.json` — rewrites ל־`/index.html`; משתני `VITE_*` ב-Dashboard |
 | Edge Functions | חלק מהפיצ'רים (LLM, מיילים, וכו') דורשים פונקציות ב-Supabase — ראו משימות פתוחות |
 
 ---
@@ -85,16 +86,31 @@ OPSBRAIN/
     │   ├── lib/bamakorSupabase.js
     │   ├── lib/responsive/       ← breakpoints, useBreakpoint (משלים Tailwind)
     │   └── styles/responsive.css
-    └── supabase/migrations/
-        ├── 20260419000000_init_opsbrain.sql
-        ├── 20260420000000_reference_doc_schema.sql
-        └── 20260421120000_v3_contacts_finance_policies_realtime.sql
-    └── supabase/manual_storage_documents.sql   ← הערות למדיניות bucket documents
+    ├── supabase/migrations/
+    │   ├── 20260419000000_init_opsbrain.sql
+    │   ├── 20260420000000_reference_doc_schema.sql
+    │   └── 20260421120000_v3_contacts_finance_policies_realtime.sql
+    ├── supabase/manual_storage_documents.sql
+    ├── supabase/storage_policies_documents.sql
+    └── src/components/
+        ├── Spinner.jsx
+        └── EmptyState.jsx
 ```
 
 ---
 
 ## יומן שינויים (כרונולוגי)
+
+### 2026-04-19 (סבב 4 — Foundation)
+
+- `opsbrain/vercel.json`: מינימלי — `rewrites` ל־`/index.html` ל-React Router.
+- `Spinner.jsx`, `EmptyState.jsx`; `ProtectedRoute` → `FullPageLoader`.
+- `Documents.jsx`: `storage_path`, הורדה עם `createSignedUrl` (bucket פרטי); `EmptyState` + `PageLoader`.
+- `Finance.jsx`: בלי `created_by`; `workspaceId` מה-auth; `list = records ?? []`; `PageLoader`.
+- `Contacts.jsx` / `Calendar.jsx`: אינטגרציה עם `workspaceId` מה-context; מצבי ריק/חיפוש; `PageLoader` / ספינר ביומן.
+- `index.html`: כותרת, תיאור, `theme-color`, `lang="he"`, `dir="rtl"`.
+- `supabase/storage_policies_documents.sql`: INSERT/SELECT/DELETE ל-bucket `documents`.
+- `supabase.js`: `createSignedUrl`.
 
 ### 2026-04-19 (Vercel — vite: command not found)
 
@@ -143,8 +159,9 @@ OPSBRAIN/
 
 ## המשך / משימות פתוחות (למפתחים ולסבבים הבאים)
 
+- [ ] **Vercel:** Root Directory = `opsbrain`, Environment Variables, Redeploy — עד שה-deployment ירוק (לא בוצע מהסביבה כאן).
 - [ ] **להריץ ב-Supabase:** `20260421120000_v3_contacts_finance_policies_realtime.sql` (אחרי שתי המיגרציות הקודמות). לוודא ב-Table Editor ש-`contacts` ו-`finance_records` קיימות.
-- [ ] **Storage:** ליצור bucket `documents` (פרטי) + מדיניות — ראו `opsbrain/supabase/manual_storage_documents.sql` וה-Dashboard.
+- [ ] **Storage:** ליצור bucket `documents` (פרטי) + להריץ `storage_policies_documents.sql` — ראו גם `manual_storage_documents.sql`.
 - [ ] לפרוס Edge Functions: `invoke-llm`, `send-email`, `sendTeamInvitation`, `extract-data-from-file`, `agent-reply`, וכו' — לפי קריאות ב-`client.js`.
 - [ ] לאחד או להשאיר `ml_insights` מול `ai_insights` לפי מודול AI.
 - [ ] למלא `user_id` ב-`workspace_members` לנתונים ישנים (אם קיימים) כדי שזיהוי workspace יעבוד.

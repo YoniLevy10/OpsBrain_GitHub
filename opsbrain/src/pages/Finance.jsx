@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { Plus, X, TrendingUp, TrendingDown } from 'lucide-react';
+import { PageLoader } from '@/components/Spinner';
 
 const emptyForm = { type: 'income', amount: '', currency: 'ILS', description: '', date: new Date().toISOString().split('T')[0] };
 
 export default function Finance() {
-  const { user } = useAuth();
+  const { user, workspaceId: authWs } = useAuth();
   const [records, setRecords] = useState([]);
   const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,11 +17,16 @@ export default function Finance() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { if (user) initWorkspace(); }, [user]);
+  useEffect(() => { if (user) initWorkspace(); }, [user, authWs]);
 
   const initWorkspace = async () => {
+    if (authWs) {
+      setWorkspaceId(authWs);
+      fetchRecords(authWs);
+      return;
+    }
     const { data } = await supabase
-      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).single();
+      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).maybeSingle();
     const wsId = data?.workspace_id;
     setWorkspaceId(wsId);
     if (wsId) fetchRecords(wsId);
@@ -45,7 +51,6 @@ export default function Finance() {
       currency: form.currency,
       description: form.description,
       date: form.date,
-      created_by: user.id,
     }).select().single();
     setSaving(false);
     if (!error && data) {
@@ -55,7 +60,8 @@ export default function Finance() {
     }
   };
 
-  const filtered = records.filter(r => r.type === tab);
+  const list = records ?? [];
+  const filtered = list.filter(r => r.type === tab);
   const total = filtered.reduce((s, r) => s + (Number(r.amount) || 0), 0);
 
   // Simple bar chart data — last 6 months
@@ -66,8 +72,8 @@ export default function Finance() {
   });
 
   const monthlyData = months.map(m => {
-    const inc = records.filter(r => r.type === 'income' && new Date(r.date).getMonth() === m.month && new Date(r.date).getFullYear() === m.year).reduce((s, r) => s + Number(r.amount), 0);
-    const exp = records.filter(r => r.type === 'expense' && new Date(r.date).getMonth() === m.month && new Date(r.date).getFullYear() === m.year).reduce((s, r) => s + Number(r.amount), 0);
+    const inc = list.filter(r => r.type === 'income' && new Date(r.date).getMonth() === m.month && new Date(r.date).getFullYear() === m.year).reduce((s, r) => s + Number(r.amount), 0);
+    const exp = list.filter(r => r.type === 'expense' && new Date(r.date).getMonth() === m.month && new Date(r.date).getFullYear() === m.year).reduce((s, r) => s + Number(r.amount), 0);
     return { ...m, income: inc, expense: exp };
   });
 
@@ -138,7 +144,7 @@ export default function Finance() {
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-12"><div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" /></div>
+          <PageLoader />
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">

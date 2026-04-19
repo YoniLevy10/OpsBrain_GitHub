@@ -1,8 +1,10 @@
 // @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
-import { supabase, uploadFile, getFileUrl } from '@/lib/supabase';
+import { supabase, uploadFile, createSignedUrl } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { Upload, Download, FileText, Image, File } from 'lucide-react';
+import { PageLoader } from '@/components/Spinner';
+import EmptyState from '@/components/EmptyState';
 
 const getIcon = (name) => {
   const ext = name?.split('.').pop()?.toLowerCase();
@@ -19,7 +21,7 @@ const formatSize = (bytes) => {
 };
 
 export default function Documents() {
-  const { user } = useAuth();
+  const { user, workspaceId: authWs } = useAuth();
   const [files, setFiles] = useState([]);
   const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,16 +32,15 @@ export default function Documents() {
   useEffect(() => {
     if (!user) return;
     initWorkspace();
-  }, [user]);
+  }, [user, authWs]);
 
   const initWorkspace = async () => {
-    const { data } = await supabase
+    const wsId = authWs || (await supabase
       .from('workspace_members')
       .select('workspace_id')
       .eq('user_id', user.id)
       .limit(1)
-      .single();
-    const wsId = data?.workspace_id;
+      .maybeSingle()).data?.workspace_id;
     setWorkspaceId(wsId);
     if (wsId) fetchFiles(wsId);
     else setLoading(false);
@@ -63,15 +64,14 @@ export default function Documents() {
     const path = `${workspaceId}/${Date.now()}_${file.name}`;
     const { error: storageErr } = await uploadFile('documents', path, file);
     if (!storageErr) {
-      const url = getFileUrl('documents', path);
       const { data: doc } = await supabase.from('documents').insert({
         workspace_id: workspaceId,
         data: {
           title: file.name,
-          file_url: url,
           file_size: file.size,
           file_type: file.type,
           uploaded_by: user.id,
+          storage_path: path,
         },
       }).select().single();
       if (doc) setFiles(prev => [doc, ...prev]);
@@ -89,7 +89,18 @@ export default function Documents() {
 
   const rowTitle = (f) => f.data?.title ?? f.title;
   const rowSize = (f) => f.data?.file_size ?? f.file_size;
-  const rowUrl = (f) => f.data?.file_url ?? f.file_url;
+  const storagePath = (f) => f.data?.storage_path;
+
+  const handleDownload = async (f) => {
+    const p = storagePath(f);
+    const legacyUrl = f.data?.file_url ?? f.file_url;
+    if (p) {
+      const { url, error } = await createSignedUrl('documents', p, 3600);
+      if (!error && url) window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (legacyUrl) window.open(legacyUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const filtered = files.filter(f => {
     if (filter === 'all') return true;
@@ -132,15 +143,18 @@ export default function Documents() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        </div>
+        <PageLoader />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {filtered.length === 0 ? (
-            <div className="col-span-full text-center py-16 text-gray-400">
-              <Upload className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p>אין קבצים עדיין. העלה את הקובץ הראשון!</p>
+            <div className="col-span-full">
+              <EmptyState
+                icon="📄"
+                title="אין מסמכים עדיין"
+                subtitle="העלה קובץ ראשון — הוא יישמר ב-bucket documents ב-Supabase."
+                action="העלה קובץ"
+                onAction={() => fileRef.current?.click()}
+              />
             </div>
           ) : filtered.map(file => {
             const title = rowTitle(file);
@@ -155,16 +169,15 @@ export default function Documents() {
                 <p className="text-xs text-gray-400">
                   {new Date(file.created_at).toLocaleDateString('he-IL')}
                 </p>
-                {rowUrl(file) && (
-                  <a
-                    href={rowUrl(file)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"
+                {(storagePath(file) || file.data?.file_url || file.file_url) && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownload(file)}
+                    className="mt-1 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 min-h-[44px] px-2"
                   >
                     <Download className="w-3 h-3" />
                     הורד
-                  </a>
+                  </button>
                 )}
               </div>
             );

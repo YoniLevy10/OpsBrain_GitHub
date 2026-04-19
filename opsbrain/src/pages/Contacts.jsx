@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 import { Plus, X, Search } from 'lucide-react';
+import { PageLoader } from '@/components/Spinner';
+import EmptyState from '@/components/EmptyState';
 
 const TYPE_LABELS = { client: 'לקוח', supplier: 'ספק', partner: 'שותף' };
 const TYPE_COLORS = {
@@ -14,7 +16,7 @@ const TYPE_COLORS = {
 const emptyForm = { name: '', email: '', phone: '', company: '', type: 'client' };
 
 export default function Contacts() {
-  const { user } = useAuth();
+  const { user, workspaceId: authWs } = useAuth();
   const [contacts, setContacts] = useState([]);
   const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,15 +28,20 @@ export default function Contacts() {
   useEffect(() => {
     if (!user) return;
     initWorkspace();
-  }, [user]);
+  }, [user, authWs]);
 
   const initWorkspace = async () => {
+    if (authWs) {
+      setWorkspaceId(authWs);
+      fetchContacts(authWs);
+      return;
+    }
     const { data } = await supabase
       .from('workspace_members')
       .select('workspace_id')
       .eq('user_id', user.id)
       .limit(1)
-      .single();
+      .maybeSingle();
     if (data?.workspace_id) {
       setWorkspaceId(data.workspace_id);
       fetchContacts(data.workspace_id);
@@ -105,9 +112,17 @@ export default function Contacts() {
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-8 h-8 border-4 border-[#00D4AA] border-t-transparent rounded-full animate-spin" />
-          </div>
+          <PageLoader />
+        ) : contacts.length === 0 ? (
+          <EmptyState
+            icon="👥"
+            title="אין אנשי קשר עדיין"
+            subtitle="הוסף לקוח או ספק ראשון — הנתונים נשמרים בטבלת contacts."
+            action="איש קשר חדש"
+            onAction={() => setModalOpen(true)}
+          />
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12 text-gray-400 text-sm">אין תוצאות לחיפוש</div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
@@ -120,11 +135,7 @@ export default function Contacts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-12 text-gray-400">אין אנשי קשר עדיין</td>
-                </tr>
-              ) : filtered.map(c => (
+              {filtered.map(c => (
                 <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 font-medium text-gray-800">{c.name}</td>
                   <td className="px-4 py-3 text-gray-500">{c.company || '—'}</td>

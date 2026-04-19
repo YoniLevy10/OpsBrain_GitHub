@@ -14,29 +14,38 @@ const PRIORITY_COLORS = {
 const WEEKDAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
 
 export default function Calendar() {
-  const { user } = useAuth();
+  const { user, workspaceId: authWs } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [workspaceId, setWorkspaceId] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [current, setCurrent] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  useEffect(() => { if (user) initWorkspace(); }, [user]);
+  useEffect(() => { if (user) initWorkspace(); }, [user, authWs]);
 
   const initWorkspace = async () => {
+    if (authWs) {
+      setWorkspaceId(authWs);
+      fetchTasks(authWs);
+      return;
+    }
     const { data } = await supabase
-      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).single();
+      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).maybeSingle();
     const wsId = data?.workspace_id;
     setWorkspaceId(wsId);
     if (wsId) fetchTasks(wsId);
+    else setLoading(false);
   };
 
   const fetchTasks = async (wsId) => {
+    setLoading(true);
     const { data } = await supabase
       .from('tasks').select('*').eq('workspace_id', wsId).not('due_date', 'is', null);
     setTasks(data || []);
+    setLoading(false);
   };
 
   const year = current.getFullYear();
@@ -50,7 +59,7 @@ export default function Calendar() {
   const goToday = () => { setCurrent(new Date()); setSelectedDay(null); };
 
   const tasksByDay = {};
-  tasks.forEach(t => {
+  (tasks || []).forEach(t => {
     if (!t.due_date) return;
     const d = new Date(t.due_date);
     if (d.getFullYear() === year && d.getMonth() === month) {
@@ -67,6 +76,16 @@ export default function Calendar() {
   const cells = [];
   for (let i = 0; i < firstDay; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto" dir="rtl">
+        <div className="flex justify-center py-24">
+          <div className="w-10 h-10 border-4 border-[#6C63FF] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto" dir="rtl">
