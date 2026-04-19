@@ -25,6 +25,7 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-19  
+- **ניקוי ריפו:** הוסרו עותק ישן של אפליקציה בשורש (`src/`, `public/`, `functions/`, `package.json`, Vite וכו') וכל מסמכי ה־stage/V1 שלא בשימוש. נשמרו בשורש: **`DEVELOPER_LOG.md`**, **`OPSBRAIN_CURSOR_TASKS.md`** (רשימת משימות Cursor מלאה — CRITICAL עד NICE TO HAVE), ותיקיית **`opsbrain/`** כקוד האפליקציה.  
 - **תקציר (סבב 2):** ניתוב מאוחד עם `ProtectedRoute` + `Layout` + `<Outlet />`; הפניות מנתיבים באנגלית קטנה (`/dashboard` וכו') לנתיבים הקיימים ב-PascalCase; דשבורד נשען על טבלאות הסכימה האמיתיות (`clients`, `transactions`, `tasks`, `documents`); תיקון `profiles` (ללא עמודת `email`); מסמכים — `insert` ל־`data` jsonb; `ErrorBoundary` עוטף את האפליקציה ב־`main.jsx`.  
 - **תקציר (סבב 1):** הפרויקט הופרד מ-Base44; שכבת API מבוססת Supabase; מיגרציות DB (כולל יישור למסמך Reference); הגדרות Vercel/סביבה; לקוח Bamakor נפרד; תיעוד למפתחים בקובץ זה.  
 - **Responsive:** נוספה תיקייה מרכזית `opsbrain/src/lib/responsive/` (breakpoints + `useBreakpoint` / `useMinWidth`) ו־`opsbrain/src/styles/responsive.css` (safe-area, touch-target) — הרוב עדיין ב-Tailwind (`md:`, `lg:`) בתוך הקומפוננטות.  
@@ -67,6 +68,7 @@
 ```
 OPSBRAIN/
 ├── DEVELOPER_LOG.md              ← קובץ זה
+├── OPSBRAIN_CURSOR_TASKS.md      ← משימות Cursor (שלבים CRITICAL → NICE TO HAVE)
 ├── .gitignore
 ├── .vscode/                      ← הגדרות workspace (אופציונלי)
 └── opsbrain/
@@ -88,6 +90,12 @@ OPSBRAIN/
 ---
 
 ## יומן שינויים (כרונולוגי)
+
+### 2026-04-19 (ניקוי מסמכים ושורש)
+
+- נמחקו מסמכי `OPSBRAIN_V1_*`, `OPSBRAIN_STAGE*`, `V1_*`, `CODEBASE_ANALYSIS`, `DEVELOPER_QUICK_REFERENCE`, `REMEDIATION_GUIDE`, `README` בשורש.
+- נמחק עותק ישן של Vite/React בשורש: `src/`, `public/`, `functions/`, קבצי `package.json` / lock / קונפיג Vite–Tailwind–ESLint בשורש.
+- נוסף `OPSBRAIN_CURSOR_TASKS.md` — העתק מסודר של רשימת המשימות ל-Cursor (כל השלבים).
 
 ### 2026-04-19 (סבב 2)
 
@@ -120,7 +128,7 @@ OPSBRAIN/
 - [ ] לאחד או להשאיר `ml_insights` מול `ai_insights` לפי מודול AI.
 - [ ] לבדוק צ'אט (`Chat.jsx`) מול FK `messages.sender_id` → `profiles` ו-embed `profiles(full_name)`.
 - [ ] למלא `user_id` ב-`workspace_members` לנתונים ישנים (אם קיימים) כדי שזיהוי workspace יעבוד.
-- [ ] (אופציונלי) לאחות README ישן שמזכיר Base44.
+- [ ] (אופציונלי) README בשורש — אם תרצה, הוסף `README.md` קצר עם הפניה ל-`DEVELOPER_LOG.md` ול-`opsbrain/`.
 
 ---
 
