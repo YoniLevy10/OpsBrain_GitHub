@@ -20,8 +20,17 @@ const PRIORITY_COLORS = {
 
 const emptyForm = { title: '', description: '', priority: 'medium', due_date: '' };
 
+const taskStatus = (t) => t.status || t.data?.status || 'todo';
+
+const statusFlow = {
+  todo: 'in_progress',
+  in_progress: 'done',
+  done: 'done',
+  blocked: 'todo',
+};
+
 export default function Tasks() {
-  const { user } = useAuth();
+  const { user, workspaceId: authWs } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,18 +38,18 @@ export default function Tasks() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    initWorkspace();
-  }, [user]);
-
   const initWorkspace = async () => {
+    if (authWs) {
+      setWorkspaceId(authWs);
+      fetchTasks(authWs);
+      return;
+    }
     const { data } = await supabase
       .from('workspace_members')
       .select('workspace_id')
       .eq('user_id', user.id)
       .limit(1)
-      .single();
+      .maybeSingle();
     if (data?.workspace_id) {
       setWorkspaceId(data.workspace_id);
       fetchTasks(data.workspace_id);
@@ -48,6 +57,11 @@ export default function Tasks() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    initWorkspace();
+  }, [user, authWs]);
 
   const fetchTasks = async (wsId) => {
     setLoading(true);
@@ -80,7 +94,18 @@ export default function Tasks() {
     }
   };
 
-  const tasksByStatus = (status) => tasks.filter(t => t.status === status);
+  const tasksByStatus = (status) => tasks.filter(t => taskStatus(t) === status);
+
+  const moveTask = async (task) => {
+    const cur = taskStatus(task);
+    const next = statusFlow[cur] || 'todo';
+    if (!workspaceId) return;
+    await supabase
+      .from('tasks')
+      .update({ status: next, updated_at: new Date().toISOString() })
+      .eq('id', task.id);
+    fetchTasks(workspaceId);
+  };
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto" dir="rtl">
@@ -112,11 +137,11 @@ export default function Tasks() {
               <div className="p-2 space-y-2 min-h-32">
                 {tasksByStatus(col.key).map(task => (
                   <div key={task.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                    <p className="text-sm font-medium text-gray-800 mb-2">{task.title}</p>
-                    <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-800 mb-2">{task.title || task.data?.title}</p>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                       {task.priority && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium}`}>
-                          {task.priority}
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority || task.data?.priority] || PRIORITY_COLORS.medium}`}>
+                          {task.priority || task.data?.priority}
                         </span>
                       )}
                       {task.due_date && (
@@ -125,6 +150,15 @@ export default function Tasks() {
                         </span>
                       )}
                     </div>
+                    {taskStatus(task) !== 'done' && (
+                      <button
+                        type="button"
+                        onClick={() => moveTask(task)}
+                        className="mt-2 w-full text-xs font-medium py-2 min-h-[44px] rounded-lg bg-white border border-gray-200 text-[#6C63FF] hover:bg-purple-50 transition-colors"
+                      >
+                        העבר לשלב הבא
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

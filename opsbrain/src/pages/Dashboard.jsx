@@ -23,7 +23,7 @@ const statusIcons = {
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, workspaceId: ctxWs } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ tasks: 0, contacts: 0, documents: 0, income: 0 });
   const [recentTasks, setRecentTasks] = useState([]);
@@ -37,28 +37,26 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     fetchData();
-  }, [user]);
+  }, [user, ctxWs]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Get workspace
-      const { data: member } = await supabase
+      const wsId = ctxWs || (await supabase
         .from('workspace_members')
         .select('workspace_id')
         .eq('user_id', user.id)
         .limit(1)
-        .single();
+        .maybeSingle()).data?.workspace_id;
 
-      const wsId = member?.workspace_id;
       setWorkspaceId(wsId);
       if (!wsId) return;
 
-      const [tasksRes, clientsRes, docsRes, txsRes, recentRes] = await Promise.all([
+      const [tasksRes, contactsRes, docsRes, incomeRes, recentRes] = await Promise.all([
         supabase.from('tasks').select('id, status, data').eq('workspace_id', wsId),
-        supabase.from('clients').select('id', { count: 'exact', head: true }).eq('workspace_id', wsId),
+        supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('workspace_id', wsId),
         supabase.from('documents').select('id', { count: 'exact', head: true }).eq('workspace_id', wsId),
-        supabase.from('transactions').select('data').eq('workspace_id', wsId),
+        supabase.from('finance_records').select('amount').eq('workspace_id', wsId).eq('type', 'income'),
         supabase.from('tasks').select('*').eq('workspace_id', wsId).order('created_at', { ascending: false }).limit(5),
       ]);
 
@@ -68,19 +66,12 @@ export default function Dashboard() {
         return s !== 'done' && s !== 'completed';
       }).length;
 
-      const income = (txsRes.data || []).reduce((sum, row) => {
-        const d = row.data || {};
-        const type = String(d.type || d.category || '').toLowerCase();
-        const amt = Number(d.amount ?? d.value ?? 0);
-        if (type === 'expense' || type === 'הוצאה') return sum;
-        if (type === 'income' || type === 'הכנסה') return sum + amt;
-        if (!type && amt > 0) return sum + amt;
-        return sum;
-      }, 0);
+      const incomeRows = incomeRes.data || [];
+      const income = incomeRows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
       setStats({
         tasks: openTasks,
-        contacts: clientsRes.count ?? 0,
+        contacts: contactsRes.count ?? 0,
         documents: docsRes.count ?? 0,
         income,
       });

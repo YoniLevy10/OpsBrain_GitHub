@@ -25,8 +25,9 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-19  
-- **ניקוי ריפו:** הוסרו עותק ישן של אפליקציה בשורש (`src/`, `public/`, `functions/`, `package.json`, Vite וכו') וכל מסמכי ה־stage/V1 שלא בשימוש. נשמרו בשורש: **`DEVELOPER_LOG.md`**, **`OPSBRAIN_CURSOR_TASKS.md`** (רשימת משימות Cursor מלאה — CRITICAL עד NICE TO HAVE), ותיקיית **`opsbrain/`** כקוד האפליקציה.  
-- **תקציר (סבב 2):** ניתוב מאוחד עם `ProtectedRoute` + `Layout` + `<Outlet />`; הפניות מנתיבים באנגלית קטנה (`/dashboard` וכו') לנתיבים הקיימים ב-PascalCase; דשבורד נשען על טבלאות הסכימה האמיתיות (`clients`, `transactions`, `tasks`, `documents`); תיקון `profiles` (ללא עמודת `email`); מסמכים — `insert` ל־`data` jsonb; `ErrorBoundary` עוטף את האפליקציה ב־`main.jsx`.  
+- **תקציר (סבב 3):** מיגרציה `20260421120000_v3_contacts_finance_policies_realtime.sql` — טבלאות `contacts` ו-`finance_records`, RLS לפי חברות ב-workspace, הוספת טבלאות ל-publication של Realtime (כשקיים `supabase_realtime`). `AuthContext` מחזיר `workspaceId`, `workspaceName`, `loadWorkspace`. `Dashboard` משתמש ב-`contacts` + `finance_records` (סכום `amount` להכנסות). `Register` — slug ייחודי (`baseSlug` + timestamp). `Chat` — שליפת הודעות עם `profiles(full_name, avatar_url)` ורענון אחרי INSERT ב-Realtime. `Tasks` — סטטוס ממוזג מ-`data`, כפתור "העבר לשלב הבא". `AIAgent` — הקשר מ-Supabase + OpenAI (`VITE_OPENAI_KEY`) או mock + שמירה ל-`ai_insights`. קובץ עזר `manual_storage_documents.sql` (הערות למדיניות Storage). **יש להריץ את המיגרציות ב-Supabase Dashboard** וליצור bucket `documents` ידנית לפי ההנחיות.  
+- **ניקוי ריפו:** הוסרו עותק ישן של אפליקציה בשורש ומסמכי stage/V1. נשמרו **`DEVELOPER_LOG.md`**, **`OPSBRAIN_CURSOR_TASKS.md`**, ותיקיית **`opsbrain/`**.  
+- **תקציר (סבב 2):** ניתוב עם `ProtectedRoute` + `Layout` + `<Outlet />`; הפניות מנתיבים קטנים ל-PascalCase; תיקון `profiles` (ללא `email`); מסמכים ב-`data` jsonb; `ErrorBoundary` ב-`main.jsx`.  
 - **תקציר (סבב 1):** הפרויקט הופרד מ-Base44; שכבת API מבוססת Supabase; מיגרציות DB (כולל יישור למסמך Reference); הגדרות Vercel/סביבה; לקוח Bamakor נפרד; תיעוד למפתחים בקובץ זה.  
 - **Responsive:** נוספה תיקייה מרכזית `opsbrain/src/lib/responsive/` (breakpoints + `useBreakpoint` / `useMinWidth`) ו־`opsbrain/src/styles/responsive.css` (safe-area, touch-target) — הרוב עדיין ב-Tailwind (`md:`, `lg:`) בתוך הקומפוננטות.  
 - **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`), commit ראשון, merge עם `origin/main`, ו־**push ל־`main` ב־`https://github.com/YoniLevy10/OpsBrain_GitHub`**.
@@ -84,12 +85,25 @@ OPSBRAIN/
     │   └── styles/responsive.css
     └── supabase/migrations/
         ├── 20260419000000_init_opsbrain.sql
-        └── 20260420000000_reference_doc_schema.sql
+        ├── 20260420000000_reference_doc_schema.sql
+        └── 20260421120000_v3_contacts_finance_policies_realtime.sql
+    └── supabase/manual_storage_documents.sql   ← הערות למדיניות bucket documents
 ```
 
 ---
 
 ## יומן שינויים (כרונולוגי)
+
+### 2026-04-19 (סבב 3)
+
+- מיגרציה v3: `contacts`, `finance_records`, RLS, ניסיון להוסיף `messages` / `notifications` / `ai_insights` ל-`supabase_realtime`.
+- `AuthContext.jsx`: `workspaceId`, `workspaceName`, טעינה אחרי session / `onAuthStateChange`.
+- `Dashboard.jsx`: `contacts`, `finance_records` (הכנסות), שימוש ב-`workspaceId` מה-context.
+- `Register.jsx`: slug ייחודי, ניווט ל-`/dashboard` (מופנה ל-`/Dashboard`).
+- `Chat.jsx`: embed פרופילים, רענון הודעות ב-Realtime; שימוש ב-`workspaceId` מה-auth כשקיים.
+- `Tasks.jsx`: סטטוס מעמודות + `data`, `moveTask` לשינוי סטטוס.
+- `AIAgent.jsx`: הקשר אמיתי + OpenAI אופציונלי + mock + `ai_insights`.
+- `manual_storage_documents.sql`: טיוטת מדיניות Storage (מופעל ידנית ב-Dashboard).
 
 ### 2026-04-19 (ניקוי מסמכים ושורש)
 
@@ -101,7 +115,7 @@ OPSBRAIN/
 
 - `App.jsx`: מבנה `ProtectedRoute` → `Layout` עם `<Outlet />`, נתיבים מקוננים תחת `/`, והפניות מנתיבים קטנים (`/login`, `/dashboard`, …) לנתיבי האפליקציה (`/Login`, `/Dashboard`, …).
 - `Layout.jsx`: שימוש ב-`Outlet` במקום `children`, חישוב `currentPageName` מ-`useLocation()`.
-- `Dashboard.jsx`: KPI לפי `tasks` (סטטוס לא done/completed), `clients`, `documents`, סכימת הכנסות מ-`transactions.data`; תצוגת משימות אחרונות עם `title`/`data` ממוזגים.
+- `Dashboard.jsx`: KPI (בסבב 3 הוחלף ל-`contacts` / `finance_records` — ראו סבב 3); תצוגת משימות אחרונות עם `title`/`data` ממוזגים.
 - `Register.jsx` / `Settings.jsx`: עדכון/upsert ל-`profiles` בלי `email`; הגדרות — שמירה עם `toast` (sonner) והזמנת צוות placeholder (אין חיפוש משתמש לפי אימייל ב-DB ציבורי).
 - `Documents.jsx`: העלאה ורשומת DB עם `data` jsonb; תצוגה תומכת גם בשורות ישנות עם שדות שטוחים.
 - `main.jsx`: עטיפה ב-`ErrorBoundary`.
@@ -122,13 +136,14 @@ OPSBRAIN/
 
 ## המשך / משימות פתוחות (למפתחים ולסבבים הבאים)
 
-- [ ] להריץ מיגרציות בפרויקט Supabase (SQL Editor או CLI) ולוודא RLS מתאים לפרודקשן.
-- [ ] ליצור bucket `documents` ב-Supabase Storage (פרטי) + מדיניות גישה — הקוד ב-`Documents.jsx` / `supabase.js` משתמש בשם `documents`.
+- [ ] **להריץ ב-Supabase:** `20260421120000_v3_contacts_finance_policies_realtime.sql` (אחרי שתי המיגרציות הקודמות). לוודא ב-Table Editor ש-`contacts` ו-`finance_records` קיימות.
+- [ ] **Storage:** ליצור bucket `documents` (פרטי) + מדיניות — ראו `opsbrain/supabase/manual_storage_documents.sql` וה-Dashboard.
 - [ ] לפרוס Edge Functions: `invoke-llm`, `send-email`, `sendTeamInvitation`, `extract-data-from-file`, `agent-reply`, וכו' — לפי קריאות ב-`client.js`.
 - [ ] לאחד או להשאיר `ml_insights` מול `ai_insights` לפי מודול AI.
-- [ ] לבדוק צ'אט (`Chat.jsx`) מול FK `messages.sender_id` → `profiles` ו-embed `profiles(full_name)`.
 - [ ] למלא `user_id` ב-`workspace_members` לנתונים ישנים (אם קיימים) כדי שזיהוי workspace יעבוד.
-- [ ] (אופציונלי) README בשורש — אם תרצה, הוסף `README.md` קצר עם הפניה ל-`DEVELOPER_LOG.md` ול-`opsbrain/`.
+- [ ] `NotificationCenter.jsx` — עדיין מסתמך על `opsbrain.entities` / `WorkspaceContext`; לאחד עם `notifications` ב-Supabase + `useAuth` בעתיד.
+- [ ] הוספת `VITE_OPENAI_KEY` ב-Vercel לפרודקשן (AI Agent).
+- [ ] (אופציונלי) README בשורש — `README.md` קצר עם הפניה ל-`DEVELOPER_LOG.md` ול-`opsbrain/`.
 
 ---
 

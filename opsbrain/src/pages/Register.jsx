@@ -14,7 +14,7 @@ export default function Register() {
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
 
   const slugify = (str) =>
-    str.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+    str.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,10 +34,12 @@ export default function Register() {
       const userId = data.user?.id;
       if (!userId) throw new Error('לא ניתן ליצור משתמש');
 
-      // Create workspace
+      const baseSlug = slugify(form.businessName) || 'workspace';
+      const slug = `${baseSlug}-${Date.now().toString(36)}`;
+
       const { data: workspace, error: wsErr } = await supabase
         .from('workspaces')
-        .insert({ name: form.businessName, slug: slugify(form.businessName), owner_id: userId })
+        .insert({ name: form.businessName, slug, owner_id: userId })
         .select()
         .single();
 
@@ -55,7 +57,7 @@ export default function Register() {
         full_name: form.fullName,
       });
 
-      navigate('/Dashboard');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'שגיאה ביצירת החשבון. נסה שנית.');
     } finally {

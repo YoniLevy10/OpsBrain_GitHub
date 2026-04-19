@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { Plus, Send, Hash, X } from 'lucide-react';
 
 export default function Chat() {
-  const { user } = useAuth();
+  const { user, workspaceId: authWorkspaceId } = useAuth();
   const [channels, setChannels] = useState([]);
   const [activeChannel, setActiveChannel] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -17,11 +17,20 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
 
-  useEffect(() => { if (user) initWorkspace(); }, [user]);
+  useEffect(() => {
+    if (!user) return;
+    const wsId = authWorkspaceId;
+    if (wsId) {
+      setWorkspaceId(wsId);
+      fetchChannels(wsId);
+      return;
+    }
+    initWorkspace();
+  }, [user, authWorkspaceId]);
 
   const initWorkspace = async () => {
     const { data } = await supabase
-      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).single();
+      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).maybeSingle();
     const wsId = data?.workspace_id;
     setWorkspaceId(wsId);
     if (wsId) fetchChannels(wsId);
@@ -55,7 +64,7 @@ export default function Chat() {
 
     const sub = supabase.channel(`room-${activeChannel.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `channel_id=eq.${activeChannel.id}` },
-        (payload) => setMessages(prev => [...prev, payload.new])
+        () => { fetchMessages(activeChannel.id); }
       )
       .subscribe();
 
@@ -64,7 +73,18 @@ export default function Chat() {
 
   const fetchMessages = async (channelId) => {
     const { data } = await supabase
-      .from('messages').select('*, profiles(full_name)').eq('channel_id', channelId).order('created_at');
+      .from('messages')
+      .select(`
+        id,
+        content,
+        created_at,
+        sender_id,
+        channel_id,
+        workspace_id,
+        profiles ( full_name, avatar_url )
+      `)
+      .eq('channel_id', channelId)
+      .order('created_at', { ascending: true });
     setMessages(data || []);
   };
 
