@@ -27,7 +27,7 @@
 - **תאריך:** 2026-04-19  
 - **תקציר:** הפרויקט הופרד מ-Base44; שכבת API מבוססת Supabase; מיגרציות DB (כולל יישור למסמך Reference); הגדרות Vercel/סביבה; לקוח Bamakor נפרד; תיעוד למפתחים בקובץ זה.  
 - **Responsive:** נוספה תיקייה מרכזית `opsbrain/src/lib/responsive/` (breakpoints + `useBreakpoint` / `useMinWidth`) ו־`opsbrain/src/styles/responsive.css` (safe-area, touch-target) — הרוב עדיין ב-Tailwind (`md:`, `lg:`) בתוך הקומפוננטות.  
-- **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש (`package.json`, `package-lock.json`, `src/`, `node_modules` בשורש) — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`) ואז commit ראשון. לדחיפה: `git remote add origin …` ו־`git push -u origin main` (נדרשת הרשאה ל-GitHub).
+- **Git / שורש הריפו:** נמחקו כפילויות ישנות בשורש (`package.json`, `package-lock.json`, `src/`, `node_modules` בשורש) — **מקור האמת לאפליקציה הוא רק `opsbrain/`**. בוצע תיקון אינדקס Git (הסרת gitlink שבור ל־`opsbrain`), commit ראשון, merge עם `origin/main` (פותר קונפליקט ב־`.gitignore`), ו־**push ל־`main` ב־`https://github.com/YoniLevy10/OpsBrain_GitHub`**.
 
 ---
 
