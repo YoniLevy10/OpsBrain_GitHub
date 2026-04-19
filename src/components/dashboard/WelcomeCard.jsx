@@ -14,33 +14,33 @@ export default function WelcomeCard({ userName, businessName }) {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-black p-5 md:p-8 text-white shadow-xl">
-      {/* Subtle animated background elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gray-700 rounded-full mix-blend-overlay filter blur-3xl opacity-10 animate-float"></div>
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-gray-600 rounded-full mix-blend-overlay filter blur-3xl opacity-10 animate-float" style={{ animationDelay: '1s' }}></div>
+    <div className="relative overflow-hidden rounded-2xl bg-sidebar p-5 md:p-8 text-white shadow-xl">
+      {/* Gradient accent elements */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full mix-blend-overlay filter blur-3xl opacity-20"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary rounded-full mix-blend-overlay filter blur-3xl opacity-15"></div>
       
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-5 h-5 text-gray-400" />
-          <span className="text-gray-400 text-sm font-medium">OpsBrain AI</span>
+          <Sparkles className="w-5 h-5 text-primary" />
+          <span className="text-primary text-sm font-medium">OpsBrain AI</span>
         </div>
         
-        <h1 className="text-2xl md:text-4xl font-bold mb-2">
-          {getGreeting()}, {userName || 'שם'}
+        <h1 className="text-2xl md:text-4xl font-bold mb-2 text-white">
+          {getGreeting()}, {userName || 'User'}
         </h1>
         
         {businessName && (
-          <p className="text-gray-300 text-lg mb-6">
+          <p className="text-sidebar-foreground text-lg mb-6">
             {businessName}
           </p>
         )}
         
         <div className="flex items-center gap-6 pt-4">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-300">{t('welcome.systemActive')}</span>
+            <div className="w-2 h-2 bg-secondary rounded-full animate-pulse"></div>
+            <span className="text-sm text-sidebar-foreground">{t('welcome.systemActive')}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
+          <div className="flex items-center gap-2 text-sm text-sidebar-foreground/60">
             <TrendingUp className="w-4 h-4" />
             <span>{t('welcome.dataUpdated')}</span>
           </div>
