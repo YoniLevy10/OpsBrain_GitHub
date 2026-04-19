@@ -101,6 +101,11 @@ OPSBRAIN/
 
 ## יומן שינויים (כרונולוגי)
 
+### 2026-04-19 (הסרת Splash Screen)
+
+- נמחק `SplashScreen.jsx`; `AppWrapper.jsx` — ללא מסך פתיחה, רק `Suspense` + `AuthGuard`.
+- `translations.jsx` — הוסר מפתח `splash` כפול (תיקון אזהרת esbuild ב-build).
+
 ### 2026-04-19 (סבב 4 — Foundation)
 
 - `opsbrain/vercel.json`: מינימלי — `rewrites` ל־`/index.html` ל-React Router.

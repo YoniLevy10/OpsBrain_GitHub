@@ -418,16 +418,6 @@ export const translations = {
       manage: 'Manage Subscriptions'
     },
     
-    // Splash Screen
-    splash: {
-      subtitle: 'AI Business Management'
-    },
-    
-    // Splash Screen
-    splash: {
-      subtitle: 'AI Business Management'
-    },
-    
     // Dashboard Components
     welcome: {
       morning: 'Good Morning',
