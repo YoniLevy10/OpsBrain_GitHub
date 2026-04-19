@@ -1,220 +1,293 @@
-// @ts-nocheck
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/lib/AuthContext';
-import { Plus, X, TrendingUp, TrendingDown } from 'lucide-react';
-import { PageLoader } from '@/components/Spinner';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
+import { PageLoader } from '../components/Spinner';
+import EmptyState from '../components/EmptyState';
+import { toast } from 'sonner';
 
-const emptyForm = { type: 'income', amount: '', currency: 'ILS', description: '', date: new Date().toISOString().split('T')[0] };
+const EMPTY_FORM = {
+  type: 'income',
+  amount: '',
+  currency: 'ILS',
+  description: '',
+  date: new Date().toISOString().split('T')[0],
+};
 
 export default function Finance() {
-  const { user, workspaceId: authWs } = useAuth();
+  const { workspaceId } = useAuth();
   const [records, setRecords] = useState([]);
-  const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('income');
-  const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { if (user) initWorkspace(); }, [user, authWs]);
+  useEffect(() => {
+    if (workspaceId) fetchRecords();
+  }, [workspaceId]);
 
-  const initWorkspace = async () => {
-    if (authWs) {
-      setWorkspaceId(authWs);
-      fetchRecords(authWs);
-      return;
-    }
-    const { data } = await supabase
-      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).maybeSingle();
-    const wsId = data?.workspace_id;
-    setWorkspaceId(wsId);
-    if (wsId) fetchRecords(wsId);
-    else setLoading(false);
-  };
-
-  const fetchRecords = async (wsId) => {
+  const fetchRecords = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from('finance_records').select('*').eq('workspace_id', wsId).order('date', { ascending: false });
-    setRecords(data || []);
+      .from('finance_records')
+      .select('*')
+      .eq('workspace_id', workspaceId)
+      .order('date', { ascending: false });
+    setRecords(data ?? []);
     setLoading(false);
   };
 
-  const saveRecord = async () => {
-    if (!form.amount || !workspaceId) return;
+  const save = async () => {
+    if (!form.amount || isNaN(Number(form.amount))) {
+      toast.error('סכום חובה');
+      return;
+    }
     setSaving(true);
-    const { data, error } = await supabase.from('finance_records').insert({
+    const { error } = await supabase.from('finance_records').insert({
       workspace_id: workspaceId,
       type: form.type,
-      amount: parseFloat(form.amount),
+      amount: Number(form.amount),
       currency: form.currency,
       description: form.description,
       date: form.date,
-    }).select().single();
-    setSaving(false);
-    if (!error && data) {
-      setRecords(prev => [data, ...prev]);
-      setForm(emptyForm);
-      setModalOpen(false);
+    });
+    if (error) {
+      toast.error('שגיאה בשמירה');
+      setSaving(false);
+      return;
     }
+    toast.success('רשומה נוספה');
+    setSaving(false);
+    setShowModal(false);
+    setForm(EMPTY_FORM);
+    fetchRecords();
   };
 
-  const list = records ?? [];
-  const filtered = list.filter(r => r.type === tab);
-  const total = filtered.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+  const deleteRecord = async (id) => {
+    if (!confirm('למחוק רשומה זו?')) return;
+    await supabase.from('finance_records').delete().eq('id', id);
+    fetchRecords();
+  };
 
-  // Simple bar chart data — last 6 months
-  const now = new Date();
+  const filtered = records.filter((r) => r.type === tab);
+  const total = filtered.reduce((s, r) => s + Number(r.amount || 0), 0);
+  const totalIncome = records.filter((r) => r.type === 'income').reduce((s, r) => s + Number(r.amount || 0), 0);
+  const totalExpense = records.filter((r) => r.type === 'expense').reduce((s, r) => s + Number(r.amount || 0), 0);
+
   const months = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
-    return { year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('he-IL', { month: 'short' }) };
+    const d = new Date();
+    d.setMonth(d.getMonth() - (5 - i));
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+      label: d.toLocaleDateString('he-IL', { month: 'short' }),
+    };
   });
+  const chartData = months.map((m) => ({
+    label: m.label,
+    income: records
+      .filter((r) => r.type === 'income' && r.date?.startsWith(m.key))
+      .reduce((s, r) => s + Number(r.amount || 0), 0),
+    expense: records
+      .filter((r) => r.type === 'expense' && r.date?.startsWith(m.key))
+      .reduce((s, r) => s + Number(r.amount || 0), 0),
+  }));
+  const maxVal = Math.max(1, ...chartData.map((d) => Math.max(d.income, d.expense)));
+  const chartH = 120;
+  const chartW = 480;
+  const barW = 30;
+  const gap = 20;
 
-  const monthlyData = months.map(m => {
-    const inc = list.filter(r => r.type === 'income' && new Date(r.date).getMonth() === m.month && new Date(r.date).getFullYear() === m.year).reduce((s, r) => s + Number(r.amount), 0);
-    const exp = list.filter(r => r.type === 'expense' && new Date(r.date).getMonth() === m.month && new Date(r.date).getFullYear() === m.year).reduce((s, r) => s + Number(r.amount), 0);
-    return { ...m, income: inc, expense: exp };
-  });
-
-  const maxVal = Math.max(...monthlyData.map(m => Math.max(m.income, m.expense)), 1);
+  if (loading) return <PageLoader />;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto" dir="rtl">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">פיננסים</h1>
+    <div dir="rtl" className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">פיננסים</h1>
         <button
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-600 transition-colors"
+          onClick={() => setShowModal(true)}
+          className="bg-[#6C63FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700"
         >
-          <Plus className="w-4 h-4" />
-          הוסף רשומה
+          + הוסף רשומה
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button onClick={() => setTab('income')} className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === 'income' ? 'bg-green-500 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
-          הכנסות
-        </button>
-        <button onClick={() => setTab('expense')} className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === 'expense' ? 'bg-red-500 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
-          הוצאות
-        </button>
-      </div>
-
-      {/* Total */}
-      <div className={`rounded-2xl p-5 mb-5 ${tab === 'income' ? 'bg-green-50' : 'bg-red-50'}`}>
-        <div className="flex items-center gap-2">
-          {tab === 'income' ? <TrendingUp className="w-5 h-5 text-green-600" /> : <TrendingDown className="w-5 h-5 text-red-500" />}
-          <span className="text-sm text-gray-500">{tab === 'income' ? 'סך הכנסות' : 'סך הוצאות'}</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-green-50 border-r-4 border-green-500 rounded-xl p-4">
+          <div className="text-xs text-green-600 mb-1">סה״כ הכנסות</div>
+          <div className="text-xl font-bold text-green-700">₪{totalIncome.toLocaleString()}</div>
         </div>
-        <p className={`text-3xl font-bold mt-1 ${tab === 'income' ? 'text-green-700' : 'text-red-600'}`}>
-          ₪{total.toLocaleString()}
-        </p>
+        <div className="bg-red-50 border-r-4 border-red-500 rounded-xl p-4">
+          <div className="text-xs text-red-600 mb-1">סה״כ הוצאות</div>
+          <div className="text-xl font-bold text-red-700">₪{totalExpense.toLocaleString()}</div>
+        </div>
+        <div
+          className={`${totalIncome - totalExpense >= 0 ? 'bg-blue-50 border-blue-500' : 'bg-orange-50 border-orange-500'} border-r-4 rounded-xl p-4`}
+        >
+          <div className="text-xs text-gray-500 mb-1">רווח נקי</div>
+          <div
+            className={`text-xl font-bold ${totalIncome - totalExpense >= 0 ? 'text-blue-700' : 'text-orange-700'}`}
+          >
+            ₪{(totalIncome - totalExpense).toLocaleString()}
+          </div>
+        </div>
       </div>
 
-      {/* Bar Chart */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-5">
-        <p className="text-sm font-semibold text-gray-500 mb-4">6 חודשים אחרונים</p>
-        <div className="flex items-end gap-2 h-32">
-          {monthlyData.map((m) => (
-            <div key={m.label} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full flex items-end gap-0.5 h-24">
-                <div
-                  className="flex-1 bg-green-400 rounded-t-sm transition-all"
-                  style={{ height: `${(m.income / maxVal) * 100}%` }}
-                  title={`הכנסות: ₪${m.income.toLocaleString()}`}
-                />
-                <div
-                  className="flex-1 bg-red-400 rounded-t-sm transition-all"
-                  style={{ height: `${(m.expense / maxVal) * 100}%` }}
-                  title={`הוצאות: ₪${m.expense.toLocaleString()}`}
-                />
-              </div>
-              <span className="text-xs text-gray-400">{m.label}</span>
-            </div>
+      <div className="bg-white rounded-xl border border-gray-100 p-4 overflow-x-auto">
+        <h2 className="font-semibold text-gray-700 mb-4">6 חודשים אחרונים</h2>
+        <svg viewBox={`0 0 ${chartW} ${chartH + 30}`} className="w-full min-w-[320px]">
+          {chartData.map((d, i) => {
+            const x = i * (barW * 2 + gap) + 10;
+            const ih = (d.income / maxVal) * chartH;
+            const eh = (d.expense / maxVal) * chartH;
+            return (
+              <g key={i}>
+                <rect x={x} y={chartH - ih} width={barW} height={ih} fill="#10B981" fillOpacity="0.8" rx="3" />
+                <rect x={x + barW + 2} y={chartH - eh} width={barW} height={eh} fill="#EF4444" fillOpacity="0.8" rx="3" />
+                <text x={x + barW} y={chartH + 18} textAnchor="middle" fontSize="10" fill="#9CA3AF">
+                  {d.label}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+        <div className="flex gap-4 text-xs text-gray-500 mt-2">
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-green-500 inline-block" />
+            הכנסות
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded bg-red-500 inline-block" />
+            הוצאות
+          </span>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100">
+        <div className="flex border-b border-gray-100 overflow-x-auto">
+          {[
+            ['income', 'הכנסות'],
+            ['expense', 'הוצאות'],
+          ].map(([val, label]) => (
+            <button
+              key={val}
+              onClick={() => setTab(val)}
+              className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${tab === val ? 'border-b-2 border-[#6C63FF] text-[#6C63FF]' : 'text-gray-500'}`}
+            >
+              {label} ({records.filter((r) => r.type === val).length})
+            </button>
           ))}
         </div>
-        <div className="flex gap-4 mt-2">
-          <span className="flex items-center gap-1 text-xs text-gray-500"><span className="w-3 h-3 bg-green-400 rounded-sm inline-block" />הכנסות</span>
-          <span className="flex items-center gap-1 text-xs text-gray-500"><span className="w-3 h-3 bg-red-400 rounded-sm inline-block" />הוצאות</span>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        {loading ? (
-          <PageLoader />
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon="💰"
+            title={`אין ${tab === 'income' ? 'הכנסות' : 'הוצאות'} עדיין`}
+            action="+ הוסף ראשון"
+            onAction={() => {
+              setForm((p) => ({ ...p, type: tab }));
+              setShowModal(true);
+            }}
+          />
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-gray-50">
               <tr>
-                {['תאריך', 'תיאור', 'סכום', 'מטבע'].map(h => (
-                  <th key={h} className="text-right px-4 py-3 font-semibold text-gray-500 text-xs uppercase tracking-wider">{h}</th>
+                {['תאריך', 'תיאור', 'סכום', 'מטבע', 'פעולות'].map((h) => (
+                  <th key={h} className="text-right px-4 py-3 font-medium text-gray-500">
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.length === 0 ? (
-                <tr><td colSpan={4} className="text-center py-12 text-gray-400">אין רשומות עדיין</td></tr>
-              ) : filtered.map(r => (
-                <tr key={r.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{new Date(r.date).toLocaleDateString('he-IL')}</td>
+            <tbody>
+              {filtered.map((r) => (
+                <tr key={r.id} className="border-t border-gray-50 hover:bg-gray-50">
+                  <td className="px-4 py-3 text-gray-600">
+                    {r.date ? new Date(r.date).toLocaleDateString('he-IL') : '—'}
+                  </td>
                   <td className="px-4 py-3 text-gray-800">{r.description || '—'}</td>
-                  <td className={`px-4 py-3 font-semibold ${tab === 'income' ? 'text-green-600' : 'text-red-500'}`}>
-                    {tab === 'income' ? '+' : '-'}₪{Number(r.amount).toLocaleString()}
+                  <td
+                    className={`px-4 py-3 font-semibold ${r.type === 'income' ? 'text-green-600' : 'text-red-600'}`}
+                  >
+                    {r.type === 'income' ? '+' : '-'}₪{Number(r.amount).toLocaleString()}
                   </td>
                   <td className="px-4 py-3 text-gray-500">{r.currency}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => deleteRecord(r.id)} className="text-red-400 text-xs hover:underline">
+                      מחק
+                    </button>
+                  </td>
                 </tr>
               ))}
+              <tr className="bg-gray-50 font-semibold border-t-2 border-gray-200">
+                <td colSpan={2} className="px-4 py-3 text-gray-700">
+                  סה״כ
+                </td>
+                <td className={`px-4 py-3 ${tab === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                  {tab === 'income' ? '+' : '-'}₪{total.toLocaleString()}
+                </td>
+                <td colSpan={2} />
+              </tr>
             </tbody>
           </table>
         )}
       </div>
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" dir="rtl">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-gray-900">רשומה חדשה</h2>
-              <button onClick={() => setModalOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div dir="rtl" className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-bold mb-4">רשומה חדשה</h2>
+            <div className="space-y-3">
+              <select
+                value={form.type}
+                onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="income">הכנסה</option>
+                <option value="expense">הוצאה</option>
+              </select>
+              <input
+                value={form.amount}
+                onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
+                placeholder="סכום *"
+                type="number"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              />
+              <select
+                value={form.currency}
+                onChange={(e) => setForm((p) => ({ ...p, currency: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="ILS">₪ שקל</option>
+                <option value="USD">$ דולר</option>
+                <option value="EUR">€ אירו</option>
+              </select>
+              <input
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                placeholder="תיאור"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              />
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              />
             </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">סוג</label>
-                  <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-green-500">
-                    <option value="income">הכנסה</option>
-                    <option value="expense">הוצאה</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">מטבע</label>
-                  <select value={form.currency} onChange={e => setForm(p => ({ ...p, currency: e.target.value }))} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-green-500">
-                    <option value="ILS">₪ ILS</option>
-                    <option value="USD">$ USD</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">סכום *</label>
-                <input type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} placeholder="0.00" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-green-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">תיאור</label>
-                <input value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="תיאור הרשומה" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-green-500" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">תאריך</label>
-                <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-green-500" />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={saveRecord} disabled={saving || !form.amount} className="flex-1 bg-green-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors">
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={save}
+                disabled={saving}
+                className="flex-1 bg-[#6C63FF] text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+              >
                 {saving ? 'שומר...' : 'שמור'}
               </button>
-              <button onClick={() => setModalOpen(false)} className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50">ביטול</button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 border border-gray-200 py-2 rounded-lg text-sm"
+              >
+                ביטול
+              </button>
             </div>
           </div>
         </div>

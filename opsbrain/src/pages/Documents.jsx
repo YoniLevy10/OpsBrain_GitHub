@@ -1,187 +1,185 @@
-// @ts-nocheck
-import { useState, useEffect, useRef } from 'react';
-import { supabase, uploadFile, createSignedUrl } from '@/lib/supabase';
-import { useAuth } from '@/lib/AuthContext';
-import { Upload, Download, FileText, Image, File } from 'lucide-react';
-import { PageLoader } from '@/components/Spinner';
-import EmptyState from '@/components/EmptyState';
+import { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
+import { PageLoader } from '../components/Spinner';
+import EmptyState from '../components/EmptyState';
+import { toast } from 'sonner';
 
-const getIcon = (name) => {
+const FILE_ICONS = { pdf: '📄', image: '🖼️', docx: '📝', xlsx: '📊', other: '📎' };
+const getType = (name) => {
   const ext = name?.split('.').pop()?.toLowerCase();
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return Image;
-  if (ext === 'pdf') return FileText;
-  return File;
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return 'image';
+  if (ext === 'pdf') return 'pdf';
+  if (['doc', 'docx'].includes(ext)) return 'docx';
+  if (['xls', 'xlsx'].includes(ext)) return 'xlsx';
+  return 'other';
 };
 
-const formatSize = (bytes) => {
-  if (!bytes) return '';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
-};
+const docDisplayName = (d) => d.name || d.data?.title || 'מסמך';
+const docStoragePath = (d) => d.storage_path || d.data?.storage_path;
+const docFileType = (d) => d.file_type || getType(docDisplayName(d));
+const docSizeBytes = (d) => d.size_bytes ?? d.data?.file_size;
 
 export default function Documents() {
-  const { user, workspaceId: authWs } = useAuth();
-  const [files, setFiles] = useState([]);
-  const [workspaceId, setWorkspaceId] = useState(null);
+  const { user, workspaceId } = useAuth();
+  const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [filter, setFilter] = useState('all');
+  const [filterType, setFilterType] = useState('all');
+  const [search, setSearch] = useState('');
   const fileRef = useRef();
 
   useEffect(() => {
-    if (!user) return;
-    initWorkspace();
-  }, [user, authWs]);
+    if (workspaceId) fetchDocs();
+  }, [workspaceId]);
 
-  const initWorkspace = async () => {
-    const wsId = authWs || (await supabase
-      .from('workspace_members')
-      .select('workspace_id')
-      .eq('user_id', user.id)
-      .limit(1)
-      .maybeSingle()).data?.workspace_id;
-    setWorkspaceId(wsId);
-    if (wsId) fetchFiles(wsId);
-    else setLoading(false);
-  };
-
-  const fetchFiles = async (wsId) => {
+  const fetchDocs = async () => {
     setLoading(true);
     const { data } = await supabase
       .from('documents')
       .select('*')
-      .eq('workspace_id', wsId)
+      .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
-    setFiles(data || []);
+    setDocs(data ?? []);
     setLoading(false);
   };
 
-  const handleUpload = async (e) => {
+  const upload = async (e) => {
     const file = e.target.files?.[0];
-    if (!file || !workspaceId) return;
+    if (!file) return;
     setUploading(true);
     const path = `${workspaceId}/${Date.now()}_${file.name}`;
-    const { error: storageErr } = await uploadFile('documents', path, file);
-    if (!storageErr) {
-      const { data: doc } = await supabase.from('documents').insert({
-        workspace_id: workspaceId,
-        data: {
-          title: file.name,
-          file_size: file.size,
-          file_type: file.type,
-          uploaded_by: user.id,
-          storage_path: path,
-        },
-      }).select().single();
-      if (doc) setFiles(prev => [doc, ...prev]);
-    }
-    setUploading(false);
-    fileRef.current.value = '';
-  };
-
-  const filterOptions = [
-    { key: 'all', label: 'הכל' },
-    { key: 'pdf', label: 'PDF' },
-    { key: 'image', label: 'תמונות' },
-    { key: 'other', label: 'אחר' },
-  ];
-
-  const rowTitle = (f) => f.data?.title ?? f.title;
-  const rowSize = (f) => f.data?.file_size ?? f.file_size;
-  const storagePath = (f) => f.data?.storage_path;
-
-  const handleDownload = async (f) => {
-    const p = storagePath(f);
-    const legacyUrl = f.data?.file_url ?? f.file_url;
-    if (p) {
-      const { url, error } = await createSignedUrl('documents', p, 3600);
-      if (!error && url) window.open(url, '_blank', 'noopener,noreferrer');
+    const { error: upErr } = await supabase.storage.from('documents').upload(path, file);
+    if (upErr) {
+      toast.error('שגיאה בהעלאה: ' + upErr.message);
+      setUploading(false);
       return;
     }
-    if (legacyUrl) window.open(legacyUrl, '_blank', 'noopener,noreferrer');
+    const ft = getType(file.name);
+    await supabase.from('documents').insert({
+      workspace_id: workspaceId,
+      uploaded_by: user.id,
+      name: file.name,
+      file_type: ft,
+      size_bytes: file.size,
+      storage_path: path,
+      data: { title: file.name, storage_path: path, file_size: file.size, file_type: ft },
+    });
+    toast.success(`${file.name} הועלה בהצלחה`);
+    setUploading(false);
+    fetchDocs();
+    if (fileRef.current) fileRef.current.value = '';
   };
 
-  const filtered = files.filter(f => {
-    if (filter === 'all') return true;
-    const ext = rowTitle(f)?.split('.').pop()?.toLowerCase();
-    if (filter === 'pdf') return ext === 'pdf';
-    if (filter === 'image') return ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
-    return !['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+  const download = async (doc) => {
+    const path = docStoragePath(doc);
+    if (!path) {
+      toast.error('אין נתיב קובץ לשורה זו');
+      return;
+    }
+    const { data, error } = await supabase.storage.from('documents').createSignedUrl(path, 60);
+    if (error || !data?.signedUrl) {
+      toast.error('שגיאה בהורדה');
+      return;
+    }
+    window.open(data.signedUrl, '_blank');
+  };
+
+  const deleteDoc = async (doc) => {
+    if (!confirm('למחוק קובץ זה?')) return;
+    const path = docStoragePath(doc);
+    if (path) await supabase.storage.from('documents').remove([path]);
+    await supabase.from('documents').delete().eq('id', doc.id);
+    fetchDocs();
+    toast.success('קובץ נמחק');
+  };
+
+  const filtered = docs.filter((d) => {
+    const ft = docFileType(d);
+    const matchType = filterType === 'all' || ft === filterType;
+    const matchSearch = docDisplayName(d).toLowerCase().includes(search.toLowerCase());
+    return matchType && matchSearch;
   });
 
+  const formatSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  };
+
+  if (loading) return <PageLoader />;
+
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto" dir="rtl">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">מסמכים</h1>
+    <div dir="rtl" className="p-6 space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl font-bold text-gray-800">מסמכים</h1>
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-600 disabled:opacity-50 transition-colors"
+          className="bg-[#6C63FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
         >
-          <Upload className="w-4 h-4" />
-          {uploading ? 'מעלה...' : 'העלה קובץ'}
+          {uploading ? 'מעלה...' : '+ העלה קובץ'}
         </button>
-        <input ref={fileRef} type="file" className="hidden" onChange={handleUpload} />
+        <input ref={fileRef} type="file" className="hidden" onChange={upload} />
       </div>
-
-      {/* Filters */}
-      <div className="flex gap-2 mb-5">
-        {filterOptions.map(opt => (
-          <button
-            key={opt.key}
-            onClick={() => setFilter(opt.key)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              filter === opt.key
-                ? 'bg-blue-500 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
+      <div className="flex gap-3 flex-wrap">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="חיפוש קובץ..."
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-48"
+        />
+        <select
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+        >
+          <option value="all">כל הסוגים</option>
+          <option value="pdf">PDF</option>
+          <option value="image">תמונות</option>
+          <option value="docx">Word</option>
+          <option value="xlsx">Excel</option>
+          <option value="other">אחר</option>
+        </select>
       </div>
-
-      {loading ? (
-        <PageLoader />
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon="📁"
+          title="אין מסמכים עדיין"
+          subtitle="העלה קבצים לשמירה ושיתוף עם הצוות"
+          action="+ העלה קובץ"
+          onAction={() => fileRef.current?.click()}
+        />
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filtered.length === 0 ? (
-            <div className="col-span-full">
-              <EmptyState
-                icon="📄"
-                title="אין מסמכים עדיין"
-                subtitle="העלה קובץ ראשון — הוא יישמר ב-bucket documents ב-Supabase."
-                action="העלה קובץ"
-                onAction={() => fileRef.current?.click()}
-              />
-            </div>
-          ) : filtered.map(file => {
-            const title = rowTitle(file);
-            const Icon = getIcon(title);
-            return (
-              <div key={file.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col items-center gap-2 group hover:shadow-md transition-shadow">
-                <Icon className="w-10 h-10 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                <p className="text-xs text-gray-700 text-center truncate w-full font-medium">{title}</p>
-                {rowSize(file) ? (
-                  <p className="text-xs text-gray-400">{formatSize(rowSize(file))}</p>
-                ) : null}
-                <p className="text-xs text-gray-400">
-                  {new Date(file.created_at).toLocaleDateString('he-IL')}
-                </p>
-                {(storagePath(file) || file.data?.file_url || file.file_url) && (
-                  <button
-                    type="button"
-                    onClick={() => handleDownload(file)}
-                    className="mt-1 flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 min-h-[44px] px-2"
-                  >
-                    <Download className="w-3 h-3" />
-                    הורד
-                  </button>
-                )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filtered.map((doc) => (
+            <div
+              key={doc.id}
+              className="bg-white border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow"
+            >
+              <div className="text-3xl mb-3">{FILE_ICONS[docFileType(doc)] || FILE_ICONS.other}</div>
+              <p className="text-sm font-medium text-gray-800 truncate mb-1">{docDisplayName(doc)}</p>
+              <p className="text-xs text-gray-400 mb-3">
+                {formatSize(docSizeBytes(doc))} ·{' '}
+                {doc.created_at ? new Date(doc.created_at).toLocaleDateString('he-IL') : ''}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => download(doc)}
+                  className="flex-1 text-xs text-[#6C63FF] border border-[#6C63FF] py-1 rounded-lg hover:bg-purple-50"
+                >
+                  הורד
+                </button>
+                <button
+                  onClick={() => deleteDoc(doc)}
+                  className="text-xs text-red-400 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50"
+                >
+                  מחק
+                </button>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>

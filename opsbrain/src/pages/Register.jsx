@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Brain } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
-import { supabase } from '@/lib/supabase';
 
 export default function Register() {
   const { signUp } = useAuth();
@@ -11,10 +10,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
-
-  const slugify = (str) =>
-    str.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,39 +21,14 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const { data, error: signUpErr } = await signUp(form.email, form.password, {
-        data: { full_name: form.fullName }
-      });
-
-      if (signUpErr) throw signUpErr;
-
-      const userId = data.user?.id;
-      if (!userId) throw new Error('לא ניתן ליצור משתמש');
-
-      const baseSlug = slugify(form.businessName) || 'workspace';
-      const slug = `${baseSlug}-${Date.now().toString(36)}`;
-
-      const { data: workspace, error: wsErr } = await supabase
-        .from('workspaces')
-        .insert({ name: form.businessName, slug, owner_id: userId })
-        .select()
-        .single();
-
-      if (wsErr) throw wsErr;
-
-      // Create workspace member
-      await supabase.from('workspace_members').insert({
-        workspace_id: workspace.id,
-        user_id: userId,
-        role: 'owner'
-      });
-
-      await supabase.from('profiles').upsert({
-        id: userId,
-        full_name: form.fullName,
-      });
-
-      navigate('/dashboard');
+      const { error: err } = await signUp(
+        form.email,
+        form.password,
+        form.fullName,
+        form.businessName
+      );
+      if (err) throw err;
+      navigate('/Dashboard');
     } catch (err) {
       setError(err.message || 'שגיאה ביצירת החשבון. נסה שנית.');
     } finally {

@@ -25,6 +25,7 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-19  
+- **תקציר (Master Build — Phases 1–6 בקוד):** נוסף `MASTER_BUILD.md` (תוכנית בנייה + הפניות). `AuthContext` — `signIn` מחזיר `{ error }`, `signUp(email, password, fullName, businessName)` יוצר workspace + `workspace_members` + עדכון state; תאימות ל-`NavigationTracker` (`isAuthenticated`, וכו'). `Register.jsx` משתמש ב-`signUp` המאוחד בלי כפילות Supabase. דפים לפי המפרט: `Dashboard` (KPI + `detectPatterns` מ-`aiPatterns.js`), `Tasks` (Kanban CRUD), `Contacts`, `Finance` (טאבים + SVG), `Settings` (פרופיל/עסק/צוות + שליפת `profiles` לפי `user_id`), `Chat` (Realtime + fallback לשליפת הודעות), `Documents` (העלאה + signed URL + תאימות לשורות `data` jsonb), `Calendar`, `AIAgent`, `Bamakor`. `NotificationCenter.jsx` — `notifications` לפי `user_id` + Realtime; `Layout` — פעמון במובייל ובסיידבר דסקטופ. `App.jsx` — `lazy` + `Suspense` + `FullPageLoader`. מיגרציה `20260422000000_master_build_schema_columns.sql` — עמודות ל-`tasks`, `documents`, `notifications` + מדיניות RLS להתראות. **נדרש ידנית:** הרצת מיגרציה ב-Supabase, Vercel Root=`opsbrain`, bucket Storage.  
 - **תקציר (סבב 4 — Foundation / שלב 1):** `opsbrain/vercel.json` — רק **SPA rewrites** ל־`/index.html` (React Router). מומלץ ב-Vercel: **Root Directory = `opsbrain`**, משתני סביבה (`VITE_SUPABASE_*` וכו') ב-Settings → Environment Variables, ואז Redeploy. נוספו `Spinner.jsx` / `PageLoader` / `FullPageLoader`, `EmptyState.jsx`; `ProtectedRoute` משתמש ב-`FullPageLoader`. `Documents.jsx` — bucket `documents`, שמירת `storage_path`, הורדה ב-**Signed URL** ל-bucket פרטי; `Finance.jsx` — הוסר `created_by` (לא קיים ב-schema), `workspaceId` מה-context, `PageLoader`, בטיחות `records ?? []`. `Contacts.jsx` / `Calendar.jsx` — `workspaceId` מה-auth, `maybeSingle`, ריק/חיפוש ריק, `PageLoader`. `index.html` — `lang="he"`, `dir="rtl"`, title, description, `theme-color`. קובץ SQL: `supabase/storage_policies_documents.sql` (מדיניות Storage אחרי יצירת bucket). **יש לבצע ידנית:** יצירת bucket ב-Dashboard, הרצת SQL, הגדרת Vercel + E2E (רשימת VERIFY במסמך המשימות).  
 - **תקציר (סבב 3):** מיגרציה `20260421120000_v3_contacts_finance_policies_realtime.sql` — טבלאות `contacts` ו-`finance_records`, RLS לפי חברות ב-workspace, הוספת טבלאות ל-publication של Realtime (כשקיים `supabase_realtime`). `AuthContext` מחזיר `workspaceId`, `workspaceName`, `loadWorkspace`. `Dashboard` משתמש ב-`contacts` + `finance_records` (סכום `amount` להכנסות). `Register` — slug ייחודי (`baseSlug` + timestamp). `Chat` — שליפת הודעות עם `profiles(full_name, avatar_url)` ורענון אחרי INSERT ב-Realtime. `Tasks` — סטטוס ממוזג מ-`data`, כפתור "העבר לשלב הבא". `AIAgent` — הקשר מ-Supabase + OpenAI (`VITE_OPENAI_KEY`) או mock + שמירה ל-`ai_insights`. קובץ עזר `manual_storage_documents.sql` (הערות למדיניות Storage). **יש להריץ את המיגרציות ב-Supabase Dashboard** וליצור bucket `documents` ידנית לפי ההנחיות.  
 - **ניקוי ריפו:** הוסרו עותק ישן של אפליקציה בשורש ומסמכי stage/V1. נשמרו **`DEVELOPER_LOG.md`**, **`OPSBRAIN_CURSOR_TASKS.md`**, ותיקיית **`opsbrain/`**.  
@@ -71,6 +72,7 @@
 ```
 OPSBRAIN/
 ├── DEVELOPER_LOG.md              ← קובץ זה
+├── MASTER_BUILD.md               ← תוכנית בנייה מאסטר (מפת שלבים + הפניות לקוד)
 ├── vercel.json                   ← פריסה משורש הריפו (prefix → opsbrain/)
 ├── OPSBRAIN_CURSOR_TASKS.md      ← משימות Cursor (שלבים CRITICAL → NICE TO HAVE)
 ├── .gitignore
@@ -100,6 +102,15 @@ OPSBRAIN/
 ---
 
 ## יומן שינויים (כרונולוגי)
+
+### 2026-04-19 (Master Build — יישום Phases 1–6 בקוד)
+
+- `MASTER_BUILD.md` — תוכנית בנייה ומפת מימוש; `DEVELOPER_LOG.md` — עדכון זה.
+- `opsbrain/supabase/migrations/20260422000000_master_build_schema_columns.sql` — עמודות typed + `notifications` user-scoped RLS.
+- `AuthContext.jsx`, `Register.jsx` — הרשמה עם יצירת workspace; שמירת שדות נוספים ל-context consumers.
+- דפים: `Dashboard`, `Tasks`, `Contacts`, `Finance`, `Settings`, `Chat`, `Documents`, `Calendar`, `AIAgent`, `Bamakor` — מימוש לפי מפרט Master Build (RTL, Supabase, Empty/PageLoader).
+- `components/NotificationCenter.jsx`, `Layout.jsx` (התראות), `App.jsx` (code splitting).
+- `Dashboard` קורא ל-`detectPatterns` מ-`src/lib/aiPatterns.js` בעת כניסה עם `workspaceId`.
 
 ### 2026-04-19 (הסרת Splash Screen)
 
@@ -165,12 +176,12 @@ OPSBRAIN/
 ## המשך / משימות פתוחות (למפתחים ולסבבים הבאים)
 
 - [ ] **Vercel:** Root Directory = `opsbrain`, Environment Variables, Redeploy — עד שה-deployment ירוק (לא בוצע מהסביבה כאן).
-- [ ] **להריץ ב-Supabase:** `20260421120000_v3_contacts_finance_policies_realtime.sql` (אחרי שתי המיגרציות הקודמות). לוודא ב-Table Editor ש-`contacts` ו-`finance_records` קיימות.
+- [ ] **להריץ ב-Supabase:** `20260421120000_v3_contacts_finance_policies_realtime.sql` ואז **`20260422000000_master_build_schema_columns.sql`** (עמודות master build + התראות). לוודא ב-Table Editor ש-`contacts` ו-`finance_records` קיימות.
 - [ ] **Storage:** ליצור bucket `documents` (פרטי) + להריץ `storage_policies_documents.sql` — ראו גם `manual_storage_documents.sql`.
 - [ ] לפרוס Edge Functions: `invoke-llm`, `send-email`, `sendTeamInvitation`, `extract-data-from-file`, `agent-reply`, וכו' — לפי קריאות ב-`client.js`.
 - [ ] לאחד או להשאיר `ml_insights` מול `ai_insights` לפי מודול AI.
 - [ ] למלא `user_id` ב-`workspace_members` לנתונים ישנים (אם קיימים) כדי שזיהוי workspace יעבוד.
-- [ ] `NotificationCenter.jsx` — עדיין מסתמך על `opsbrain.entities` / `WorkspaceContext`; לאחד עם `notifications` ב-Supabase + `useAuth` בעתיד.
+- [x] `NotificationCenter.jsx` — מחובר ל-`notifications` ב-Supabase + `useAuth` (דורש עמודות `user_id`/`title`/`body` אחרי מיגרציית master build).
 - [ ] הוספת `VITE_OPENAI_KEY` ב-Vercel לפרודקשן (AI Agent).
 - [ ] (אופציונלי) README בשורש — `README.md` קצר עם הפניה ל-`DEVELOPER_LOG.md` ול-`opsbrain/`.
 

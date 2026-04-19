@@ -1,175 +1,155 @@
-// @ts-nocheck
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/lib/AuthContext';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
+import { PageLoader } from '../components/Spinner';
 
 const PRIORITY_COLORS = {
-  low: 'bg-gray-200 text-gray-700',
-  medium: 'bg-blue-200 text-blue-800',
-  high: 'bg-orange-200 text-orange-800',
-  urgent: 'bg-red-200 text-red-800',
+  urgent: 'bg-red-500',
+  high: 'bg-orange-400',
+  medium: 'bg-blue-400',
+  low: 'bg-gray-300',
 };
 
-const WEEKDAYS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
-
 export default function Calendar() {
-  const { user, workspaceId: authWs } = useAuth();
+  const { workspaceId } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [current, setCurrent] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  useEffect(() => {
+    if (workspaceId) fetchTasks();
+  }, [workspaceId]);
 
-  useEffect(() => { if (user) initWorkspace(); }, [user, authWs]);
-
-  const initWorkspace = async () => {
-    if (authWs) {
-      setWorkspaceId(authWs);
-      fetchTasks(authWs);
-      return;
-    }
-    const { data } = await supabase
-      .from('workspace_members').select('workspace_id').eq('user_id', user.id).limit(1).maybeSingle();
-    const wsId = data?.workspace_id;
-    setWorkspaceId(wsId);
-    if (wsId) fetchTasks(wsId);
-    else setLoading(false);
-  };
-
-  const fetchTasks = async (wsId) => {
+  const fetchTasks = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from('tasks').select('*').eq('workspace_id', wsId).not('due_date', 'is', null);
-    setTasks(data || []);
+      .from('tasks')
+      .select('id, title, due_date, priority, status')
+      .eq('workspace_id', workspaceId)
+      .not('due_date', 'is', null);
+    setTasks(data ?? []);
     setLoading(false);
   };
 
-  const year = current.getFullYear();
-  const month = current.getMonth();
-
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date();
 
-  const prevMonth = () => setCurrent(new Date(year, month - 1, 1));
-  const nextMonth = () => setCurrent(new Date(year, month + 1, 1));
-  const goToday = () => { setCurrent(new Date()); setSelectedDay(null); };
+  const getTasksForDay = (day) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return tasks.filter((t) => {
+      const d = t.due_date;
+      if (!d) return false;
+      const s = typeof d === 'string' ? d.slice(0, 10) : '';
+      return s === dateStr;
+    });
+  };
 
-  const tasksByDay = {};
-  (tasks || []).forEach(t => {
-    if (!t.due_date) return;
-    const d = new Date(t.due_date);
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      const day = d.getDate();
-      if (!tasksByDay[day]) tasksByDay[day] = [];
-      tasksByDay[day].push(t);
-    }
-  });
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1));
+  const goToday = () => setCurrentDate(new Date());
 
-  const selectedTasks = selectedDay ? (tasksByDay[selectedDay] || []) : [];
+  const selectedTasks = selectedDay ? getTasksForDay(selectedDay) : [];
 
-  const monthName = current.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' });
-
-  const cells = [];
-  for (let i = 0; i < firstDay; i++) cells.push(null);
-  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
-
-  if (loading) {
-    return (
-      <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto" dir="rtl">
-        <div className="flex justify-center py-24">
-          <div className="w-10 h-10 border-4 border-[#6C63FF] border-t-transparent rounded-full animate-spin" />
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <PageLoader />;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto" dir="rtl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">יומן</h1>
-        <button onClick={goToday} className="text-sm bg-[#6C63FF] text-white px-3 py-1.5 rounded-lg hover:bg-[#5a52e0] transition-colors">
-          היום
-        </button>
+    <div dir="rtl" className="p-6 space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h1 className="text-2xl font-bold text-gray-800">
+          {currentDate.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' })}
+        </h1>
+        <div className="flex gap-2">
+          <button
+            onClick={goToday}
+            className="text-sm px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50"
+          >
+            היום
+          </button>
+          <button
+            onClick={prevMonth}
+            className="text-sm px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50"
+          >
+            ◀
+          </button>
+          <button
+            onClick={nextMonth}
+            className="text-sm px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50"
+          >
+            ▶
+          </button>
+        </div>
       </div>
 
-      {/* Month nav */}
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <ChevronRight className="w-5 h-5 text-gray-600" />
-        </button>
-        <h2 className="text-lg font-semibold text-gray-800">{monthName}</h2>
-        <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-          <ChevronLeft className="w-5 h-5 text-gray-600" />
-        </button>
-      </div>
-
-      {/* Calendar grid */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-5">
-        {/* Weekday headers */}
+      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div className="grid grid-cols-7 border-b border-gray-100">
-          {WEEKDAYS.map(d => (
-            <div key={d} className="text-center py-2.5 text-xs font-semibold text-gray-400">{d}</div>
+          {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((d) => (
+            <div key={d} className="text-center py-2 sm:py-3 text-xs font-medium text-gray-400">
+              {d}
+            </div>
           ))}
         </div>
-        {/* Days */}
         <div className="grid grid-cols-7">
-          {cells.map((day, i) => {
-            if (!day) return <div key={`empty-${i}`} className="h-16 border-b border-gray-50 bg-gray-50/50" />;
-            const dayDate = new Date(year, month, day);
-            dayDate.setHours(0, 0, 0, 0);
-            const isToday = dayDate.getTime() === today.getTime();
+          {Array.from({ length: firstDay }).map((_, i) => (
+            <div key={`e-${i}`} className="h-16 sm:h-24 border-b border-l border-gray-50" />
+          ))}
+          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((day) => {
+            const dayTasks = getTasksForDay(day);
+            const isToday =
+              today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
             const isSelected = selectedDay === day;
-            const dayTasks = tasksByDay[day] || [];
             return (
-              <button
+              <div
                 key={day}
                 onClick={() => setSelectedDay(isSelected ? null : day)}
-                className={`h-16 border-b border-gray-50 p-1.5 flex flex-col items-start transition-colors ${
-                  isSelected ? 'bg-[#6C63FF]/10' : 'hover:bg-gray-50'
-                }`}
+                className={`h-16 sm:h-24 border-b border-l border-gray-50 p-1 cursor-pointer hover:bg-gray-50 ${isSelected ? 'bg-purple-50' : ''}`}
               >
-                <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full mb-0.5 ${
-                  isToday ? 'bg-[#6C63FF] text-white' : isSelected ? 'text-[#6C63FF]' : 'text-gray-700'
-                }`}>
+                <span
+                  className={`inline-flex w-6 h-6 items-center justify-center text-xs rounded-full mb-1 ${isToday ? 'bg-[#6C63FF] text-white font-bold' : 'text-gray-600'}`}
+                >
                   {day}
                 </span>
-                <div className="flex flex-col gap-0.5 w-full overflow-hidden">
-                  {dayTasks.slice(0, 2).map(t => (
-                    <div key={t.id} className={`text-xs px-1 py-0.5 rounded truncate ${PRIORITY_COLORS[t.priority] || PRIORITY_COLORS.medium}`}>
+                <div className="space-y-0.5 hidden sm:block">
+                  {dayTasks.slice(0, 3).map((t) => (
+                    <div
+                      key={t.id}
+                      className={`${PRIORITY_COLORS[t.priority] || 'bg-gray-300'} text-white text-xs px-1 py-0.5 rounded truncate`}
+                    >
                       {t.title}
                     </div>
                   ))}
-                  {dayTasks.length > 2 && (
-                    <span className="text-xs text-gray-400">+{dayTasks.length - 2}</span>
+                  {dayTasks.length > 3 && (
+                    <div className="text-xs text-gray-400">+{dayTasks.length - 3} נוספות</div>
                   )}
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Selected day tasks */}
       {selectedDay && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
-          <h3 className="font-semibold text-gray-800 mb-3">
-            משימות ל-{selectedDay}/{month + 1}/{year}
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">
+            משימות ל-{selectedDay}/{month + 1}/{year} ({selectedTasks.length})
           </h3>
           {selectedTasks.length === 0 ? (
-            <p className="text-gray-400 text-sm">אין משימות ליום זה</p>
+            <p className="text-gray-400 text-sm">אין משימות ביום זה</p>
           ) : (
             <div className="space-y-2">
-              {selectedTasks.map(t => (
-                <div key={t.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <div className={`w-2 h-2 rounded-full ${t.priority === 'urgent' ? 'bg-red-500' : t.priority === 'high' ? 'bg-orange-500' : t.priority === 'medium' ? 'bg-blue-500' : 'bg-gray-400'}`} />
-                  <span className="text-sm text-gray-800 flex-1">{t.title}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[t.priority] || PRIORITY_COLORS.medium}`}>
-                    {t.priority}
+              {selectedTasks.map((t) => (
+                <div key={t.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                  <div
+                    className={`w-2 h-2 rounded-full ${PRIORITY_COLORS[t.priority] || 'bg-gray-300'} flex-shrink-0`}
+                  />
+                  <span className="text-sm text-gray-700">{t.title}</span>
+                  <span
+                    className={`mr-auto text-xs px-2 py-0.5 rounded-full ${t.status === 'done' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}`}
+                  >
+                    {t.status === 'done' ? 'הושלם' : 'פתוח'}
                   </span>
                 </div>
               ))}

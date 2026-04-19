@@ -37,26 +37,28 @@ export function AuthProvider({ children }) {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
-      const u = session?.user ?? null;
-      setUser(u);
-      setLoading(false);
-      if (u) loadWorkspace(u.id);
+      setUser(session?.user ?? null);
+      if (session?.user) loadWorkspace(session.user.id);
       else {
         setWorkspaceId(null);
         setWorkspaceName(null);
       }
+      setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) loadWorkspace(u.id);
-      else {
-        setWorkspaceId(null);
-        setWorkspaceName(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!mounted) return;
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await loadWorkspace(session.user.id);
+        } else {
+          setWorkspaceId(null);
+          setWorkspaceName(null);
+        }
+        setLoading(false);
       }
-    });
+    );
 
     return () => {
       mounted = false;
@@ -64,40 +66,73 @@ export function AuthProvider({ children }) {
     };
   }, [loadWorkspace]);
 
-  const signIn = (email, password) =>
-    supabase.auth.signInWithPassword({ email, password });
+  const signIn = async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error };
+  };
 
-  const signUp = (email, password, options) =>
-    supabase.auth.signUp({ email, password, options });
+  const signUp = async (email, password, fullName, businessName) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+    if (error || !data.user) return { error };
 
-  const signOut = () => supabase.auth.signOut();
+    const userId = data.user.id;
+    const base = businessName
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    const slug = `${base || 'workspace'}-${Date.now().toString(36)}`;
 
-  const isLoadingAuth = loading;
-  const isLoadingPublicSettings = false;
-  const isAuthenticated = !!user;
-  const authError = null;
-  const appPublicSettings = null;
-  const navigateToLogin = () => { window.location.href = '/Login'; };
-  const logout = signOut;
+    const { data: workspace, error: wsErr } = await supabase
+      .from('workspaces')
+      .insert({ name: businessName, slug, owner_id: userId })
+      .select()
+      .single();
+
+    if (wsErr) return { error: wsErr };
+
+    await supabase.from('workspace_members').insert({
+      workspace_id: workspace.id,
+      user_id: userId,
+      role: 'owner',
+    });
+
+    setWorkspaceId(workspace.id);
+    setWorkspaceName(workspace.name);
+    return { error: null };
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setWorkspaceId(null);
+    setWorkspaceName(null);
+  };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      loading,
-      workspaceId,
-      workspaceName,
-      loadWorkspace,
-      signIn,
-      signUp,
-      signOut,
-      isLoadingAuth,
-      isLoadingPublicSettings,
-      isAuthenticated,
-      authError,
-      appPublicSettings,
-      navigateToLogin,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        workspaceId,
+        workspaceName,
+        signIn,
+        signUp,
+        signOut,
+        loadWorkspace,
+        isLoadingAuth: loading,
+        isLoadingPublicSettings: false,
+        isAuthenticated: !!user,
+        authError: null,
+        appPublicSettings: null,
+        navigateToLogin: () => {
+          window.location.href = '/Login';
+        },
+        logout: signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

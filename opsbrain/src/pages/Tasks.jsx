@@ -1,147 +1,161 @@
-// @ts-nocheck
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/lib/AuthContext';
-import { Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../lib/AuthContext';
+import { supabase } from '../lib/supabase';
+import { PageLoader } from '../components/Spinner';
+import { toast } from 'sonner';
 
 const COLUMNS = [
-  { key: 'todo', label: 'לביצוע', color: 'bg-gray-100 text-gray-700' },
-  { key: 'in_progress', label: 'בתהליך', color: 'bg-blue-100 text-blue-700' },
-  { key: 'done', label: 'הושלם', color: 'bg-green-100 text-green-700' },
-  { key: 'blocked', label: 'חסום', color: 'bg-red-100 text-red-700' },
+  { id: 'todo', label: 'לביצוע', color: 'border-gray-300', bg: 'bg-gray-50' },
+  { id: 'in_progress', label: 'בתהליך', color: 'border-blue-400', bg: 'bg-blue-50' },
+  { id: 'done', label: 'הושלם', color: 'border-green-400', bg: 'bg-green-50' },
+  { id: 'blocked', label: 'חסום', color: 'border-red-400', bg: 'bg-red-50' },
 ];
 
-const PRIORITY_COLORS = {
-  low: 'bg-gray-100 text-gray-600',
-  medium: 'bg-blue-100 text-blue-700',
-  high: 'bg-orange-100 text-orange-700',
-  urgent: 'bg-red-100 text-red-700',
+const PRIORITY = {
+  low: { label: 'נמוך', color: 'bg-gray-100 text-gray-600' },
+  medium: { label: 'בינוני', color: 'bg-yellow-100 text-yellow-700' },
+  high: { label: 'גבוה', color: 'bg-orange-100 text-orange-700' },
+  urgent: { label: 'דחוף', color: 'bg-red-100 text-red-700' },
 };
 
-const emptyForm = { title: '', description: '', priority: 'medium', due_date: '' };
-
-const taskStatus = (t) => t.status || t.data?.status || 'todo';
-
-const statusFlow = {
-  todo: 'in_progress',
-  in_progress: 'done',
-  done: 'done',
-  blocked: 'todo',
-};
+const NEXT_STATUS = { todo: 'in_progress', in_progress: 'done', done: 'done', blocked: 'todo' };
 
 export default function Tasks() {
-  const { user, workspaceId: authWs } = useAuth();
+  const { workspaceId, user } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [workspaceId, setWorkspaceId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [showModal, setShowModal] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const [form, setForm] = useState({ title: '', description: '', priority: 'medium', due_date: '' });
   const [saving, setSaving] = useState(false);
 
-  const initWorkspace = async () => {
-    if (authWs) {
-      setWorkspaceId(authWs);
-      fetchTasks(authWs);
-      return;
-    }
-    const { data } = await supabase
-      .from('workspace_members')
-      .select('workspace_id')
-      .eq('user_id', user.id)
-      .limit(1)
-      .maybeSingle();
-    if (data?.workspace_id) {
-      setWorkspaceId(data.workspace_id);
-      fetchTasks(data.workspace_id);
-    } else {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (!user) return;
-    initWorkspace();
-  }, [user, authWs]);
+    if (workspaceId) fetchTasks();
+  }, [workspaceId]);
 
-  const fetchTasks = async (wsId) => {
+  const fetchTasks = async () => {
     setLoading(true);
     const { data } = await supabase
       .from('tasks')
       .select('*')
-      .eq('workspace_id', wsId)
+      .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false });
-    setTasks(data || []);
+    setTasks(data ?? []);
     setLoading(false);
   };
 
-  const saveTask = async () => {
-    if (!form.title.trim() || !workspaceId) return;
+  const addTask = async () => {
+    if (!form.title.trim()) {
+      toast.error('כותרת חובה');
+      return;
+    }
+    if (!user?.id) {
+      toast.error('יש להתחבר מחדש');
+      return;
+    }
     setSaving(true);
-    const { data, error } = await supabase.from('tasks').insert({
+    const { error } = await supabase.from('tasks').insert({
       workspace_id: workspaceId,
+      created_by: user.id,
       title: form.title.trim(),
       description: form.description,
       priority: form.priority,
       due_date: form.due_date || null,
       status: 'todo',
-      created_by: user.id,
-    }).select().single();
-    setSaving(false);
-    if (!error && data) {
-      setTasks(prev => [data, ...prev]);
-      setForm(emptyForm);
-      setModalOpen(false);
+    });
+    if (error) {
+      toast.error('שגיאה בהוספת משימה');
+      setSaving(false);
+      return;
     }
+    toast.success('משימה נוספה');
+    setForm({ title: '', description: '', priority: 'medium', due_date: '' });
+    setShowModal(false);
+    setSaving(false);
+    fetchTasks();
   };
 
-  const tasksByStatus = (status) => tasks.filter(t => taskStatus(t) === status);
-
-  const moveTask = async (task) => {
-    const cur = taskStatus(task);
-    const next = statusFlow[cur] || 'todo';
-    if (!workspaceId) return;
-    await supabase
+  const moveTask = async (id, currentStatus) => {
+    const next = NEXT_STATUS[currentStatus] || 'todo';
+    const { error } = await supabase
       .from('tasks')
       .update({ status: next, updated_at: new Date().toISOString() })
-      .eq('id', task.id);
-    fetchTasks(workspaceId);
+      .eq('id', id);
+    if (!error) fetchTasks();
   };
 
+  const deleteTask = async (id) => {
+    if (!confirm('למחוק משימה זו?')) return;
+    await supabase.from('tasks').delete().eq('id', id);
+    fetchTasks();
+    toast.success('משימה נמחקה');
+  };
+
+  const filtered = tasks.filter((t) => {
+    const matchSearch = t.title?.toLowerCase().includes(search.toLowerCase());
+    const matchPriority = filterPriority === 'all' || t.priority === filterPriority;
+    return matchSearch && matchPriority;
+  });
+
+  if (loading) return <PageLoader />;
+
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto" dir="rtl">
+    <div dir="rtl" className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">משימות</h1>
+        <h1 className="text-2xl font-bold text-gray-800">משימות</h1>
         <button
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 bg-[#6C63FF] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#5a52e0] transition-colors"
+          onClick={() => setShowModal(true)}
+          className="bg-[#6C63FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700"
         >
-          <Plus className="w-4 h-4" />
-          משימה חדשה
+          + משימה חדשה
         </button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-4 border-[#6C63FF] border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {COLUMNS.map(col => (
-            <div key={col.key} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              <div className={`px-4 py-3 ${col.color} font-semibold text-sm flex items-center justify-between`}>
-                <span>{col.label}</span>
-                <span className="bg-white/60 rounded-full px-2 py-0.5 text-xs">
-                  {tasksByStatus(col.key).length}
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="חיפוש משימה..."
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-48"
+        />
+        <select
+          value={filterPriority}
+          onChange={(e) => setFilterPriority(e.target.value)}
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+        >
+          <option value="all">כל העדיפויות</option>
+          <option value="urgent">דחוף</option>
+          <option value="high">גבוה</option>
+          <option value="medium">בינוני</option>
+          <option value="low">נמוך</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 overflow-x-auto">
+        {COLUMNS.map((col) => {
+          const colTasks = filtered.filter((t) => t.status === col.id);
+          return (
+            <div key={col.id} className={`${col.bg} border-t-4 ${col.color} rounded-xl p-3 min-h-64`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-gray-700">{col.label}</h3>
+                <span className="bg-white text-gray-500 text-xs px-2 py-1 rounded-full font-medium">
+                  {colTasks.length}
                 </span>
               </div>
-              <div className="p-2 space-y-2 min-h-32">
-                {tasksByStatus(col.key).map(task => (
-                  <div key={task.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                    <p className="text-sm font-medium text-gray-800 mb-2">{task.title || task.data?.title}</p>
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="space-y-2">
+                {colTasks.length === 0 && (
+                  <p className="text-gray-300 text-xs text-center py-8">ריק</p>
+                )}
+                {colTasks.map((task) => (
+                  <div key={task.id} className="bg-white rounded-lg p-3 shadow-sm border border-gray-100">
+                    <p className="text-sm font-medium text-gray-800 mb-2">{task.title}</p>
+                    <div className="flex items-center gap-1 flex-wrap">
                       {task.priority && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY_COLORS[task.priority || task.data?.priority] || PRIORITY_COLORS.medium}`}>
-                          {task.priority || task.data?.priority}
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${PRIORITY[task.priority]?.color || ''}`}
+                        >
+                          {PRIORITY[task.priority]?.label}
                         </span>
                       )}
                       {task.due_date && (
@@ -150,89 +164,76 @@ export default function Tasks() {
                         </span>
                       )}
                     </div>
-                    {taskStatus(task) !== 'done' && (
+                    <div className="flex gap-1 mt-2">
+                      {col.id !== 'done' && (
+                        <button
+                          onClick={() => moveTask(task.id, task.status)}
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          העבר ▶
+                        </button>
+                      )}
                       <button
-                        type="button"
-                        onClick={() => moveTask(task)}
-                        className="mt-2 w-full text-xs font-medium py-2 min-h-[44px] rounded-lg bg-white border border-gray-200 text-[#6C63FF] hover:bg-purple-50 transition-colors"
+                        onClick={() => deleteTask(task.id)}
+                        className="text-xs text-red-400 hover:underline mr-auto"
                       >
-                        העבר לשלב הבא
+                        מחק
                       </button>
-                    )}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </div>
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" dir="rtl">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-gray-900">משימה חדשה</h2>
-              <button onClick={() => setModalOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg">
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">כותרת *</label>
-                <input
-                  value={form.title}
-                  onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                  placeholder="כותרת המשימה"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#6C63FF]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">תיאור</label>
-                <textarea
-                  value={form.description}
-                  onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                  placeholder="תיאור המשימה..."
-                  rows={3}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#6C63FF] resize-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">עדיפות</label>
-                  <select
-                    value={form.priority}
-                    onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#6C63FF]"
-                  >
-                    <option value="low">נמוכה</option>
-                    <option value="medium">בינונית</option>
-                    <option value="high">גבוהה</option>
-                    <option value="urgent">דחופה</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">תאריך יעד</label>
-                  <input
-                    type="date"
-                    value={form.due_date}
-                    onChange={e => setForm(p => ({ ...p, due_date: e.target.value }))}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#6C63FF]"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={saveTask}
-                disabled={saving || !form.title.trim()}
-                className="flex-1 bg-[#6C63FF] text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-[#5a52e0] disabled:opacity-50 transition-colors"
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div dir="rtl" className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-bold mb-4">משימה חדשה</h2>
+            <div className="space-y-3">
+              <input
+                value={form.title}
+                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                placeholder="כותרת המשימה *"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              />
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                placeholder="תיאור (אופציונלי)"
+                rows={3}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none"
+              />
+              <select
+                value={form.priority}
+                onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
               >
-                {saving ? 'שומר...' : 'שמור משימה'}
+                <option value="low">עדיפות נמוכה</option>
+                <option value="medium">עדיפות בינונית</option>
+                <option value="high">עדיפות גבוהה</option>
+                <option value="urgent">דחוף!</option>
+              </select>
+              <input
+                type="date"
+                value={form.due_date}
+                onChange={(e) => setForm((p) => ({ ...p, due_date: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={addTask}
+                disabled={saving}
+                className="flex-1 bg-[#6C63FF] text-white py-2 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
+              >
+                {saving ? 'שומר...' : 'הוסף משימה'}
               </button>
               <button
-                onClick={() => setModalOpen(false)}
-                className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                onClick={() => setShowModal(false)}
+                className="flex-1 border border-gray-200 py-2 rounded-lg text-sm"
               >
                 ביטול
               </button>

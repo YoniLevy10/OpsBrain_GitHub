@@ -26,6 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from './components/GlobalSearch';
+import NotificationCenter from './components/NotificationCenter';
 
 function LayoutContent() {
   const { user, signOut } = useAuth();
@@ -113,7 +114,9 @@ function LayoutContent() {
             <Brain className="w-5 h-5 text-[#6C63FF]" />
             <span className="font-bold text-white">OpsBrain</span>
           </Link>
-          <div className="w-9" />
+          <div className="flex items-center">
+            <NotificationCenter />
+          </div>
         </div>
       </header>
 
@@ -164,6 +167,9 @@ function LayoutContent() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <div className="hidden lg:block [&_button]:text-gray-300 [&_button:hover]:bg-white/10">
+              <NotificationCenter />
+            </div>
             <button
               onClick={() => setSearchOpen(true)}
               className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
