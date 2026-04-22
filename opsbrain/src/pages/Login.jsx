@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 
 function BrainIcon(props) {
@@ -47,31 +47,46 @@ export default function Login() {
           <p className="text-[#A0A0C0] mt-1 text-sm">התחבר כדי להמשיך</p>
         </div>
 
-        <Auth
-          supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
-          theme="dark"
-          view="sign_in"
-          providers={['google']}
-          redirectTo={`${window.location.origin}/Dashboard`}
-          localization={{
-            variables: {
-              sign_in: {
-                email_label: 'אימייל',
-                password_label: 'סיסמה',
-                button_label: 'כניסה',
-                link_text: 'יש לי חשבון, כניסה',
+        {!isSupabaseConfigured ? (
+          <div
+            role="alert"
+            className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100 text-right"
+          >
+            <p className="font-semibold mb-1">חסר חיבור ל-Supabase</p>
+            <p className="text-amber-100/90 leading-relaxed">
+              ב-Vercel → Project → Settings → Environment Variables הוסף לסביבת <strong>Production</strong>:{' '}
+              <code className="rounded bg-black/30 px-1">VITE_SUPABASE_URL</code> ו־
+              <code className="rounded bg-black/30 px-1">VITE_SUPABASE_ANON_KEY</code> (מ-Supabase → Settings → API).
+              אחרי שמירה — בצע <strong>Redeploy</strong>.
+            </p>
+          </div>
+        ) : (
+          <Auth
+            supabaseClient={supabase}
+            appearance={{ theme: ThemeSupa }}
+            theme="dark"
+            view="sign_in"
+            providers={['google']}
+            redirectTo={`${window.location.origin}/Dashboard`}
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: 'אימייל',
+                  password_label: 'סיסמה',
+                  button_label: 'כניסה',
+                  link_text: 'יש לי חשבון, כניסה',
+                },
+                sign_up: {
+                  email_label: 'אימייל',
+                  password_label: 'סיסמה',
+                  button_label: 'הרשמה',
+                  link_text: 'אין לי חשבון? הרשמה',
+                },
+                forgotten_password: { link_text: 'שכחתי סיסמה' },
               },
-              sign_up: {
-                email_label: 'אימייל',
-                password_label: 'סיסמה',
-                button_label: 'הרשמה',
-                link_text: 'אין לי חשבון? הרשמה',
-              },
-              forgotten_password: { link_text: 'שכחתי סיסמה' },
-            },
-          }}
-        />
+            }}
+          />
+        )}
 
         <p className="text-center text-gray-500 text-sm mt-6">
           אין לך חשבון?{' '}

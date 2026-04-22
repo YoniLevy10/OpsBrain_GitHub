@@ -197,6 +197,13 @@ OPSBRAIN/
 - הוגדרו `vercel.json`, Mobile Preview ב-workspace (אופציונלי).
 - תיקיית פונקציות Base44 ישנה: `_legacy_base44_edge_functions/`.
 
+### 2026-04-22 (תיקון פריסה Vercel — מסך שחור ב-/Login)
+
+- **סיבה:** בלי `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` ב-Vercel, `createClient('', '')` זורק בזמן import → React לא עולה.
+- **תיקון:** `supabase.js` — client עם placeholder כשאין env + `export const isSupabaseConfigured`; בלי persist session כשלא מוגדר. `Login.jsx` — באנר הסבר כשחסרים משתנים.
+- **`public/manifest.json`** — JSON תקין (היה קישור ב-`index.html` לקובץ שלא היה → שגיאת Manifest בקונסול).
+- **`index.html`** — נוסף `<meta name="mobile-web-app-capable" content="yes">` (המלצת דפדפן במקום רק apple-*).
+
 ### 2026-04-22 (תיעוד פריסה)
 
 - נוסף `OPSBRAIN_DEPLOY_AND_DEVELOP.md` בשורש הריפו — מסמך Cursor מסונכן עם הקוד (`opsbrain/`, נתיבי PascalCase, מיגרציות, Vercel, משתני סביבה, ללא בלוק SQL שגוי ל-v4).
