@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { opsbrain } from '@/api/client';
-import { AlertTriangle, TrendingDown, TrendingUp, Loader2 } from 'lucide-react';
+import { AlertTriangle, TrendingUp, Loader2 } from 'lucide-react';
 
 export default function FinancialAlerts({ transactions = [] }) {
   const [alerts, setAlerts] = useState([]);

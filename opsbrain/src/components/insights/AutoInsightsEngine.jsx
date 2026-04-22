@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { opsbrain } from '@/api/client';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Brain, TrendingUp, AlertTriangle, Sparkles, ArrowUp, ArrowDown, DollarSign, Users, Calendar } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Brain, TrendingUp, AlertTriangle, Sparkles, DollarSign, Users, Calendar } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 
 export default function AutoInsightsEngine() {

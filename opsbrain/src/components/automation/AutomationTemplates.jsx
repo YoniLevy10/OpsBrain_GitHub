@@ -2,9 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Mail, Bell, FileText, DollarSign, Users, 
-  Clock, Zap, Calendar, MessageSquare
+import { Bell, FileText, DollarSign, Users, Zap, Calendar
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 

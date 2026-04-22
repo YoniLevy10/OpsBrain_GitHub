@@ -4,7 +4,7 @@ import { opsbrain } from '@/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Activity, TrendingDown, TrendingUp, AlertCircle, CheckCircle, Clock, DollarSign, MessageSquare } from 'lucide-react';
+import { Activity, TrendingDown, TrendingUp, AlertCircle, CheckCircle, DollarSign, MessageSquare } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 
 export default function ClientHealthScore({ client }) {

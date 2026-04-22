@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail, Circle, Loader2, RefreshCw, FileText, Archive, Trash2, CheckCircle } from 'lucide-react';
+import { Mail, Circle, Loader2, RefreshCw, FileText, Archive, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

@@ -5,7 +5,7 @@ import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { opsbrain } from '@/api/client';
-import { FileText, Sparkles, Download, Upload, Loader2 } from 'lucide-react';
+import { FileText, Sparkles, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DocumentAutoFill() {

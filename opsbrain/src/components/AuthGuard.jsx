@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { opsbrain } from '@/api/client';
 import { Loader2 } from 'lucide-react';
-import { WorkspaceProvider } from './workspace/WorkspaceContext';
 
 /**
  * AuthGuard - Multi-Workspace Edition

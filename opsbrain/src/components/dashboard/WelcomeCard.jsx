@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card } from '@/components/ui/card';
 import { Sparkles, TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 

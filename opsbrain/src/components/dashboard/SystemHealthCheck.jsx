@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { opsbrain } from '@/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertCircle, XCircle, Loader2 } from 'lucide-react';
 
 export default function SystemHealthCheck() {

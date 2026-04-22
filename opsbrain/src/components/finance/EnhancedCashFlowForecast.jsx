@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Calendar, Zap, AlertCircle, Loader2 } from 'lucide-react';
+import { TrendingUp, Calendar, Zap, AlertCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { opsbrain } from '@/api/client';
 import { toast } from 'sonner';
 

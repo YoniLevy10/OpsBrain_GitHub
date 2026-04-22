@@ -24,7 +24,18 @@
 
 ## עדכון אחרון
 
-- **תאריך:** 2026-04-19  
+- **תאריך:** 2026-04-22  
+- **תקציר (V2 — צ׳אט / Kanban / CRM / AI):**  
+  - `Chat.jsx` — הודעות + Realtime הופרדו ל־hook `src/hooks/useMessages.js` (`useChannelMessages`).  
+  - `Tasks.jsx` + `components/crm/ProjectBoard.jsx` — גרירה בין עמודות עם `@dnd-kit/core` + עדכון סטטוס ב-Supabase (`tasks`) / `opsbrain.entities.Project.update` (פרויקטים).  
+  - `Clients.jsx` — ייצוא CSV של רשימת הלקוחות המסוננת.  
+  - `AIAgent.jsx` / `AIAssistant.jsx` — לוגיקה משותפת ב־`src/pages/ai/AIWorkspaceAssistant.jsx` עם `mode` נפרד (כולל `source_module` שונה ב־`ai_insights`).  
+  - `supabase/bamakor_bug_reports.sql` — סקריפט ידני לפרויקט Bamakor נפרד (`bug_reports` + RLS).  
+  - `npm run lint:fix` — ניקוי imports שלא בשימוש ברחבי `src/` כך ש־`eslint . --quiet` עובר; `npm run build` נשאר ירוק.  
+- **תקציר (Login — Supabase Auth UI):** נוספו `@supabase/auth-ui-react` + `@supabase/auth-ui-shared`; `Login.jsx` עבר ל־`<Auth />` עם `ThemeSupa`, `view="sign_in"`, OAuth ל־Google (דורש הגדרה ב-Supabase), ו־`redirectTo` ל־`/Dashboard`; ניווט אוטומטי לדשבורד כשקיימת session דרך `AuthContext`. עודכן ה-UI לפי צבעי ה-MVP V2 (background gradient + card + לוגו מוח SVG).  
+- **תקציר (TASK 15 — v4 migration):** נוסף `opsbrain/supabase/migrations/20260423000000_v4_full_schema.sql` — טבלת `automations` + RLS, שדרוג `channels` (workspace_id/description/type), הרחבת `notifications` (type/link), trigger ליצירת channel `general` בעת יצירת workspace, ותמיכה ב-Realtime publication במידת הצורך.  
+- **תקציר (TASK 16 — dependencies):** הותקנו חבילות V2: `@dnd-kit/*`, `recharts`, `emoji-mart`, `date-fns`, `react-hot-toast` (ועוד); build עבר בהצלחה.  
+- **תקציר (תיקון מיגרציות — תאימות ללא `data`):** עודכנו המיגרציות `20260420000000_reference_doc_schema.sql` ו-`20260422000000_master_build_schema_columns.sql` כך ש-backfill מ-`data` ירוץ רק אם העמודה קיימת (באמצעות `information_schema` + `execute`), כדי למנוע שגיאות `column *.data does not exist` בפרויקטים שנוצרו עם סכימה שטוחה. **אומת שהרצה ב-Supabase SQL Editor עוברת בהצלחה** (כולל `workspace_members`, `tasks`, `documents`).  
 - **תקציר (Master Build — Phases 1–6 בקוד):** נוסף `MASTER_BUILD.md` (תוכנית בנייה + הפניות). `AuthContext` — `signIn` מחזיר `{ error }`, `signUp(email, password, fullName, businessName)` יוצר workspace + `workspace_members` + עדכון state; תאימות ל-`NavigationTracker` (`isAuthenticated`, וכו'). `Register.jsx` משתמש ב-`signUp` המאוחד בלי כפילות Supabase. דפים לפי המפרט: `Dashboard` (KPI + `detectPatterns` מ-`aiPatterns.js`), `Tasks` (Kanban CRUD), `Contacts`, `Finance` (טאבים + SVG), `Settings` (פרופיל/עסק/צוות + שליפת `profiles` לפי `user_id`), `Chat` (Realtime + fallback לשליפת הודעות), `Documents` (העלאה + signed URL + תאימות לשורות `data` jsonb), `Calendar`, `AIAgent`, `Bamakor`. `NotificationCenter.jsx` — `notifications` לפי `user_id` + Realtime; `Layout` — פעמון במובייל ובסיידבר דסקטופ. `App.jsx` — `lazy` + `Suspense` + `FullPageLoader`. מיגרציה `20260422000000_master_build_schema_columns.sql` — עמודות ל-`tasks`, `documents`, `notifications` + מדיניות RLS להתראות. **נדרש ידנית:** הרצת מיגרציה ב-Supabase, Vercel Root=`opsbrain`, bucket Storage.  
 - **תקציר (סבב 4 — Foundation / שלב 1):** `opsbrain/vercel.json` — רק **SPA rewrites** ל־`/index.html` (React Router). מומלץ ב-Vercel: **Root Directory = `opsbrain`**, משתני סביבה (`VITE_SUPABASE_*` וכו') ב-Settings → Environment Variables, ואז Redeploy. נוספו `Spinner.jsx` / `PageLoader` / `FullPageLoader`, `EmptyState.jsx`; `ProtectedRoute` משתמש ב-`FullPageLoader`. `Documents.jsx` — bucket `documents`, שמירת `storage_path`, הורדה ב-**Signed URL** ל-bucket פרטי; `Finance.jsx` — הוסר `created_by` (לא קיים ב-schema), `workspaceId` מה-context, `PageLoader`, בטיחות `records ?? []`. `Contacts.jsx` / `Calendar.jsx` — `workspaceId` מה-auth, `maybeSingle`, ריק/חיפוש ריק, `PageLoader`. `index.html` — `lang="he"`, `dir="rtl"`, title, description, `theme-color`. קובץ SQL: `supabase/storage_policies_documents.sql` (מדיניות Storage אחרי יצירת bucket). **יש לבצע ידנית:** יצירת bucket ב-Dashboard, הרצת SQL, הגדרת Vercel + E2E (רשימת VERIFY במסמך המשימות).  
 - **תקציר (סבב 3):** מיגרציה `20260421120000_v3_contacts_finance_policies_realtime.sql` — טבלאות `contacts` ו-`finance_records`, RLS לפי חברות ב-workspace, הוספת טבלאות ל-publication של Realtime (כשקיים `supabase_realtime`). `AuthContext` מחזיר `workspaceId`, `workspaceName`, `loadWorkspace`. `Dashboard` משתמש ב-`contacts` + `finance_records` (סכום `amount` להכנסות). `Register` — slug ייחודי (`baseSlug` + timestamp). `Chat` — שליפת הודעות עם `profiles(full_name, avatar_url)` ורענון אחרי INSERT ב-Realtime. `Tasks` — סטטוס ממוזג מ-`data`, כפתור "העבר לשלב הבא". `AIAgent` — הקשר מ-Supabase + OpenAI (`VITE_OPENAI_KEY`) או mock + שמירה ל-`ai_insights`. קובץ עזר `manual_storage_documents.sql` (הערות למדיניות Storage). **יש להריץ את המיגרציות ב-Supabase Dashboard** וליצור bucket `documents` ידנית לפי ההנחיות.  
@@ -103,6 +114,20 @@ OPSBRAIN/
 
 ## יומן שינויים (כרונולוגי)
 
+### 2026-04-22 (תיקון מיגרציות — תאימות ללא `data`)
+
+- `opsbrain/supabase/migrations/20260420000000_reference_doc_schema.sql` + `20260422000000_master_build_schema_columns.sql`: backfill מ-`data` רץ רק אם העמודה קיימת (עם `execute`) כדי למנוע שגיאות `column *.data does not exist` בזמן הרצה ב-Supabase SQL Editor.
+
+### 2026-04-22 (Login — Supabase Auth UI)
+
+- `opsbrain/package.json` / `opsbrain/package-lock.json`: `@supabase/auth-ui-react`, `@supabase/auth-ui-shared`.
+- `opsbrain/src/pages/Login.jsx`: `<Auth />` + `ThemeSupa` + ניווט ל־`/Dashboard` כשיש session; קישור להרשמה נשאר ל־`/Register`; עדכון UI ללוגו מוח SVG + צבעי MVP V2.
+
+### 2026-04-22 (TASK 15/16 — V2 schema + deps)
+
+- `opsbrain/supabase/migrations/20260423000000_v4_full_schema.sql`: migration מסכמת (automations/channels/notifications + default channel).
+- `opsbrain/package.json` / `opsbrain/package-lock.json`: התקנת חבילות V2 (`@dnd-kit/*`, `recharts`, `emoji-mart`, `date-fns`, `react-hot-toast`, וכו'); `npm run build` עבר.
+
 ### 2026-04-19 (Master Build — יישום Phases 1–6 בקוד)
 
 - `MASTER_BUILD.md` — תוכנית בנייה ומפת מימוש; `DEVELOPER_LOG.md` — עדכון זה.
@@ -171,13 +196,25 @@ OPSBRAIN/
 - הוגדרו `vercel.json`, Mobile Preview ב-workspace (אופציונלי).
 - תיקיית פונקציות Base44 ישנה: `_legacy_base44_edge_functions/`.
 
+### 2026-04-22 (V2 — צ׳אט / לוחות / CRM / AI + ESLint)
+
+- `src/hooks/useMessages.js` — `useChannelMessages` (טעינה + Realtime + fallback ללא join ל-profiles).
+- `src/pages/Chat.jsx` — שימוש ב-hook למעלה; נשארו DM/emoji/attachments לפי ה-MVP.
+- `src/pages/Tasks.jsx` — Kanban עם `@dnd-kit/core` + DragOverlay; עדכון `status` ב-Supabase.
+- `src/components/crm/ProjectBoard.jsx` — לוח פרויקטים עם DnD + `Project.update` + invalidate queries מההורה.
+- `src/pages/Clients.jsx` — כפתור ייצוא CSV.
+- `src/pages/ai/AIWorkspaceAssistant.jsx` + `AIAgent.jsx` + `AIAssistant.jsx` — פיצול מודול AI לשתי כניסות (Routes) עם אותה ליבה.
+- `supabase/bamakor_bug_reports.sql` — טבלת `bug_reports` לפרויקט Bamakor נפרד.
+- `npm run lint:fix` — תיקוני unused imports ברחבי `src/`; `npm run lint` (`--quiet`) ירוק.
+
 ---
 
 ## המשך / משימות פתוחות (למפתחים ולסבבים הבאים)
 
 - [ ] **Vercel:** Root Directory = `opsbrain`, Environment Variables, Redeploy — עד שה-deployment ירוק (לא בוצע מהסביבה כאן).
-- [ ] **להריץ ב-Supabase:** `20260421120000_v3_contacts_finance_policies_realtime.sql` ואז **`20260422000000_master_build_schema_columns.sql`** (עמודות master build + התראות). לוודא ב-Table Editor ש-`contacts` ו-`finance_records` קיימות.
+- [ ] **להריץ ב-Supabase (OpsBrain):** ודא שרצו לפי הסדר: `20260419000000_init_opsbrain.sql` → `20260420000000_reference_doc_schema.sql` → `20260421120000_v3_contacts_finance_policies_realtime.sql` → `20260422000000_master_build_schema_columns.sql` → **`20260423000000_v4_full_schema.sql`**. לוודא ב-Table Editor ש-`contacts`, `finance_records`, `automations` (אחרי v4) קיימים לפי הצורך.
 - [ ] **Storage:** ליצור bucket `documents` (פרטי) + להריץ `storage_policies_documents.sql` — ראו גם `manual_storage_documents.sql`.
+- [ ] **Bamakor (Supabase נפרד):** להריץ `opsbrain/supabase/bamakor_bug_reports.sql` + להתאים מדיניות/מפתחות לפי הצורך.
 - [ ] לפרוס Edge Functions: `invoke-llm`, `send-email`, `sendTeamInvitation`, `extract-data-from-file`, `agent-reply`, וכו' — לפי קריאות ב-`client.js`.
 - [ ] לאחד או להשאיר `ml_insights` מול `ai_insights` לפי מודול AI.
 - [ ] למלא `user_id` ב-`workspace_members` לנתונים ישנים (אם קיימים) כדי שזיהוי workspace יעבוד.

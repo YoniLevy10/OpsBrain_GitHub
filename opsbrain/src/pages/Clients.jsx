@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Upload } from 'lucide-react';
+import { Plus, Users, Upload, Download } from 'lucide-react';
 import ClientCard from '../components/crm/ClientCard';
 import AddClientDialog from '../components/crm/AddClientDialog';
 import ClientStats from '../components/crm/ClientStats';
@@ -49,6 +49,28 @@ export default function Clients() {
     ? clients 
     : clients.filter(c => c.status === filterStatus);
 
+  const exportClientsCsv = () => {
+    const rows = filteredClients;
+    const headers = ['id', 'name', 'email', 'phone', 'status', 'company', 'created_at'];
+    const esc = (v) => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const lines = [headers.join(',')];
+    for (const c of rows) {
+      lines.push(headers.map((h) => esc(c[h])).join(','));
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `clients-${activeWorkspace?.id || 'workspace'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -57,6 +79,10 @@ export default function Clients() {
           <p className="text-gray-500 mt-1">{t('clients.subtitle')}</p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={exportClientsCsv} variant="outline" className="rounded-xl" disabled={filteredClients.length === 0}>
+            <Download className="w-4 h-4 ml-2" />
+            ייצוא CSV
+          </Button>
           <Button onClick={() => setShowImportDialog(true)} variant="outline" className="rounded-xl">
             <Upload className="w-4 h-4 ml-2" />
             {t('clients.importCSV')}

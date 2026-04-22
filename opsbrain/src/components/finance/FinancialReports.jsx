@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 export default function FinancialReports({ transactions }) {
   const [period, setPeriod] = useState('current');

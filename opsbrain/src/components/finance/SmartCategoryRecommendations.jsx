@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, TrendingDown, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import { Sparkles, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { opsbrain } from '@/api/client';
 import { toast } from 'sonner';

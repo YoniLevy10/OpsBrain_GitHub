@@ -6,8 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Plus, Plug, CheckCircle, XCircle, RefreshCw, 
-  TrendingUp, Zap, Activity
+  Plus, Plug, CheckCircle, XCircle, RefreshCw
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';

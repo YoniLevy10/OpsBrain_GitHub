@@ -3,9 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { opsbrain } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Bell, Check, CheckCheck, Trash2, Settings, 
   MessageSquare, FileText, Users, DollarSign, AlertCircle

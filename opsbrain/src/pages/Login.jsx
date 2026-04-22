@@ -1,79 +1,77 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Brain } from 'lucide-react';
+import { Auth } from '@supabase/auth-ui-react';
+import { ThemeSupa } from '@supabase/auth-ui-shared';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 
-export default function Login() {
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+function BrainIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M9 21c-2.2 0-4-1.8-4-4v-1.2c-1.2-.7-2-2-2-3.4 0-1.2.5-2.3 1.3-3C4.1 8.1 4.6 7 5.6 6.3 6.2 4.4 7.9 3 10 3c1.3 0 2.5.6 3.3 1.5C14.1 3.6 15.3 3 16.6 3c2.1 0 3.8 1.4 4.4 3.3 1 .7 1.5 1.8 1.3 3.1.8.7 1.3 1.8 1.3 3 0 1.4-.8 2.7-2 3.4V17c0 2.2-1.8 4-4 4H9Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 5.2V19.2M8.2 9.2h1.3M8.2 13h1.3M14.5 9.2h1.3M14.5 13h1.3"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    const { error: err } = await signIn(email, password);
-    setLoading(false);
-    if (err) {
-      setError('אימייל או סיסמה שגויים. אנא נסה שנית.');
-    } else {
-      navigate('/Dashboard');
-    }
-  };
+export default function Login() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (loading) return;
+    if (user) navigate('/Dashboard', { replace: true });
+  }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4" dir="rtl">
-      <div className="w-full max-w-md bg-[#1A1A2E] rounded-2xl shadow-2xl p-8">
-        {/* Logo */}
+    <div
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B0B14] via-[#0F0F1A] to-[#141437] p-4"
+      dir="rtl"
+    >
+      <div className="w-full max-w-md rounded-2xl border border-[#2A2A45] bg-[#1E1E35] shadow-2xl p-8">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 bg-[#6C63FF] rounded-2xl flex items-center justify-center mb-3 shadow-lg">
-            <Brain className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 bg-black rounded-full flex items-center justify-center mb-4 ring-1 ring-white/10">
+            <BrainIcon className="text-white w-8 h-8" />
           </div>
-          <h1 className="text-3xl font-bold text-[#6C63FF]">OpsBrain</h1>
-          <p className="text-gray-400 text-sm mt-1">מערכת הפעלה עסקית</p>
+          <h1 className="text-2xl font-bold text-white text-center">ברוכים הבאים ל-OpsBrain</h1>
+          <p className="text-[#A0A0C0] mt-1 text-sm">התחבר כדי להמשיך</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">אימייל</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              placeholder="your@email.com"
-              className="w-full bg-[#0F0F1E] border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-[#6C63FF] transition-colors placeholder-gray-600"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">סיסמה</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-              className="w-full bg-[#0F0F1E] border border-gray-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-[#6C63FF] transition-colors placeholder-gray-600"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl px-4 py-3 text-sm">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[#6C63FF] hover:bg-[#5a52e0] text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2"
-          >
-            {loading ? 'מתחבר...' : 'כניסה למערכת'}
-          </button>
-        </form>
+        <Auth
+          supabaseClient={supabase}
+          appearance={{ theme: ThemeSupa }}
+          theme="dark"
+          view="sign_in"
+          providers={['google']}
+          redirectTo={`${window.location.origin}/Dashboard`}
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: 'אימייל',
+                password_label: 'סיסמה',
+                button_label: 'כניסה',
+                link_text: 'יש לי חשבון, כניסה',
+              },
+              sign_up: {
+                email_label: 'אימייל',
+                password_label: 'סיסמה',
+                button_label: 'הרשמה',
+                link_text: 'אין לי חשבון? הרשמה',
+              },
+              forgotten_password: { link_text: 'שכחתי סיסמה' },
+            },
+          }}
+        />
 
         <p className="text-center text-gray-500 text-sm mt-6">
           אין לך חשבון?{' '}

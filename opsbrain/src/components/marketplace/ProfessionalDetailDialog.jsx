@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { Star, MapPin, Briefcase, Award, MessageSquare, Mail, Phone, CheckCircle, Send } from 'lucide-react';
+import { Star, MapPin, Briefcase, Award, Mail, Phone, CheckCircle, Send } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { toast } from 'sonner';

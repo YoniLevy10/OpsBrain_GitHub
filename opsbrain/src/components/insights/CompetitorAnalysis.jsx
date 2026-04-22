@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { TrendingUp, TrendingDown, Target, Zap, RefreshCw, Lightbulb, Users, DollarSign, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Zap, RefreshCw, Lightbulb, Users, DollarSign } from 'lucide-react';
 import { opsbrain } from '@/api/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';

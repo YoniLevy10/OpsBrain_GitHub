@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { 
-  Zap, Play, Pause, Edit, Trash2, MoreVertical,
-  Clock, CheckCircle, XCircle, Activity
+  Zap, Pause, Edit, Trash2, MoreVertical,
+  Clock, CheckCircle, Activity
 } from 'lucide-react';
 import {
   DropdownMenu,

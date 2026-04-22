@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Calendar, Mail, CheckSquare, Users, TrendingUp, FolderKanban, Bell, Lightbulb, DollarSign, Zap } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';

@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Building2, Mail, Phone, Calendar, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '../../utils';
 import LeadScoring from './LeadScoring';
 import ClientHealthScore from '../ai/ClientHealthScore';
 import { opsbrain } from '@/api/client';

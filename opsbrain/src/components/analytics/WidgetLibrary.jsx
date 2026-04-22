@@ -1,10 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   TrendingUp, Users, FileText, CheckSquare, 
-  DollarSign, Activity, BarChart3, Sparkles, Plus
+  DollarSign, Activity, Sparkles, Plus
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 

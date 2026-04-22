@@ -1,17 +1,13 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { opsbrain } from '@/api/client';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, Settings, Trash2, Eye, EyeOff, RefreshCw,
-  TrendingUp, Users, CheckSquare, Activity, DollarSign
+import { Trash2, Eye, EyeOff,
+  TrendingUp, Users, CheckSquare, Activity
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
-import { toast } from 'sonner';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function CustomDashboard({ widgets, onAddWidget, onRemoveWidget, onToggleVisibility }) {
   const { language } = useLanguage();

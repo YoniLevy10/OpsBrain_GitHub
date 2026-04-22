@@ -9,7 +9,6 @@ import ProjectBoard from '../components/crm/ProjectBoard';
 import AddProjectDialog from '../components/crm/AddProjectDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import LoadingSpinner from '../components/LoadingSpinner';
 
 const ProjectTimeline = lazy(() => import('../components/projects/ProjectTimeline'));
 const ProjectBudgetTracker = lazy(() => import('../components/projects/ProjectBudgetTracker'));
@@ -109,6 +108,9 @@ export default function Projects() {
               setActiveTab('details');
             }}
             onDelete={refetchProjects}
+            onProjectStatusChange={() => {
+              queryClient.invalidateQueries({ queryKey: ['projects', activeWorkspace?.id] });
+            }}
           />
         )
       )}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CreditCard, ExternalLink, Loader2 } from 'lucide-react';
+import { CreditCard, Loader2 } from 'lucide-react';
 import { opsbrain } from '@/api/client';
 import { toast } from 'sonner';
 

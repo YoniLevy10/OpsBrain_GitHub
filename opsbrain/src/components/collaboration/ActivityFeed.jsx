@@ -4,7 +4,7 @@ import { opsbrain } from '@/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Activity, User, FileText, MessageSquare, Upload, 
+  Activity, MessageSquare, Upload, 
   Check, UserPlus, Share2, Plus, Edit, Trash2
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';

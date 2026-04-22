@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { opsbrain } from '@/api/client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertTriangle, Bell, TrendingDown, Clock, XCircle } from 'lucide-react';
+import { AlertTriangle, TrendingDown, Clock, XCircle } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { Button } from '@/components/ui/button';
 

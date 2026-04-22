@@ -11,14 +11,30 @@ alter table public.documents
   add column if not exists size_bytes bigint,
   add column if not exists storage_path text;
 
-update public.documents d
-set
-  name = coalesce(d.name, nullif(trim(d.data->>'title'), '')),
-  file_type = coalesce(d.file_type, nullif(trim(d.data->>'file_type'), '')),
-  size_bytes = coalesce(d.size_bytes, nullif(d.data->>'file_size', '')::bigint),
-  storage_path = coalesce(d.storage_path, nullif(trim(d.data->>'storage_path'), '')),
-  uploaded_by = coalesce(d.uploaded_by, nullif(d.data->>'uploaded_by', '')::uuid)
-where d.storage_path is null and d.data is not null;
+-- Backfill from legacy jsonb only if the `data` column exists.
+-- Some projects created `documents` without a `data` jsonb column.
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'documents'
+      and column_name = 'data'
+  ) then
+    execute $sql$
+      update public.documents d
+      set
+        name = coalesce(d.name, nullif(trim(d.data->>'title'), '')),
+        file_type = coalesce(d.file_type, nullif(trim(d.data->>'file_type'), '')),
+        size_bytes = coalesce(d.size_bytes, nullif(d.data->>'file_size', '')::bigint),
+        storage_path = coalesce(d.storage_path, nullif(trim(d.data->>'storage_path'), '')),
+        uploaded_by = coalesce(d.uploaded_by, nullif(d.data->>'uploaded_by', '')::uuid)
+      where d.storage_path is null and d.data is not null
+    $sql$;
+  end if;
+end
+$$;
 
 alter table public.notifications
   add column if not exists user_id uuid references auth.users (id) on delete cascade,

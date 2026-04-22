@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Download, TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { Download, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 

@@ -32,14 +32,60 @@ export function AuthProvider({ children }) {
     setWorkspaceName(typeof name === 'string' ? name : null);
   }, []);
 
+  const ensurePersonalWorkspace = useCallback(async (authUser) => {
+    if (!authUser?.id) return;
+    const fullName =
+      authUser.user_metadata?.full_name ||
+      authUser.email?.split('@')[0] ||
+      'Workspace';
+    const base = String(fullName)
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    const slug = `${base || 'workspace'}-${Date.now().toString(36)}`;
+
+    const { data: workspace, error: wsErr } = await supabase
+      .from('workspaces')
+      .insert({
+        name: `${fullName}`,
+        slug,
+        owner_id: authUser.id,
+        onboarding_completed: true,
+      })
+      .select()
+      .single();
+
+    if (wsErr || !workspace?.id) return;
+
+    await supabase.from('workspace_members').insert({
+      workspace_id: workspace.id,
+      user_id: authUser.id,
+      role: 'owner',
+      status: 'active',
+      invited_email: authUser.email,
+      accepted_at: new Date().toISOString(),
+    });
+
+    setWorkspaceId(workspace.id);
+    setWorkspaceName(workspace.name);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!mounted) return;
       setUser(session?.user ?? null);
-      if (session?.user) loadWorkspace(session.user.id);
-      else {
+      if (session?.user) {
+        await loadWorkspace(session.user.id);
+        const { data: membership } = await supabase
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('user_id', session.user.id)
+          .limit(1)
+          .maybeSingle();
+        if (!membership?.workspace_id) await ensurePersonalWorkspace(session.user);
+      } else {
         setWorkspaceId(null);
         setWorkspaceName(null);
       }
@@ -52,6 +98,13 @@ export function AuthProvider({ children }) {
         setUser(session?.user ?? null);
         if (session?.user) {
           await loadWorkspace(session.user.id);
+          const { data: membership } = await supabase
+            .from('workspace_members')
+            .select('workspace_id')
+            .eq('user_id', session.user.id)
+            .limit(1)
+            .maybeSingle();
+          if (!membership?.workspace_id) await ensurePersonalWorkspace(session.user);
         } else {
           setWorkspaceId(null);
           setWorkspaceName(null);
@@ -64,7 +117,7 @@ export function AuthProvider({ children }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [loadWorkspace]);
+  }, [ensurePersonalWorkspace, loadWorkspace]);
 
   const signIn = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -88,7 +141,7 @@ export function AuthProvider({ children }) {
 
     const { data: workspace, error: wsErr } = await supabase
       .from('workspaces')
-      .insert({ name: businessName, slug, owner_id: userId })
+      .insert({ name: businessName, slug, owner_id: userId, onboarding_completed: true })
       .select()
       .single();
 
@@ -98,6 +151,9 @@ export function AuthProvider({ children }) {
       workspace_id: workspace.id,
       user_id: userId,
       role: 'owner',
+      status: 'active',
+      invited_email: email,
+      accepted_at: new Date().toISOString(),
     });
 
     setWorkspaceId(workspace.id);

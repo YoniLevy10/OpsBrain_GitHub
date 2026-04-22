@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { opsbrain } from '@/api/client';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { useLanguage } from '@/components/LanguageContext';
-import { Search, FileText, Users, FolderKanban, CheckSquare, Settings, MessageSquare, TrendingUp, File, Loader2 } from 'lucide-react';
+import { Search, FileText, Users, FolderKanban, CheckSquare, Loader2 } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
 export default function GlobalSearch({ open, onClose }) {

@@ -1,252 +1,177 @@
-import React, { useState, lazy, Suspense } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { opsbrain } from '@/api/client';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart3, Plus, Settings, TrendingUp, Layout } from 'lucide-react';
-import { useLanguage } from '@/components/LanguageContext';
-import { useWorkspace } from '@/components/workspace/WorkspaceContext';
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { PageLoader } from '@/components/Spinner';
 import { toast } from 'sonner';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { Skeleton } from '@/components/ui/skeleton';
+import { format, startOfMonth, subMonths } from 'date-fns';
+import { he } from 'date-fns/locale';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
 
-const WidgetLibrary = lazy(() => import('@/components/analytics/WidgetLibrary'));
-const CustomDashboard = lazy(() => import('@/components/analytics/CustomDashboard'));
-const PerformanceMetrics = lazy(() => import('@/components/analytics/PerformanceMetrics'));
+function monthKey(d) {
+  return format(d, 'yyyy-MM');
+}
 
 export default function Analytics() {
-  const { language } = useLanguage();
-  const { activeWorkspace } = useWorkspace();
-  const queryClient = useQueryClient();
-  const [showWidgetLibrary, setShowWidgetLibrary] = useState(false);
-  const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { workspaceId } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [clientsCount, setClientsCount] = useState(0);
+  const [projectsCount, setProjectsCount] = useState(0);
+  const [openTasks, setOpenTasks] = useState(0);
+  const [monthIncome, setMonthIncome] = useState(0);
+  const [financeRows, setFinanceRows] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
-  React.useEffect(() => {
-    opsbrain.auth.me().then(setUser).catch(() => {});
-  }, []);
+  useEffect(() => {
+    if (!workspaceId) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const since = startOfMonth(subMonths(new Date(), 5));
 
-  const { data: widgets = [], isLoading: widgetsLoading } = useQuery({
-    queryKey: ['dashboard-widgets', activeWorkspace?.id, user?.email],
-    queryFn: async () => {
-      if (!activeWorkspace || !user) return [];
-      return await opsbrain.entities.DashboardWidget.filter({
-        workspace_id: activeWorkspace.id,
-        user_email: user.email
-      }, 'position');
-    },
-    enabled: !!activeWorkspace && !!user,
-    staleTime: 5 * 60 * 1000
-  });
+        const [
+          { count: clientsCnt, error: e1 },
+          { count: projectsCnt, error: e2 },
+          { data: taskRows, error: e3 },
+          { data: finRows, error: e4 },
+        ] = await Promise.all([
+          supabase.from('contacts').select('id', { count: 'exact', head: true }).eq('workspace_id', workspaceId),
+          supabase.from('projects').select('id', { count: 'exact', head: true }).eq('workspace_id', workspaceId),
+          supabase.from('tasks').select('id,status').eq('workspace_id', workspaceId),
+          supabase
+            .from('finance_records')
+            .select('type,amount,created_at')
+            .eq('workspace_id', workspaceId)
+            .eq('type', 'income')
+            .gte('created_at', since.toISOString()),
+        ]);
 
-  const addWidgetMutation = useMutation({
-    mutationFn: async (widgetData) => {
-      if (!activeWorkspace || !user) {
-        throw new Error('Missing workspace or user');
+        if (e1 || e2 || e3 || e4) throw e1 || e2 || e3 || e4;
+
+        setClientsCount(clientsCnt ?? 0);
+        setProjectsCount(projectsCnt ?? 0);
+        const trows = taskRows ?? [];
+        setTasks(trows);
+        setOpenTasks(trows.filter((t) => t.status !== 'done' && t.status !== 'completed').length);
+
+        const fins = finRows ?? [];
+        setFinanceRows(fins);
+        const curKey = monthKey(new Date());
+        setMonthIncome(
+          fins.filter((r) => monthKey(new Date(r.created_at)) === curKey).reduce((s, r) => s + Number(r.amount || 0), 0)
+        );
+      } catch (e) {
+        console.error(e);
+        toast.error('שגיאה בטעינת אנליטיקה');
+      } finally {
+        setLoading(false);
       }
-      
-      return await opsbrain.entities.DashboardWidget.create({
-        workspace_id: activeWorkspace.id,
-        user_email: user.email,
-        widget_type: widgetData.type,
-        position: widgets.length,
-        size: 'medium',
-        is_visible: true
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['dashboard-widgets']);
-      toast.success(language === 'he' ? 'ווידג\'ט נוסף בהצלחה' : 'Widget added successfully');
-      setShowWidgetLibrary(false);
-    },
-    onError: (error) => {
-      console.error('Error adding widget:', error);
-      toast.error(language === 'he' ? 'שגיאה בהוספת ווידג\'ט' : 'Error adding widget');
-    }
-  });
+    })();
+  }, [workspaceId]);
 
-  const removeWidgetMutation = useMutation({
-    mutationFn: (widgetId) => opsbrain.entities.DashboardWidget.delete(widgetId),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['dashboard-widgets']);
-      toast.success(language === 'he' ? 'ווידג\'ט הוסר' : 'Widget removed');
+  const incomeByMonth = useMemo(() => {
+    const map = new Map();
+    for (let i = 5; i >= 0; i -= 1) {
+      const d = subMonths(new Date(), i);
+      map.set(monthKey(d), { key: monthKey(d), label: format(d, 'MMM', { locale: he }), income: 0 });
     }
-  });
+    for (const r of financeRows) {
+      const k = monthKey(new Date(r.created_at));
+      if (!map.has(k)) continue;
+      const row = map.get(k);
+      row.income += Number(r.amount || 0);
+      map.set(k, row);
+    }
+    return Array.from(map.values());
+  }, [financeRows]);
 
-  const toggleWidgetMutation = useMutation({
-    mutationFn: (widget) => opsbrain.entities.DashboardWidget.update(widget.id, {
-      is_visible: !widget.is_visible
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['dashboard-widgets']);
+  const taskStatusPie = useMemo(() => {
+    const counts = { todo: 0, in_progress: 0, done: 0, other: 0 };
+    for (const t of tasks) {
+      if (t.status === 'todo') counts.todo += 1;
+      else if (t.status === 'in_progress') counts.in_progress += 1;
+      else if (t.status === 'done' || t.status === 'completed') counts.done += 1;
+      else counts.other += 1;
     }
-  });
+    return [
+      { name: 'לביצוע', value: counts.todo, color: '#6B46C1' },
+      { name: 'בתהליך', value: counts.in_progress, color: '#8B5CF6' },
+      { name: 'הושלם', value: counts.done, color: '#10B981' },
+      { name: 'אחר', value: counts.other, color: '#A0A0C0' },
+    ].filter((x) => x.value > 0);
+  }, [tasks]);
+
+  if (loading) return <PageLoader />;
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <BarChart3 className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {language === 'he' ? 'ניתוח עסקי' : 'Business Analytics'}
-            </h1>
-            <p className="text-gray-500">
-              {language === 'he' ? 'תובנות ומדדים בזמן אמת' : 'Real-time insights and metrics'}
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'he' ? 'ווידג\'טים פעילים' : 'Active Widgets'}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {widgets.filter(w => w.is_visible).length}
-                  </p>
-                </div>
-                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <Layout className="w-5 h-5 text-indigo-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'he' ? 'מדדי ביצוע' : 'Metrics'}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">12</p>
-                </div>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'he' ? 'מדדים בעלייה' : 'Trending Up'}
-                  </p>
-                  <p className="text-2xl font-bold text-green-600">8</p>
-                </div>
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'he' ? 'יעדים הושגו' : 'Goals Met'}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">75%</p>
-                </div>
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+    <div dir="rtl" className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white">ניתוח עסקי</h1>
+        <p className="text-[#A0A0C0] mt-1">תובנות ומדדים בזמן אמת מהנתונים שלך ב-Supabase</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center justify-between mb-6">
-          <TabsList>
-            <TabsTrigger value="dashboard">
-              {language === 'he' ? 'דשבורד' : 'Dashboard'}
-            </TabsTrigger>
-            <TabsTrigger value="metrics">
-              {language === 'he' ? 'מדדים' : 'Metrics'}
-            </TabsTrigger>
-          </TabsList>
-          {activeTab === 'dashboard' && (
-            <Button
-              onClick={() => setShowWidgetLibrary(true)}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              <Plus className="w-4 h-4 ml-2" />
-              {language === 'he' ? 'הוסף ווידג\'ט' : 'Add Widget'}
-            </Button>
-          )}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {[
+          { label: 'סה״כ לקוחות', value: clientsCount },
+          { label: 'סה״כ פרויקטים', value: projectsCount },
+          { label: 'הכנסות החודש', value: `₪${monthIncome.toLocaleString()}` },
+          { label: 'משימות פתוחות', value: openTasks },
+        ].map((k) => (
+          <div key={k.label} className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-4">
+            <div className="text-sm text-[#A0A0C0]">{k.label}</div>
+            <div className="text-3xl font-bold text-white mt-2">{k.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-4">
+          <div className="text-white font-semibold mb-3">הכנסות לפי חודש</div>
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={incomeByMonth}>
+                <CartesianGrid stroke="#2A2A45" strokeDasharray="3 3" />
+                <XAxis dataKey="label" stroke="#A0A0C0" />
+                <YAxis stroke="#A0A0C0" />
+                <Tooltip
+                  contentStyle={{ background: '#0F0F1A', border: '1px solid #2A2A45', borderRadius: 12 }}
+                  labelStyle={{ color: '#fff' }}
+                />
+                <Line type="monotone" dataKey="income" stroke="#8B5CF6" strokeWidth={3} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <TabsContent value="dashboard">
-          {widgetsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Skeleton className="h-64" />
-              <Skeleton className="h-64" />
-              <Skeleton className="h-64" />
-            </div>
-          ) : widgets.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Layout className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {language === 'he' ? 'דשבורד ריק' : 'Empty Dashboard'}
-                </h3>
-                <p className="text-gray-500 mb-6">
-                  {language === 'he' ? 'התחל בהוספת ווידג\'טים' : 'Start by adding widgets'}
-                </p>
-                <Button onClick={() => setShowWidgetLibrary(true)} className="bg-indigo-600 hover:bg-indigo-700">
-                  <Plus className="w-4 h-4 ml-2" />
-                  {language === 'he' ? 'הוסף ווידג\'ט ראשון' : 'Add First Widget'}
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <Suspense fallback={<LoadingSpinner />}>
-              <CustomDashboard
-                widgets={widgets}
-                onAddWidget={() => setShowWidgetLibrary(true)}
-                onRemoveWidget={(widget) => removeWidgetMutation.mutate(widget.id)}
-                onToggleVisibility={(widget) => toggleWidgetMutation.mutate(widget)}
-              />
-            </Suspense>
-          )}
-        </TabsContent>
-
-        <TabsContent value="metrics">
-          <Suspense fallback={<LoadingSpinner />}>
-            <PerformanceMetrics />
-          </Suspense>
-        </TabsContent>
-      </Tabs>
-
-      <Dialog open={showWidgetLibrary} onOpenChange={setShowWidgetLibrary}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {language === 'he' ? 'ספריית ווידג\'טים' : 'Widget Library'}
-            </DialogTitle>
-          </DialogHeader>
-          <Suspense fallback={<LoadingSpinner />}>
-            <WidgetLibrary onAddWidget={(widget) => addWidgetMutation.mutate(widget)} />
-          </Suspense>
-        </DialogContent>
-      </Dialog>
+        <div className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-4">
+          <div className="text-white font-semibold mb-3">משימות לפי סטטוס</div>
+          <div className="h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={taskStatusPie} dataKey="value" nameKey="name" innerRadius={60} outerRadius={100} paddingAngle={3}>
+                  {taskStatusPie.map((e) => (
+                    <Cell key={e.name} fill={e.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ background: '#0F0F1A', border: '1px solid #2A2A45', borderRadius: 12 }}
+                  labelStyle={{ color: '#fff' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

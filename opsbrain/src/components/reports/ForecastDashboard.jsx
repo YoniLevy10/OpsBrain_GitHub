@@ -3,11 +3,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { opsbrain } from '@/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  TrendingUp, TrendingDown, DollarSign, Users, 
-  Loader2, RefreshCw, AlertCircle, CheckCircle
+  TrendingUp, DollarSign, Users, 
+  Loader2, RefreshCw, CheckCircle
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';

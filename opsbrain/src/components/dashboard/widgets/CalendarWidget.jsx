@@ -9,7 +9,6 @@ import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { opsbrain } from '@/api/client';
 import { format } from 'date-fns';
-import { he } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 export default function CalendarWidget({ size = 'medium' }) {

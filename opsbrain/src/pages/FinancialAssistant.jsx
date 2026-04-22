@@ -1,22 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { opsbrain } from '@/api/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { useLanguage } from '@/components/LanguageContext';
 import MessageBubble from '@/components/chat/MessageBubble';
 import ChatInput from '@/components/chat/ChatInput';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import { DollarSign, Bot } from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 const AGENT_NAME = 'financial_assistant';
 
 export default function FinancialAssistantPage() {
   const { activeWorkspace } = useWorkspace();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const seededPromptRef = useRef(false);
 
   const queryClient = useQueryClient();
 
@@ -61,7 +64,7 @@ export default function FinancialAssistantPage() {
       return () => unsubscribe();
     }
   }, [conversation]);
-  
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -76,19 +79,27 @@ export default function FinancialAssistantPage() {
     await opsbrain.agents.addMessage(conversation, userMessage);
   };
 
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (!conversation || !q) return;
+    if (seededPromptRef.current) return;
+    seededPromptRef.current = true;
+    void handleSendMessage(q);
+  }, [conversation, searchParams]);
+
   if (!activeWorkspace || isLoading) {
     return <LoadingSpinner text="טוען את העוזר הפיננסי..." />;
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-        <header className="bg-white border-b p-4 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center">
+    <div className="flex flex-col h-[calc(100vh-96px)] rounded-2xl border border-[#2A2A45] bg-[#1E1E35] overflow-hidden">
+        <header className="border-b border-[#2A2A45] p-4 flex items-center gap-3 bg-[#0F0F1A]/40">
+            <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center ring-1 ring-white/10">
                 <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-                <h1 className="text-xl font-bold">העוזר הפיננסי</h1>
-                <p className="text-sm text-gray-500">שאל שאלות על חשבוניות, לקוחות, תקציבים ועוד</p>
+                <h1 className="text-xl font-bold text-white">העוזר הפיננסי</h1>
+                <p className="text-sm text-[#A0A0C0]">שאל שאלות על חשבוניות, לקוחות, תקציבים ועוד</p>
             </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 space-y-6">

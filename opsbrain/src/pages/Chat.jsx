@@ -1,221 +1,350 @@
-import { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../lib/supabase';
-import { PageLoader } from '../components/Spinner';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { PageLoader } from '@/components/Spinner';
+import { toast } from 'sonner';
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
+import { Paperclip, Smile } from 'lucide-react';
+import { useChannelMessages } from '@/hooks/useMessages';
 
 export default function Chat() {
   const { user, workspaceId } = useAuth();
   const [channels, setChannels] = useState([]);
+  const [dms, setDms] = useState([]);
+  const [members, setMembers] = useState([]);
   const [activeChannel, setActiveChannel] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showNewChannel, setShowNewChannel] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
   const bottomRef = useRef(null);
+  const { messages } = useChannelMessages(activeChannel);
+
+  const activeName = useMemo(() => {
+    const all = [...channels, ...dms];
+    return all.find((c) => c.id === activeChannel)?.name || '';
+  }, [activeChannel, channels, dms]);
 
   useEffect(() => {
-    if (workspaceId && user) fetchChannels();
+    if (workspaceId && user) void bootstrap();
     else if (workspaceId && !user) setLoading(false);
+     
   }, [workspaceId, user]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  useEffect(() => {
-    if (!activeChannel) return;
-    fetchMessages(activeChannel);
-
-    const sub = supabase
-      .channel(`room-${activeChannel}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `channel_id=eq.${activeChannel}`,
-        },
-        async (payload) => {
-          const { data: msg } = await supabase
-            .from('messages')
-            .select('*, profiles!messages_sender_id_fkey(full_name, avatar_url)')
-            .eq('id', payload.new.id)
-            .single();
-          if (msg) setMessages((prev) => [...prev, msg]);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(sub);
-    };
-  }, [activeChannel]);
-
-  const fetchChannels = async () => {
+  const bootstrap = async () => {
     if (!user?.id) return;
     setLoading(true);
-    const { data } = await supabase.from('channels').select('*').eq('workspace_id', workspaceId).order('created_at');
-    if (data && data.length === 0) {
-      const { data: general } = await supabase
+    try {
+      const { data: ch } = await supabase
         .from('channels')
-        .insert({ workspace_id: workspaceId, name: 'כללי', created_by: user.id })
-        .select()
-        .single();
-      if (general) {
-        setChannels([general]);
-        setActiveChannel(general.id);
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .order('created_at', { ascending: true });
+
+      const list = ch ?? [];
+      const chOnly = list.filter((c) => (c.type ?? 'channel') === 'channel');
+      const dmOnly = list.filter((c) => c.type === 'dm');
+      setChannels(chOnly);
+      setDms(dmOnly);
+
+      if (chOnly.length === 0) {
+        const { data: created, error } = await supabase
+          .from('channels')
+          .insert({ workspace_id: workspaceId, name: 'general', type: 'channel', created_by: user.id })
+          .select()
+          .single();
+        if (!error && created) {
+          setChannels([created]);
+          setActiveChannel(created.id);
+        }
+      } else {
+        setActiveChannel((prev) => prev ?? chOnly[0]?.id ?? dmOnly[0]?.id ?? null);
       }
-    } else {
-      setChannels(data ?? []);
-      if (data?.[0]) setActiveChannel(data[0].id);
+
+      const { data: mems } = await supabase
+        .from('workspace_members')
+        .select('user_id, profiles(full_name)')
+        .eq('workspace_id', workspaceId)
+        .neq('user_id', user.id);
+      setMembers(mems ?? []);
+    } catch (e) {
+      console.error(e);
+      toast.error('שגיאה בטעינת צ׳אט');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const fetchMessages = async (channelId) => {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*, profiles!messages_sender_id_fkey(full_name, avatar_url)')
-      .eq('channel_id', channelId)
-      .order('created_at')
-      .limit(100);
-    if (error) {
-      const { data: plain } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('channel_id', channelId)
-        .order('created_at')
-        .limit(100);
-      setMessages(plain ?? []);
-      return;
+  const uploadPendingFiles = async () => {
+    const uploaded = [];
+    for (const f of pendingFiles) {
+      const path = `chat/${workspaceId}/${crypto.randomUUID()}-${f.name}`;
+      const { error } = await supabase.storage.from('documents').upload(path, f, { upsert: false });
+      if (error) throw error;
+      uploaded.push({ name: f.name, path });
     }
-    setMessages(data ?? []);
+    return uploaded;
   };
 
   const send = async () => {
     if (!input.trim() || !activeChannel || !user) return;
     setSending(true);
-    const { error } = await supabase.from('messages').insert({
-      workspace_id: workspaceId,
-      channel_id: activeChannel,
-      sender_id: user.id,
-      content: input.trim(),
-    });
-    if (!error) setInput('');
-    setSending(false);
+    try {
+      const attachments = pendingFiles.length ? await uploadPendingFiles() : [];
+      const { error } = await supabase.from('messages').insert({
+        workspace_id: workspaceId,
+        channel_id: activeChannel,
+        sender_id: user.id,
+        content: input.trim(),
+        attachments,
+      });
+      if (error) throw error;
+      setInput('');
+      setPendingFiles([]);
+      setShowEmoji(false);
+    } catch (e) {
+      console.error(e);
+      toast.error('שגיאה בשליחת הודעה (בדוק Storage bucket `documents`)');
+    } finally {
+      setSending(false);
+    }
   };
 
   const createChannel = async () => {
     if (!newChannelName.trim() || !user?.id) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('channels')
-      .insert({ workspace_id: workspaceId, name: newChannelName.trim(), created_by: user.id })
+      .insert({
+        workspace_id: workspaceId,
+        name: newChannelName.trim(),
+        type: 'channel',
+        created_by: user.id,
+      })
       .select()
       .single();
-    if (data) {
-      setChannels((p) => [...p, data]);
-      setActiveChannel(data.id);
+    if (error) {
+      toast.error('שגיאה ביצירת ערוץ');
+      return;
     }
+    setChannels((p) => [...p, data]);
+    setActiveChannel(data.id);
     setNewChannelName('');
     setShowNewChannel(false);
+  };
+
+  const openOrCreateDm = async (peerId) => {
+    if (!user?.id) return;
+    const existing = dms.find((c) => c.dm_peer_id === peerId);
+    if (existing) {
+      setActiveChannel(existing.id);
+      return;
+    }
+    const peerProfile = members.find((m) => m.user_id === peerId)?.profiles?.full_name || 'DM';
+    const { data, error } = await supabase
+      .from('channels')
+      .insert({
+        workspace_id: workspaceId,
+        name: peerProfile,
+        type: 'dm',
+        dm_peer_id: peerId,
+        created_by: user.id,
+      })
+      .select()
+      .single();
+    if (error) {
+      toast.error('שגיאה ביצירת DM');
+      return;
+    }
+    setDms((p) => [...p, data]);
+    setActiveChannel(data.id);
   };
 
   if (loading) return <PageLoader />;
 
   return (
-    <div
-      dir="rtl"
-      className="flex h-[calc(100vh-80px)] lg:h-[calc(100vh-64px)] bg-white rounded-xl border border-gray-100 overflow-hidden"
-    >
-      <div className="w-56 bg-gray-50 border-l border-gray-100 flex flex-col shrink-0">
-        <div className="p-3 border-b border-gray-100 flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-700">ערוצים</span>
-          <button onClick={() => setShowNewChannel(true)} className="text-[#6C63FF] text-lg font-bold">
+    <div dir="rtl" className="flex h-[calc(100vh-120px)] lg:h-[calc(100vh-104px)] rounded-2xl border border-[#2A2A45] bg-[#1E1E35] overflow-hidden">
+      <div className="w-64 bg-[#0F0F1A]/40 border-l border-[#2A2A45] flex flex-col shrink-0">
+        <div className="p-3 border-b border-[#2A2A45] flex items-center justify-between">
+          <span className="text-sm font-semibold text-white">צ׳אט צוות</span>
+          <button onClick={() => setShowNewChannel(true)} className="text-[#8B5CF6] text-lg font-bold">
             +
           </button>
         </div>
+
         {showNewChannel && (
-          <div className="p-2 border-b border-gray-100">
+          <div className="p-2 border-b border-[#2A2A45]">
             <input
               value={newChannelName}
               onChange={(e) => setNewChannelName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && createChannel()}
               placeholder="שם ערוץ"
-              className="w-full border border-gray-200 rounded px-2 py-1 text-sm mb-1"
+              className="w-full bg-[#0F0F1A] border border-[#2A2A45] rounded-lg px-2 py-2 text-sm text-white mb-2"
               autoFocus
             />
-            <div className="flex gap-1">
-              <button onClick={createChannel} className="flex-1 bg-[#6C63FF] text-white text-xs py-1 rounded">
+            <div className="flex gap-2">
+              <button onClick={createChannel} className="flex-1 bg-[#6B46C1] text-white text-xs py-2 rounded-lg">
                 צור
               </button>
-              <button onClick={() => setShowNewChannel(false)} className="flex-1 border text-xs py-1 rounded">
+              <button onClick={() => setShowNewChannel(false)} className="flex-1 border border-[#2A2A45] text-xs py-2 rounded-lg text-[#A0A0C0]">
                 ביטול
               </button>
             </div>
           </div>
         )}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {channels.map((ch) => (
-            <button
-              key={ch.id}
-              onClick={() => setActiveChannel(ch.id)}
-              className={`w-full text-right px-3 py-2 rounded-lg text-sm ${activeChannel === ch.id ? 'bg-[#6C63FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              # {ch.name}
-            </button>
-          ))}
+
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-3 py-2 text-xs text-[#A0A0C0]">ערוצים</div>
+          <div className="px-2 pb-2 space-y-1">
+            {channels.map((ch) => (
+              <button
+                key={ch.id}
+                onClick={() => setActiveChannel(ch.id)}
+                className={`w-full text-right px-3 py-2 rounded-xl text-sm ${
+                  activeChannel === ch.id ? 'bg-[#6B46C1] text-white' : 'text-[#A0A0C0] hover:bg-white/5'
+                }`}
+              >
+                # {ch.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="px-3 py-2 text-xs text-[#A0A0C0]">הודעות ישירות</div>
+          <div className="px-2 pb-3 space-y-1">
+            {members.map((m) => (
+              <button
+                key={m.user_id}
+                onClick={() => openOrCreateDm(m.user_id)}
+                className="w-full text-right px-3 py-2 rounded-xl text-sm text-[#A0A0C0] hover:bg-white/5"
+              >
+                {m.profiles?.full_name || 'משתמש'}
+              </button>
+            ))}
+            {dms.map((ch) => (
+              <button
+                key={ch.id}
+                onClick={() => setActiveChannel(ch.id)}
+                className={`w-full text-right px-3 py-2 rounded-xl text-sm ${
+                  activeChannel === ch.id ? 'bg-[#6B46C1] text-white' : 'text-[#A0A0C0] hover:bg-white/5'
+                }`}
+              >
+                {ch.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="p-3 border-b border-gray-100 bg-white">
-          <span className="font-semibold text-gray-700">
-            # {channels.find((c) => c.id === activeChannel)?.name || ''}
-          </span>
+        <div className="p-3 border-b border-[#2A2A45] bg-[#0F0F1A]/30">
+          <span className="font-semibold text-white">{activeName ? `# ${activeName}` : 'בחר ערוץ'}</span>
         </div>
+
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && (
-            <div className="text-center text-gray-300 py-16 text-sm">תחילת השיחה — שלח הודעה ראשונה!</div>
+            <div className="text-center text-[#A0A0C0] py-16 text-sm">תחילת השיחה — שלח הודעה ראשונה!</div>
           )}
           {messages.map((msg) => {
             const isMe = msg.sender_id === user?.id;
             return (
-              <div key={msg.id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-xs font-bold flex-shrink-0">
+              <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                   {msg.profiles?.full_name?.charAt(0) || '?'}
                 </div>
                 <div className={`max-w-xs lg:max-w-md ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                  <div className="text-xs text-gray-400 mb-1">
+                  <div className="text-xs text-[#A0A0C0] mb-1">
                     {!isMe && <span className="ml-2">{msg.profiles?.full_name || 'משתמש'}</span>}
                     {new Date(msg.created_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div
-                    className={`px-3 py-2 rounded-2xl text-sm ${isMe ? 'bg-[#6C63FF] text-white rounded-tl-sm' : 'bg-gray-100 text-gray-800 rounded-tr-sm'}`}
+                    className={`px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
+                      isMe ? 'bg-[#6B46C1] text-white rounded-tl-sm' : 'bg-[#0F0F1A] text-white border border-[#2A2A45] rounded-tr-sm'
+                    }`}
                   >
                     {msg.content}
                   </div>
+                  {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {msg.attachments.map((a) => (
+                        <div key={a.path} className="text-xs text-[#A0A0C0]">
+                          קובץ: {a.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })}
           <div ref={bottomRef} />
         </div>
-        <div className="p-3 border-t border-gray-100">
-          <div className="flex gap-2">
-            <input
+
+        <div className="p-3 border-t border-[#2A2A45] bg-[#0F0F1A]/30">
+          {showEmoji && (
+            <div className="mb-2 relative">
+              <div className="absolute bottom-14 left-0 z-20">
+                <Picker
+                  data={data}
+                  theme="dark"
+                  onEmojiSelect={(e) => {
+                    setInput((p) => p + (e.native || ''));
+                    setShowEmoji(false);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {pendingFiles.length > 0 && (
+            <div className="mb-2 text-xs text-[#A0A0C0]">
+              קבצים מצורפים: {pendingFiles.map((f) => f.name).join(', ')}
+            </div>
+          )}
+
+          <div className="flex gap-2 items-end">
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => setShowEmoji((v) => !v)}
+                className="h-10 w-10 rounded-xl border border-[#2A2A45] bg-[#0F0F1A] text-white flex items-center justify-center"
+                aria-label="אימוג׳י"
+              >
+                <Smile className="w-4 h-4" />
+              </button>
+              <label className="h-10 w-10 rounded-xl border border-[#2A2A45] bg-[#0F0F1A] text-white flex items-center justify-center cursor-pointer">
+                <Paperclip className="w-4 h-4" />
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => setPendingFiles(Array.from(e.target.files || []))}
+                />
+              </label>
+            </div>
+
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
-              placeholder="כתוב הודעה... (Enter לשליחה)"
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  void send();
+                }
+              }}
+              rows={2}
+              placeholder="הקלד הודעה… (Enter לשליחה, Shift+Enter לשורה חדשה)"
+              className="flex-1 bg-[#0F0F1A] border border-[#2A2A45] rounded-xl px-4 py-2 text-sm text-white resize-none"
             />
             <button
-              onClick={send}
+              onClick={() => void send()}
               disabled={sending || !input.trim()}
-              className="bg-[#6C63FF] text-white px-4 py-2 rounded-xl text-sm disabled:opacity-50"
+              className="bg-[#6B46C1] text-white px-4 py-2 rounded-xl text-sm disabled:opacity-50 h-[84px]"
             >
               שלח
             </button>

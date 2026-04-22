@@ -41,9 +41,9 @@ const ENTITY_TABLE = {
 
 /** Typed columns per table (rest stays in jsonb `data`). See Developer Reference schema. */
 const COLUMN_FIELDS = {
-  workspaces: ['name', 'owner_id', 'slug', 'plan', 'settings'],
+  workspaces: ['name', 'owner_id', 'slug', 'plan', 'settings', 'onboarding_completed'],
   tasks: ['title', 'status', 'priority', 'assigned_to', 'due_date', 'module_ref', 'module_ref_id'],
-  workspace_members: ['user_id', 'role', 'joined_at'],
+  workspace_members: ['user_id', 'role', 'joined_at', 'status', 'invited_email', 'accepted_at'],
   ai_insights: ['type', 'content', 'source_module', 'severity', 'is_read'],
 };
 
@@ -52,7 +52,6 @@ function flattenRow(table, row) {
   const data = row.data && typeof row.data === 'object' ? row.data : {};
   const created = row.created_at ?? row.created_date;
   const out = {
-    ...data,
     id: row.id,
     created_at: created,
     created_date: created,
@@ -60,6 +59,10 @@ function flattenRow(table, row) {
   };
   if (row.workspace_id !== undefined && row.workspace_id !== null) {
     out.workspace_id = row.workspace_id;
+  }
+  // Merge jsonb `data` first so typed columns can override duplicates predictably.
+  for (const [k, v] of Object.entries(data)) {
+    if (v !== undefined && out[k] === undefined) out[k] = v;
   }
   const cols = COLUMN_FIELDS[table];
   if (cols) {

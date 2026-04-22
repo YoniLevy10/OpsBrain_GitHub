@@ -5,7 +5,7 @@ import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { useQuery } from '@tanstack/react-query';
 import { opsbrain } from '@/api/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { TrendingUp, AlertTriangle, AlertCircle, CheckCircle, Lightbulb, DollarSign, ArrowDown, ArrowUp } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Lightbulb, DollarSign, ArrowDown, ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function SmartCashFlowForecast() {

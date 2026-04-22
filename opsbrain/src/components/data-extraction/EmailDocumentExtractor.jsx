@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { opsbrain } from '@/api/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mail, FileText, CheckCircle2, Loader2, AlertCircle, TrendingUp } from 'lucide-react';
+import { Mail, FileText, CheckCircle2, Loader2, TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { toast } from 'sonner';
 

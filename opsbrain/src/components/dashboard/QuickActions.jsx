@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, FileText, Users, TrendingUp, MessageSquare, Calendar } from 'lucide-react';
+import { FileText, Users, TrendingUp, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../../utils';
 import { useLanguage } from '@/components/LanguageContext';

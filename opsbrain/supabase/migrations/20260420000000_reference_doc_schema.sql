@@ -36,12 +36,28 @@ alter table public.workspace_members
 
 create index if not exists idx_workspace_members_user on public.workspace_members (user_id);
 
-update public.workspace_members wm
-set
-  user_id = coalesce(wm.user_id, (wm.data->>'user_id')::uuid),
-  role = coalesce(wm.role, nullif(wm.data->>'role', ''), 'member'),
-  joined_at = coalesce(wm.joined_at, (wm.data->>'joined_at')::timestamptz, wm.created_at)
-where wm.user_id is null and wm.data ? 'user_id';
+-- Backfill from legacy jsonb only if the `data` column exists.
+-- Some projects created `workspace_members` without a `data` jsonb column.
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'workspace_members'
+      and column_name = 'data'
+  ) then
+    execute $sql$
+      update public.workspace_members wm
+      set
+        user_id = coalesce(wm.user_id, (wm.data->>'user_id')::uuid),
+        role = coalesce(wm.role, nullif(wm.data->>'role', ''), 'member'),
+        joined_at = coalesce(wm.joined_at, (wm.data->>'joined_at')::timestamptz, wm.created_at)
+      where wm.user_id is null and wm.data ? 'user_id'
+    $sql$;
+  end if;
+end
+$$;
 
 -- ---------------------------------------------------------------------------
 -- tasks: typed columns per reference doc (keep data jsonb)
@@ -55,16 +71,32 @@ alter table public.tasks
   add column if not exists module_ref text,
   add column if not exists module_ref_id uuid;
 
-update public.tasks t
-set
-  title = coalesce(t.title, t.data->>'title'),
-  status = coalesce(t.status, t.data->>'status'),
-  priority = coalesce(t.priority, t.data->>'priority'),
-  assigned_to = coalesce(t.assigned_to, (t.data->>'assigned_to')::uuid),
-  due_date = coalesce(t.due_date, (t.data->>'due_date')::date),
-  module_ref = coalesce(t.module_ref, t.data->>'module_ref'),
-  module_ref_id = coalesce(t.module_ref_id, (t.data->>'module_ref_id')::uuid)
-where t.title is null and t.data is not null;
+-- Backfill from legacy jsonb only if the `data` column exists.
+-- Some projects created `tasks` without a `data` jsonb column.
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'tasks'
+      and column_name = 'data'
+  ) then
+    execute $sql$
+      update public.tasks t
+      set
+        title = coalesce(t.title, t.data->>'title'),
+        status = coalesce(t.status, t.data->>'status'),
+        priority = coalesce(t.priority, t.data->>'priority'),
+        assigned_to = coalesce(t.assigned_to, (t.data->>'assigned_to')::uuid),
+        due_date = coalesce(t.due_date, (t.data->>'due_date')::date),
+        module_ref = coalesce(t.module_ref, t.data->>'module_ref'),
+        module_ref_id = coalesce(t.module_ref_id, (t.data->>'module_ref_id')::uuid)
+      where t.title is null and t.data is not null
+    $sql$;
+  end if;
+end
+$$;
 
 -- ---------------------------------------------------------------------------
 -- Team chat (Chat.jsx)

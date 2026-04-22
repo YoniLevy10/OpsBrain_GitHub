@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { 
   CheckCircle, XCircle, AlertCircle, Settings, 
-  RefreshCw, Trash2, ExternalLink
+  RefreshCw, Trash2
 } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { format } from 'date-fns';

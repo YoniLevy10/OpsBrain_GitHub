@@ -16,7 +16,9 @@ const Contacts = lazy(() => import('./pages/Contacts'));
 const Documents = lazy(() => import('./pages/Documents'));
 const Finance = lazy(() => import('./pages/Finance'));
 const Chat = lazy(() => import('./pages/Chat'));
+const TeamChat = lazy(() => import('./pages/TeamChat'));
 const AIAgent = lazy(() => import('./pages/AIAgent'));
+const AIAssistant = lazy(() => import('./pages/AIAssistant'));
 const Bamakor = lazy(() => import('./pages/Bamakor'));
 const Calendar = lazy(() => import('./pages/Calendar'));
 const Settings = lazy(() => import('./pages/Settings'));
@@ -30,6 +32,7 @@ const Marketplace = lazy(() => import('./pages/Marketplace'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Team = lazy(() => import('./pages/Team'));
+const TeamPermissions = lazy(() => import('./pages/TeamPermissions'));
 
 const LOWERCASE_REDIRECTS = [
   ['login', '/Login'],
@@ -40,7 +43,9 @@ const LOWERCASE_REDIRECTS = [
   ['documents', '/Documents'],
   ['finance', '/Finance'],
   ['chat', '/Chat'],
+  ['team-chat', '/TeamChat'],
   ['ai-agent', '/AIAgent'],
+  ['ai-assistant', '/AIAssistant'],
   ['bamakor', '/Bamakor'],
   ['calendar', '/Calendar'],
   ['settings', '/Settings'],
@@ -54,6 +59,7 @@ const LOWERCASE_REDIRECTS = [
   ['projects', '/Projects'],
   ['reports', '/Reports'],
   ['team', '/Team'],
+  ['team-permissions', '/TeamPermissions'],
 ];
 
 function App() {
@@ -78,7 +84,9 @@ function App() {
                 <Route path="Documents" element={<Documents />} />
                 <Route path="Finance" element={<Finance />} />
                 <Route path="Chat" element={<Chat />} />
+                <Route path="TeamChat" element={<TeamChat />} />
                 <Route path="AIAgent" element={<AIAgent />} />
+                <Route path="AIAssistant" element={<AIAssistant />} />
                 <Route path="Bamakor" element={<Bamakor />} />
                 <Route path="Calendar" element={<Calendar />} />
                 <Route path="Settings" element={<Settings />} />
@@ -92,6 +100,7 @@ function App() {
                 <Route path="Projects" element={<Projects />} />
                 <Route path="Reports" element={<Reports />} />
                 <Route path="Team" element={<Team />} />
+                <Route path="TeamPermissions" element={<TeamPermissions />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/Dashboard" replace />} />
