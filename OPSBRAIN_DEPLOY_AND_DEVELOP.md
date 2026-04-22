@@ -137,7 +137,7 @@ git push origin main   # אם יש commits מקומיים
 ### TASK 1 — Login (CRITICAL)
 
 - קובץ: `opsbrain/src/pages/Login.jsx`
-- חבילות: `@supabase/auth-ui-react`, `@supabase/auth-ui-shared`
+- **טופס מותאם** (אימייל + סיסמה + Google OAuth) דרך `useAuth().signIn` ו־`supabase.auth.signInWithOAuth` — **ללא** `@supabase/auth-ui-react` (מניעת קריסות / zustand בפרוד).
 - Auth: `@/lib/AuthContext`, `supabase` מ-`@/lib/supabase`
 
 ### TASK 2 — Layout + Sidebar (CRITICAL)
@@ -219,7 +219,7 @@ cd opsbrain
 npm install
 ```
 
-להוספות לפי צורך (אם חסר במפרט): `@supabase/auth-ui-react`, `@supabase/auth-ui-shared`, `@dnd-kit/core`, `recharts`, `emoji-mart`, `@emoji-mart/react`, `@emoji-mart/data`, `date-fns`, `react-hot-toast`, `lucide-react`, וכו'.
+להוספות לפי צורך (אם חסר במפרט): `@dnd-kit/core`, `recharts`, `emoji-mart`, `@emoji-mart/react`, `@emoji-mart/data`, `date-fns`, `react-hot-toast`, `lucide-react`, וכו'.
 
 ---
 

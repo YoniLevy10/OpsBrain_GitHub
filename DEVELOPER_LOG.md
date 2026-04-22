@@ -197,6 +197,11 @@ OPSBRAIN/
 - הוגדרו `vercel.json`, Mobile Preview ב-workspace (אופציונלי).
 - תיקיית פונקציות Base44 ישנה: `_legacy_base44_edge_functions/`.
 
+### 2026-04-22 (Login — טופס מותאם במקום Auth UI)
+
+- `Login.jsx` — הוסר `<Auth />` מ־`@supabase/auth-ui-react` (גרם לבעיות בפרוד / zustand בקונסול); טופס כהה מלא: Google OAuth + אימייל/סיסמה דרך `signIn` + באנר כשחסרים env.
+- הוסרו חבילות `npm`: `@supabase/auth-ui-react`, `@supabase/auth-ui-shared`.
+
 ### 2026-04-22 (תיקון נוסף — /Login מסך שחור ב-Vercel)
 
 - **AuthContext:** `getSession` + `onAuthStateChange` — `try/catch/finally` ו־`.catch()` כדי ש־`setLoading(false)` תמיד ירוץ (שגיאות Supabase/RLS לא “תקועות” על מסך ריק).
