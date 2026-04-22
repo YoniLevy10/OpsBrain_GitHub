@@ -197,6 +197,10 @@ OPSBRAIN/
 - הוגדרו `vercel.json`, Mobile Preview ב-workspace (אופציונלי).
 - תיקיית פונקציות Base44 ישנה: `_legacy_base44_edge_functions/`.
 
+### 2026-04-22 (Vercel Analytics)
+
+- `@vercel/analytics` — הותקן; `<Analytics />` מ־`@vercel/analytics/react` ב־`opsbrain/src/main.jsx` (Web Analytics בפריסת Vercel).
+
 ### 2026-04-22 (תיקון פריסה Vercel — מסך שחור ב-/Login)
 
 - **סיבה:** בלי `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` ב-Vercel, `createClient('', '')` זורק בזמן import → React לא עולה.
