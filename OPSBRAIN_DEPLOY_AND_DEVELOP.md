@@ -108,7 +108,7 @@ git push origin main   # אם יש commits מקומיים
 
 בדוק:
 
-- טעינת האתר ללא 404 אחרי רענון (SPA rewrites ב-`opsbrain/vercel.json`, עם `handle: filesystem` כדי שלא יימחקו קריאות ל־`/api/*`).
+- טעינת האתר ללא 404 אחרי רענון (SPA rewrites ב-`opsbrain/vercel.json` — נתיבים שמתחילים ב־`/api/` לא מופנים ל־`index.html`).
 - Login (אימייל / Google לפי הגדרת Supabase).
 - אחרי התחברות — Dashboard ומודולים שתלויים ב-`workspace_id`.
 
