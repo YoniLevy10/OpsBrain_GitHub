@@ -197,6 +197,10 @@ OPSBRAIN/
 - הוגדרו `vercel.json`, Mobile Preview ב-workspace (אופציונלי).
 - תיקיית פונקציות Base44 ישנה: `_legacy_base44_edge_functions/`.
 
+### 2026-04-22 (תיקון מיגרציה v4 — `min(uuid)` ב-Supabase/Postgres ישן)
+
+- `20260423000000_v4_full_schema.sql` — backfill `channels.workspace_id` מ-`messages`: הוחלף `min(workspace_id)` ב־`min(workspace_id::text)::uuid` כי בגרסאות Postgres ישנות אין aggregate `min(uuid)` (שגיאה `42883`).
+
 ### 2026-04-22 (V2 — צ׳אט / לוחות / CRM / AI + ESLint)
 
 - `src/hooks/useMessages.js` — `useChannelMessages` (טעינה + Realtime + fallback ללא join ל-profiles).

@@ -86,11 +86,12 @@ begin
     select 1 from information_schema.columns
     where table_schema = 'public' and table_name = 'channels' and column_name = 'workspace_id'
   ) then
+    -- PG < 13 has no aggregate min(uuid); min(text)::uuid is portable.
     execute $sql$
       update public.channels c
       set workspace_id = sub.workspace_id
       from (
-        select m.channel_id, min(m.workspace_id) as workspace_id
+        select m.channel_id, (min(m.workspace_id::text))::uuid as workspace_id
         from public.messages m
         where m.workspace_id is not null
         group by m.channel_id
