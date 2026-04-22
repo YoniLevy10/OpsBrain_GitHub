@@ -197,6 +197,10 @@ OPSBRAIN/
 - הוגדרו `vercel.json`, Mobile Preview ב-workspace (אופציונלי).
 - תיקיית פונקציות Base44 ישנה: `_legacy_base44_edge_functions/`.
 
+### 2026-04-22 (תיעוד פריסה)
+
+- נוסף `OPSBRAIN_DEPLOY_AND_DEVELOP.md` בשורש הריפו — מסמך Cursor מסונכן עם הקוד (`opsbrain/`, נתיבי PascalCase, מיגרציות, Vercel, משתני סביבה, ללא בלוק SQL שגוי ל-v4).
+
 ### 2026-04-22 (תיקון מיגרציה v4 — `min(uuid)` ב-Supabase/Postgres ישן)
 
 - `20260423000000_v4_full_schema.sql` — backfill `channels.workspace_id` מ-`messages`: הוחלף `min(workspace_id)` ב־`min(workspace_id::text)::uuid` כי בגרסאות Postgres ישנות אין aggregate `min(uuid)` (שגיאה `42883`).
