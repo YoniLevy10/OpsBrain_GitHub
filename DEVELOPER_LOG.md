@@ -25,6 +25,7 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-22  
+- **תקציר (סביבה — v0 API):** נוסף placeholder `V0_API_KEY` ל־`opsbrain/.env.example` (בלי ערך סודי); תוקן `opsbrain/.gitignore` כך ש־`.env.example` לא נחסם על ידי `.env.*` — **אל תשתמש ב־`VITE_*` למפתחות v0** (חשיפה לדפדפן); מפתח אמיתי רק ב־`.env.local` / משתני Vercel / Edge Function.  
 - **תקציר (V2 — צ׳אט / Kanban / CRM / AI):**  
   - `Chat.jsx` — הודעות + Realtime הופרדו ל־hook `src/hooks/useMessages.js` (`useChannelMessages`).  
   - `Tasks.jsx` + `components/crm/ProjectBoard.jsx` — גרירה בין עמודות עם `@dnd-kit/core` + עדכון סטטוס ב-Supabase (`tasks`) / `opsbrain.entities.Project.update` (פרויקטים).  
