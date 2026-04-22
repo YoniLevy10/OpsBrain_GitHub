@@ -197,6 +197,12 @@ OPSBRAIN/
 - הוגדרו `vercel.json`, Mobile Preview ב-workspace (אופציונלי).
 - תיקיית פונקציות Base44 ישנה: `_legacy_base44_edge_functions/`.
 
+### 2026-04-22 (תיקון נוסף — /Login מסך שחור ב-Vercel)
+
+- **AuthContext:** `getSession` + `onAuthStateChange` — `try/catch/finally` ו־`.catch()` כדי ש־`setLoading(false)` תמיד ירוץ (שגיאות Supabase/RLS לא “תקועות” על מסך ריק).
+- **Vercel Analytics:** הוחלף `<Analytics />` מ־`@vercel/analytics/react` ב־`inject()` דינמי ב־`VercelWebAnalytics.jsx` (פחות סיכון לכשל ב-bootstrap).
+- **App.jsx:** `path="*"` — `UnknownRouteRedirect`; אם בטעות נכנסים ל-splat על `/Login` או `/Register`, `location.replace` שובר לולאת Navigate ↔ ProtectedRoute.
+
 ### 2026-04-22 (Vercel Analytics)
 
 - `@vercel/analytics` — הותקן; `<Analytics />` מ־`@vercel/analytics/react` ב־`opsbrain/src/main.jsx` (Web Analytics בפריסת Vercel).

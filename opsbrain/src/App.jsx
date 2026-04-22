@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/lib/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from './Layout';
@@ -33,6 +33,16 @@ const Projects = lazy(() => import('./pages/Projects'));
 const Reports = lazy(() => import('./pages/Reports'));
 const Team = lazy(() => import('./pages/Team'));
 const TeamPermissions = lazy(() => import('./pages/TeamPermissions'));
+
+/** מניעת לולאת ניווט אם splat `*` תופס בטעות את `/Login` או `/Register` (מסך שחור בפרוד). */
+function UnknownRouteRedirect() {
+  const { pathname } = useLocation();
+  if (pathname === '/Login' || pathname === '/Register') {
+    window.location.replace(pathname);
+    return null;
+  }
+  return <Navigate to="/Dashboard" replace />;
+}
 
 const LOWERCASE_REDIRECTS = [
   ['login', '/Login'],
@@ -103,7 +113,7 @@ function App() {
                 <Route path="TeamPermissions" element={<TeamPermissions />} />
               </Route>
 
-              <Route path="*" element={<Navigate to="/Dashboard" replace />} />
+              <Route path="*" element={<UnknownRouteRedirect />} />
             </Routes>
           </Suspense>
         </Router>

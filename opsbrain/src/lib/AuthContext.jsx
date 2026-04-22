@@ -72,9 +72,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
+    let subscription = { unsubscribe: () => {} };
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!mounted) return;
+    const finishLoading = () => {
+      if (mounted) setLoading(false);
+    };
+
+    const applySession = async (session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         await loadWorkspace(session.user.id);
@@ -89,29 +93,44 @@ export function AuthProvider({ children }) {
         setWorkspaceId(null);
         setWorkspaceName(null);
       }
-      setLoading(false);
-    });
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session } }) => {
         if (!mounted) return;
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await loadWorkspace(session.user.id);
-          const { data: membership } = await supabase
-            .from('workspace_members')
-            .select('workspace_id')
-            .eq('user_id', session.user.id)
-            .limit(1)
-            .maybeSingle();
-          if (!membership?.workspace_id) await ensurePersonalWorkspace(session.user);
-        } else {
+        try {
+          await applySession(session);
+        } catch (e) {
+          console.error('[AuthContext] getSession handler', e);
+          setUser(null);
           setWorkspaceId(null);
           setWorkspaceName(null);
+        } finally {
+          finishLoading();
         }
-        setLoading(false);
-      }
-    );
+      })
+      .catch((e) => {
+        console.error('[AuthContext] getSession', e);
+        finishLoading();
+      });
+
+    try {
+      const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (!mounted) return;
+        try {
+          await applySession(session);
+        } catch (e) {
+          console.error('[AuthContext] onAuthStateChange handler', e);
+        } finally {
+          finishLoading();
+        }
+      });
+      subscription = data?.subscription ?? { unsubscribe: () => {} };
+    } catch (e) {
+      console.error('[AuthContext] onAuthStateChange subscribe', e);
+      finishLoading();
+    }
 
     return () => {
       mounted = false;
