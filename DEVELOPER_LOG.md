@@ -25,6 +25,7 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-22  
+- **תקציר (v0 — הודעת פתיחה ב-Login):** נוספה פונקציית Vercel `opsbrain/api/v0-welcome.js` (קריאה ל־`https://api.v0.dev/v1/chat/completions`, מודל `v0-1.5-md`, `max_completion_tokens` נמוך). `opsbrain/vercel.json` + `vercel.json` בשורש — `handle: filesystem` לפני SPA rewrite כדי ש־`/api/*` לא יימסך ל־`index.html`. `Login.jsx` — טוען `/api/v0-welcome` פעם אחת לדפדפן (מטמון `localStorage` ~30 יום) + טקסט גיבוי בעברית אם אין מפתח או שגיאה. **ב-Vercel:** `V0_API_KEY` (Production) + Redeploy; **Root Directory מומלץ:** `opsbrain` כדי שה־`api/` ייפרס מהתיקייה הזו.  
 - **תקציר (סביבה — v0 API):** נוסף placeholder `V0_API_KEY` ל־`opsbrain/.env.example` (בלי ערך סודי); תוקן `opsbrain/.gitignore` כך ש־`.env.example` לא נחסם על ידי `.env.*` — **אל תשתמש ב־`VITE_*` למפתחות v0** (חשיפה לדפדפן); מפתח אמיתי רק ב־`.env.local` / משתני Vercel / Edge Function.  
 - **תקציר (V2 — צ׳אט / Kanban / CRM / AI):**  
   - `Chat.jsx` — הודעות + Realtime הופרדו ל־hook `src/hooks/useMessages.js` (`useChannelMessages`).  
@@ -91,6 +92,7 @@ OPSBRAIN/
 ├── .vscode/                      ← הגדרות workspace (אופציונלי)
 └── opsbrain/
     ├── .env.example
+    ├── api/                        ← פונקציות Vercel (למשל v0-welcome)
     ├── vercel.json
     ├── package.json
     ├── vite.config.js            ← alias @ → src
@@ -114,6 +116,13 @@ OPSBRAIN/
 ---
 
 ## יומן שינויים (כרונולוגי)
+
+### 2026-04-22 (v0 Platform API — באנר ברוכים הבאים ב-Login)
+
+- `opsbrain/api/v0-welcome.js` — Serverless GET, משתמש ב־`V0_API_KEY` בלבד בצד שרת; תגובה JSON `{ ok, text, error }`.
+- `opsbrain/vercel.json` + `vercel.json` (שורש) — `rewrites`: קודם `handle: filesystem`, אחר כך fallback ל־`/index.html` ל-React Router.
+- `opsbrain/src/pages/Login.jsx` — `fetch('/api/v0-welcome')` + מטמון `localStorage` (`opsbrain_v0_welcome_v1`) כדי לצמצם קריאות ל-v0; טקסט גיבוי קבוע; רמז כש־`missing_key`.
+- `OPSBRAIN_DEPLOY_AND_DEVELOP.md` — הערה קצרה על `/api/v0-welcome` ו־`vercel dev` לבדיקה מקומית.
 
 ### 2026-04-22 (תיקון מיגרציות — תאימות ללא `data`)
 

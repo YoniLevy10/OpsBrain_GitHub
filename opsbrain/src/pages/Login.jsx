@@ -4,6 +4,35 @@ import { Brain } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuth } from '@/lib/AuthContext';
 
+const V0_CACHE_KEY = 'opsbrain_v0_welcome_v1';
+const V0_CACHE_MS = 30 * 24 * 60 * 60 * 1000;
+const V0_FALLBACK =
+  'OpsBrain מרכז את הפעילות העסקית במקום אחד — התחברו ותמשיכו מאיפה שהפסקתם.';
+
+function readV0WelcomeCache() {
+  try {
+    const raw = localStorage.getItem(V0_CACHE_KEY);
+    if (!raw) return null;
+    const j = JSON.parse(raw);
+    if (!j || typeof j.text !== 'string' || !j.t) return null;
+    if (Date.now() - j.t > V0_CACHE_MS) {
+      localStorage.removeItem(V0_CACHE_KEY);
+      return null;
+    }
+    return j.text;
+  } catch {
+    return null;
+  }
+}
+
+function writeV0WelcomeCache(text) {
+  try {
+    localStorage.setItem(V0_CACHE_KEY, JSON.stringify({ t: Date.now(), text }));
+  } catch {
+    /* ignore quota */
+  }
+}
+
 export default function Login() {
   const { user, loading: authLoading, signIn } = useAuth();
   const navigate = useNavigate();
@@ -12,11 +41,47 @@ export default function Login() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [v0Line, setV0Line] = useState(() => readV0WelcomeCache() || '');
+  const [v0Status, setV0Status] = useState(() => (readV0WelcomeCache() ? 'ok' : 'loading'));
 
   useEffect(() => {
     if (authLoading) return;
     if (user) navigate('/Dashboard', { replace: true });
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    const cached = readV0WelcomeCache();
+    if (cached) {
+      setV0Line(cached);
+      setV0Status('ok');
+      return;
+    }
+    let cancelled = false;
+    setV0Status('loading');
+    fetch('/api/v0-welcome')
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        const t = typeof data?.text === 'string' ? data.text.trim() : '';
+        if (data?.ok && t) {
+          writeV0WelcomeCache(t);
+          setV0Line(t);
+          setV0Status('ok');
+        } else {
+          setV0Line(V0_FALLBACK);
+          setV0Status(data?.error === 'missing_key' ? 'no_key' : 'fallback');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setV0Line(V0_FALLBACK);
+          setV0Status('fallback');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const onEmailLogin = async (e) => {
     e.preventDefault();
@@ -68,6 +133,18 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold text-white text-center">ברוכים הבאים ל-OpsBrain</h1>
           <p className="text-[#A0A0C0] mt-1 text-sm">התחבר כדי להמשיך</p>
+          <p className="mt-4 text-center text-sm leading-relaxed text-[#C8C8E4] border border-[#6B46C1]/30 rounded-xl bg-[#6B46C1]/10 px-4 py-3">
+            {v0Status === 'loading' && !v0Line.trim() ? (
+              <span className="text-[#A0A0C0]">טוען הודעה…</span>
+            ) : (
+              v0Line.trim() || V0_FALLBACK
+            )}
+          </p>
+          {v0Status === 'no_key' && (
+            <p className="mt-2 text-center text-xs text-[#6B6B8A]">
+              להפעלת v0: הוסף <code className="rounded bg-black/30 px-1">V0_API_KEY</code> ב-Vercel → Redeploy
+            </p>
+          )}
         </div>
 
         {!isSupabaseConfigured ? (

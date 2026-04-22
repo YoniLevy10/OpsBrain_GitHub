@@ -1,6 +1,6 @@
 # OpsBrain — פריסה ופיתוח (Cursor / Vercel / Supabase)
 
-> **עודכן:** 2026-04-22  
+> **עודכן:** 2026-04-22 (v0 welcome API + SPA rewrites)  
 > **מקור:** MVP שנסרק + `DEVELOPER_LOG.md` + `OPSBRAIN_CURSOR_TASKS.md` + מצב קוד ב-repo  
 > **מקור אמת לקוד:** תיקיית `opsbrain/` בלבד.
 
@@ -85,6 +85,8 @@ git push origin main   # אם יש commits מקומיים
 
 **מפתחות v0 (אם בשימוש):** רק בצד שרת — `V0_API_KEY` (לא `VITE_*`). ראו תיעוד ב-`.env.example`.
 
+**הודעת פתיחה מ-v0 בדף Login:** אחרי הגדרת `V0_API_KEY` ו-Redeploy, הדף קורא ל־`GET /api/v0-welcome` (פונקציה ב־`opsbrain/api/v0-welcome.js`) ומציג טקסט קצר בעברית; יש מטמון בדפדפן כדי לצמצם שימוש בקרדיט. ב־`npm run dev` (Vite בלבד) הנתיב `/api/*` לא קיים — תראה טקסט גיבוי; לבדיקה עם API: `npx vercel dev` מתוך `opsbrain/` (או פריסה ל-Vercel).
+
 **לעולם לא** `VITE_SUPABASE_SERVICE_ROLE_KEY` בפרונט.
 
 ### Deploy
@@ -106,7 +108,7 @@ git push origin main   # אם יש commits מקומיים
 
 בדוק:
 
-- טעינת האתר ללא 404 אחרי רענון (SPA rewrites ב-`opsbrain/vercel.json`).
+- טעינת האתר ללא 404 אחרי רענון (SPA rewrites ב-`opsbrain/vercel.json`, עם `handle: filesystem` כדי שלא יימחקו קריאות ל־`/api/*`).
 - Login (אימייל / Google לפי הגדרת Supabase).
 - אחרי התחברות — Dashboard ומודולים שתלויים ב-`workspace_id`.
 
