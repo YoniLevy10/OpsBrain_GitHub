@@ -7,9 +7,9 @@ import { AuthProvider } from '@/lib/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from './Layout';
 import { FullPageLoader } from '@/components/Spinner';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-const Login = lazy(() => import('./pages/Login'));
-const Register = lazy(() => import('./pages/Register'));
 const Demo = lazy(() => import('./pages/Demo'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Tasks = lazy(() => import('./pages/Tasks'));
@@ -39,7 +39,12 @@ const TeamPermissions = lazy(() => import('./pages/TeamPermissions'));
 /** מניעת לולאת ניווט אם splat `*` תופס בטעות את `/Login` או `/Register` (מסך שחור בפרוד). */
 function UnknownRouteRedirect() {
   const { pathname } = useLocation();
-  if (pathname === '/Login' || pathname === '/Register') {
+  if (
+    pathname === '/Login' ||
+    pathname === '/login' ||
+    pathname === '/Register' ||
+    pathname === '/register'
+  ) {
     window.location.replace(pathname);
     return null;
   }
@@ -47,8 +52,6 @@ function UnknownRouteRedirect() {
 }
 
 const LOWERCASE_REDIRECTS = [
-  ['login', '/Login'],
-  ['register', '/Register'],
   ['dashboard', '/app/Dashboard'],
   ['tasks', '/app/Tasks'],
   ['contacts', '/app/Contacts'],
@@ -87,7 +90,9 @@ function App() {
               ))}
 
               <Route path="/" element={<Demo />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/Login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="/Register" element={<Register />} />
 
               <Route

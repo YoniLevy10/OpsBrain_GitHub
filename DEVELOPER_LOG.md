@@ -25,6 +25,7 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-23  
+- **תקציר (Auth routes — `/login` מסך ריק):** ב־`App.jsx` הוסרו redirects מבוססי `<Navigate>` ל־`/login` ו־`/register`; במקום זאת מוגדרים ישירות ארבעה נתיבים (`/login`, `/Login`, `/register`, `/Register`) לאותו קומפוננטה, כדי למנוע מצב שבו הדפדפן נשאר על URL אותיות קטנות בלי תוכן (במיוחד ב-preview של IDE). בנוסף, `Login` ו־`Register` נטענים כ-import רגיל (לא `lazy`) כדי שלא ייתקעו על טעינת chunk בנקודת הכניסה. `opsbrain/.gitignore` — התעלמות מ־`tmp-main*.js.map`.
 - **תקציר (Layout — מסך “לבן” מקומי / ניווט תחת `/app`):** ב־`Layout.jsx` תוקן חישוב `currentPageName` כך שבנתיבים מסוג `/app/Dashboard` מזוהה העמוד האמיתי (ולא המקטע `app`) — זה משפיע על הדגשת פריטים, מצב מובייל “child route”, ועוד. בנוסף, אזור המשתמש בתחתית הסיידבר וה-shell עברו לצבעי slate/indigo יציבים (במקום `text-white` על רקע בהיר), כדי למנוע טקסט בלתי נראה אחרי מעבר לתימה בהירה. `npm run build` נשאר ירוק.
 - **תקציר (SaaS/Multi-tenant foundation):** נוספה הפרדה ברורה בין דף נחיתה ציבורי (`/` → `Demo`) לבין האפליקציה המוגנת (`/app/*`). כל הניווט/redirects עודכנו בהתאם. בנוסף, אוחד “מקור האמת” ל-workspaces בתוך `AuthContext`: טעינת כל ה-workspaces של המשתמש, שמירת `active_workspace_id` ב-`user_workspace_states`, ו-API ל-`switchWorkspace`/`createWorkspace`. `WorkspaceContext` הוחלף לשכבת תאימות שמבוססת על `AuthContext` כדי למנוע שכבת API כפולה ולצמצם סיכון לטעויות tenant.
 - **תקציר (סביבה — v0 API):** נוסף placeholder `V0_API_KEY` ל־`opsbrain/.env.example` (בלי ערך סודי); תוקן `opsbrain/.gitignore` כך ש־`.env.example` לא נחסם על ידי `.env.*` — **אל תשתמש ב־`VITE_*` למפתחות v0** (חשיפה לדפדפן); מפתח אמיתי רק ב־`.env.local` / משתני Vercel / Edge Function.  
@@ -136,6 +137,11 @@ OPSBRAIN/
 ### 2026-04-23 (Layout — תאימות `/app/*` + קונטרסט בתימה בהירה)
 
 - `opsbrain/src/Layout.jsx`: `currentPageName` נגזר מ־`/app/<Page>` (ולא מ־`app`); עיצוב shell/sidebar/topbar/user-footer עם `slate`/`indigo` כדי למנוע “מסך לבן” שנגרם מטקסט בהיר על רקע בהיר אחרי שינוי תימה.
+
+### 2026-04-23 (Auth entry — `/login` + eager Login/Register)
+
+- `opsbrain/src/App.jsx`: נתיבים ישירים ל־`/login` ו־`/Login` (וגם register) במקום redirect בלבד; `Login`/`Register` כ-import סטטי כדי לצמצם כשלון טעינת chunk/HMR בכניסה.
+- `opsbrain/.gitignore`: `tmp-main*.js.map`.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 

@@ -17,6 +17,9 @@ dist
 dist-ssr
 *.local
 
+# Local debug / sourcemap dumps (do not commit)
+tmp-main*.js.map
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
