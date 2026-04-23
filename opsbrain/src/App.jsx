@@ -29,6 +29,7 @@ const Clients = lazy(() => import('./pages/Clients'));
 const FinancialAssistant = lazy(() => import('./pages/FinancialAssistant'));
 const Integrations = lazy(() => import('./pages/Integrations'));
 const Invoices = lazy(() => import('./pages/Invoices'));
+const Subscriptions = lazy(() => import('./pages/Subscriptions'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Reports = lazy(() => import('./pages/Reports'));
@@ -66,6 +67,7 @@ const LOWERCASE_REDIRECTS = [
   ['financial-assistant', '/app/FinancialAssistant'],
   ['integrations', '/app/Integrations'],
   ['invoices', '/app/Invoices'],
+  ['subscriptions', '/app/Subscriptions'],
   ['marketplace', '/app/Marketplace'],
   ['projects', '/app/Projects'],
   ['reports', '/app/Reports'],
@@ -115,6 +117,7 @@ function App() {
                 <Route path="FinancialAssistant" element={<FinancialAssistant />} />
                 <Route path="Integrations" element={<Integrations />} />
                 <Route path="Invoices" element={<Invoices />} />
+                <Route path="Subscriptions" element={<Subscriptions />} />
                 <Route path="Marketplace" element={<Marketplace />} />
                 <Route path="Projects" element={<Projects />} />
                 <Route path="Reports" element={<Reports />} />

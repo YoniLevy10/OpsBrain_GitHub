@@ -4,16 +4,24 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, DollarSign, Users, AlertCircle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 
 export default function MRRDashboard() {
+  const { activeWorkspace } = useWorkspace();
   const { data: subscriptions = [] } = useQuery({
-    queryKey: ['subscriptions'],
-    queryFn: () => opsbrain.entities.Subscription.list()
+    queryKey: ['subscriptions', activeWorkspace?.id],
+    queryFn: () =>
+      activeWorkspace
+        ? opsbrain.entities.Subscription.filter({ workspace_id: activeWorkspace.id }, '-created_date')
+        : [],
+    enabled: !!activeWorkspace,
   });
 
   const { data: clients = [] } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => opsbrain.entities.Client.list()
+    queryKey: ['clients', activeWorkspace?.id],
+    queryFn: () =>
+      activeWorkspace ? opsbrain.entities.Client.filter({ workspace_id: activeWorkspace.id }) : [],
+    enabled: !!activeWorkspace,
   });
 
   // חישוב MRR

@@ -7,16 +7,22 @@ import { Badge } from '@/components/ui/badge';
 import { RefreshCw, Plus, Pause, Play, X } from 'lucide-react';
 import { toast } from 'sonner';
 import AddSubscriptionDialog from './AddSubscriptionDialog';
+import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 
 export default function SubscriptionManager({ clientId }) {
+  const { activeWorkspace } = useWorkspace();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: subscriptions = [], isLoading } = useQuery({
-    queryKey: ['subscriptions', clientId],
-    queryFn: () => clientId 
-      ? opsbrain.entities.Subscription.filter({ client_id: clientId })
-      : opsbrain.entities.Subscription.list('-created_date')
+    queryKey: ['subscriptions', activeWorkspace?.id, clientId],
+    queryFn: () => {
+      if (!activeWorkspace) return [];
+      return clientId
+        ? opsbrain.entities.Subscription.filter({ workspace_id: activeWorkspace.id, client_id: clientId }, '-created_date')
+        : opsbrain.entities.Subscription.filter({ workspace_id: activeWorkspace.id }, '-created_date');
+    },
+    enabled: !!activeWorkspace,
   });
 
   const updateMutation = useMutation({

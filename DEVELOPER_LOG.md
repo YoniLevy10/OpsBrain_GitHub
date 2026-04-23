@@ -125,6 +125,13 @@ OPSBRAIN/
 - `opsbrain/src/Layout.jsx` + `Login/Register/Dashboard`: עדכון נתיבי ניווט ל-`/app/*`.
 - `opsbrain/.env.example`: הוסר ערך מפתח v0 (placeholder בלבד).
 
+### 2026-04-23 (Billing / Subscriptions + plan badge)
+
+- `opsbrain/src/App.jsx`: נוספה Route ל-`/app/Subscriptions` + redirect מ-`/subscriptions`.
+- `opsbrain/src/Layout.jsx`: נקודת כניסה ל-Billing בניווט + כפתור בטופ־בר (Desktop) + Badge תכנית (`workspace.plan`).
+- `opsbrain/src/pages/Subscriptions.jsx`: מסך Billing עם Empty State כשאין workspace פעיל.
+- `opsbrain/src/components/finance/MRRDashboard.jsx` + `opsbrain/src/components/payments/SubscriptionManager.jsx`: סינון נתונים לפי `workspace_id` כדי למנוע ערבוב לקוחות בין חברות.
+
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 
 - Vercel דחה deploy עם השגיאה: ‎`rewrites[0] should NOT have additional property handle`‎. הוסר `handle: filesystem`; SPA fallback: ‎`source: "/((?!api/).*)"` → ‎`/index.html` ב־`opsbrain/vercel.json` וב־`vercel.json` בשורש.
