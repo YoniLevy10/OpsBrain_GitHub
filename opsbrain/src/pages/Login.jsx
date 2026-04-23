@@ -49,7 +49,7 @@ export default function Login() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (user) navigate('/Dashboard', { replace: true });
+    if (user) navigate('/app/Dashboard', { replace: true });
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function Login() {
         setError(err.message || 'התחברות נכשלה');
         return;
       }
-      navigate('/Dashboard', { replace: true });
+      navigate('/app/Dashboard', { replace: true });
     } catch (err) {
       setError(err?.message || 'שגיאה לא צפויה');
     } finally {
@@ -113,7 +113,7 @@ export default function Login() {
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/Dashboard`,
+          redirectTo: `${window.location.origin}/app/Dashboard`,
         },
       });
       if (err) setError(err.message || 'Google נכשל');

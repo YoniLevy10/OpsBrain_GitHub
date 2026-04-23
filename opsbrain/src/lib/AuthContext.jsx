@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from './supabase';
 
 const AuthContext = createContext(null);
@@ -6,31 +6,96 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [workspaceId, setWorkspaceId] = useState(null);
-  const [workspaceName, setWorkspaceName] = useState(null);
+  const [workspaces, setWorkspaces] = useState([]);
+  const [workspaceId, setWorkspaceId] = useState(null); // active workspace id
+  const [workspaceName, setWorkspaceName] = useState(null); // active workspace name
 
-  const loadWorkspace = useCallback(async (userId) => {
+  const activeWorkspace = useMemo(() => {
+    if (!workspaceId) return null;
+    return workspaces.find((w) => w.id === workspaceId) || null;
+  }, [workspaces, workspaceId]);
+
+  const loadWorkspaces = useCallback(async (userId) => {
     if (!userId) {
+      setWorkspaces([]);
       setWorkspaceId(null);
       setWorkspaceName(null);
       return;
     }
-    const { data, error } = await supabase
-      .from('workspace_members')
-      .select('workspace_id, workspaces(name)')
-      .eq('user_id', userId)
-      .limit(1)
-      .maybeSingle();
 
-    if (error || !data?.workspace_id) {
+    // memberships → workspace ids
+    const { data: memberships, error: mErr } = await supabase
+      .from('workspace_members')
+      .select('workspace_id, role, status')
+      .eq('user_id', userId)
+      .eq('status', 'active');
+
+    if (mErr) {
+      console.error('[AuthContext] loadWorkspaces memberships', mErr);
+      setWorkspaces([]);
       setWorkspaceId(null);
       setWorkspaceName(null);
       return;
     }
-    setWorkspaceId(data.workspace_id);
-    const name = data.workspaces?.name;
-    setWorkspaceName(typeof name === 'string' ? name : null);
-  }, []);
+
+    const wsIds = Array.from(new Set((memberships || []).map((m) => m.workspace_id).filter(Boolean)));
+    if (wsIds.length === 0) {
+      setWorkspaces([]);
+      setWorkspaceId(null);
+      setWorkspaceName(null);
+      return;
+    }
+
+    const { data: wsRows, error: wsErr } = await supabase
+      .from('workspaces')
+      .select('id, name, slug, owner_id, onboarding_completed, plan')
+      .in('id', wsIds)
+      .order('created_at', { ascending: true });
+
+    if (wsErr) {
+      console.error('[AuthContext] loadWorkspaces workspaces', wsErr);
+      setWorkspaces([]);
+      setWorkspaceId(null);
+      setWorkspaceName(null);
+      return;
+    }
+
+    const wsList = wsRows || [];
+    setWorkspaces(wsList);
+
+    // read persisted active workspace from user_workspace_states (if exists)
+    const { data: stateRow, error: sErr } = await supabase
+      .from('user_workspace_states')
+      .select('id, active_workspace_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (sErr) console.warn('[AuthContext] user_workspace_states', sErr);
+
+    const requestedActive = stateRow?.active_workspace_id;
+    const resolvedActive =
+      (requestedActive && wsList.find((w) => w.id === requestedActive)?.id) || wsList[0]?.id || null;
+
+    setWorkspaceId(resolvedActive);
+    setWorkspaceName(wsList.find((w) => w.id === resolvedActive)?.name ?? null);
+
+    // ensure state exists and is valid
+    if (resolvedActive) {
+      if (stateRow?.id) {
+        if (stateRow.active_workspace_id !== resolvedActive) {
+          await supabase
+            .from('user_workspace_states')
+            .update({ active_workspace_id: resolvedActive, updated_at: new Date().toISOString() })
+            .eq('id', stateRow.id);
+        }
+      } else {
+        await supabase.from('user_workspace_states').insert({
+          user_id: userId,
+          active_workspace_id: resolvedActive,
+          created_at: new Date().toISOString(),
+        });
+      }
+    }
+  }, [loadWorkspaces]);
 
   const ensurePersonalWorkspace = useCallback(async (authUser) => {
     if (!authUser?.id) return;
@@ -66,9 +131,89 @@ export function AuthProvider({ children }) {
       accepted_at: new Date().toISOString(),
     });
 
+    // refresh list + make it active
+    await loadWorkspaces(authUser.id);
     setWorkspaceId(workspace.id);
     setWorkspaceName(workspace.name);
   }, []);
+
+  const switchWorkspace = useCallback(
+    async (nextWorkspaceId) => {
+      if (!user?.id) return;
+      if (!nextWorkspaceId) return;
+      if (nextWorkspaceId === workspaceId) return;
+      const ws = workspaces.find((w) => w.id === nextWorkspaceId);
+      if (!ws) return;
+
+      setWorkspaceId(ws.id);
+      setWorkspaceName(ws.name ?? null);
+      const { data: stateRow } = await supabase
+        .from('user_workspace_states')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (stateRow?.id) {
+        await supabase
+          .from('user_workspace_states')
+          .update({ active_workspace_id: ws.id, updated_at: new Date().toISOString() })
+          .eq('id', stateRow.id);
+      } else {
+        await supabase.from('user_workspace_states').insert({
+          user_id: user.id,
+          active_workspace_id: ws.id,
+          created_at: new Date().toISOString(),
+        });
+      }
+    },
+    [user?.id, workspaceId, workspaces]
+  );
+
+  const createWorkspace = useCallback(
+    async (name) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      const trimmed = String(name || '').trim();
+      if (!trimmed) throw new Error('Workspace name required');
+
+      // soft limit (UI expects 3)
+      if (workspaces.length >= 3) {
+        throw new Error('Maximum 3 workspaces allowed');
+      }
+
+      const base = trimmed
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
+      const slug = `${base || 'workspace'}-${Date.now().toString(36)}`;
+
+      const { data: workspace, error: wsErr } = await supabase
+        .from('workspaces')
+        .insert({
+          name: trimmed,
+          slug,
+          owner_id: user.id,
+          onboarding_completed: true,
+        })
+        .select()
+        .single();
+      if (wsErr) throw wsErr;
+
+      await supabase.from('workspace_members').insert({
+        workspace_id: workspace.id,
+        user_id: user.id,
+        role: 'owner',
+        status: 'active',
+        invited_email: user.email,
+        accepted_at: new Date().toISOString(),
+      });
+
+      // refresh + activate
+      await loadWorkspaces(user.id);
+      await switchWorkspace(workspace.id);
+      return workspace;
+    },
+    [loadWorkspaces, switchWorkspace, user?.email, user?.id, workspaces.length]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -81,7 +226,7 @@ export function AuthProvider({ children }) {
     const applySession = async (session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        await loadWorkspace(session.user.id);
+        await loadWorkspaces(session.user.id);
         const { data: membership } = await supabase
           .from('workspace_members')
           .select('workspace_id')
@@ -90,6 +235,7 @@ export function AuthProvider({ children }) {
           .maybeSingle();
         if (!membership?.workspace_id) await ensurePersonalWorkspace(session.user);
       } else {
+        setWorkspaces([]);
         setWorkspaceId(null);
         setWorkspaceName(null);
       }
@@ -193,10 +339,14 @@ export function AuthProvider({ children }) {
         loading,
         workspaceId,
         workspaceName,
+        workspaces,
+        activeWorkspace,
+        switchWorkspace,
+        createWorkspace,
         signIn,
         signUp,
         signOut,
-        loadWorkspace,
+        loadWorkspace: loadWorkspaces,
         isLoadingAuth: loading,
         isLoadingPublicSettings: false,
         isAuthenticated: !!user,

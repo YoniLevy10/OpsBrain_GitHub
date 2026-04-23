@@ -10,6 +10,7 @@ import { FullPageLoader } from '@/components/Spinner';
 
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
+const Demo = lazy(() => import('./pages/Demo'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Tasks = lazy(() => import('./pages/Tasks'));
 const Contacts = lazy(() => import('./pages/Contacts'));
@@ -41,35 +42,35 @@ function UnknownRouteRedirect() {
     window.location.replace(pathname);
     return null;
   }
-  return <Navigate to="/Dashboard" replace />;
+  return <Navigate to="/app/Dashboard" replace />;
 }
 
 const LOWERCASE_REDIRECTS = [
   ['login', '/Login'],
   ['register', '/Register'],
-  ['dashboard', '/Dashboard'],
-  ['tasks', '/Tasks'],
-  ['contacts', '/Contacts'],
-  ['documents', '/Documents'],
-  ['finance', '/Finance'],
-  ['chat', '/Chat'],
-  ['team-chat', '/TeamChat'],
-  ['ai-agent', '/AIAgent'],
-  ['ai-assistant', '/AIAssistant'],
-  ['bamakor', '/Bamakor'],
-  ['calendar', '/Calendar'],
-  ['settings', '/Settings'],
-  ['analytics', '/Analytics'],
-  ['automations', '/Automations'],
-  ['clients', '/Clients'],
-  ['financial-assistant', '/FinancialAssistant'],
-  ['integrations', '/Integrations'],
-  ['invoices', '/Invoices'],
-  ['marketplace', '/Marketplace'],
-  ['projects', '/Projects'],
-  ['reports', '/Reports'],
-  ['team', '/Team'],
-  ['team-permissions', '/TeamPermissions'],
+  ['dashboard', '/app/Dashboard'],
+  ['tasks', '/app/Tasks'],
+  ['contacts', '/app/Contacts'],
+  ['documents', '/app/Documents'],
+  ['finance', '/app/Finance'],
+  ['chat', '/app/Chat'],
+  ['team-chat', '/app/TeamChat'],
+  ['ai-agent', '/app/AIAgent'],
+  ['ai-assistant', '/app/AIAssistant'],
+  ['bamakor', '/app/Bamakor'],
+  ['calendar', '/app/Calendar'],
+  ['settings', '/app/Settings'],
+  ['analytics', '/app/Analytics'],
+  ['automations', '/app/Automations'],
+  ['clients', '/app/Clients'],
+  ['financial-assistant', '/app/FinancialAssistant'],
+  ['integrations', '/app/Integrations'],
+  ['invoices', '/app/Invoices'],
+  ['marketplace', '/app/Marketplace'],
+  ['projects', '/app/Projects'],
+  ['reports', '/app/Reports'],
+  ['team', '/app/Team'],
+  ['team-permissions', '/app/TeamPermissions'],
 ];
 
 function App() {
@@ -83,11 +84,19 @@ function App() {
                 <Route key={from} path={`/${from}`} element={<Navigate to={to} replace />} />
               ))}
 
+              <Route path="/" element={<Demo />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/Register" element={<Register />} />
 
-              <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                <Route index element={<Navigate to="/Dashboard" replace />} />
+              <Route
+                path="/app"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/app/Dashboard" replace />} />
                 <Route path="Dashboard" element={<Dashboard />} />
                 <Route path="Tasks" element={<Tasks />} />
                 <Route path="Contacts" element={<Contacts />} />

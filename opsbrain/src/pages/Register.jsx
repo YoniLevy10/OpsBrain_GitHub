@@ -28,7 +28,7 @@ export default function Register() {
         form.businessName
       );
       if (err) throw err;
-      navigate('/Dashboard');
+      navigate('/app/Dashboard');
     } catch (err) {
       setError(err.message || 'שגיאה ביצירת החשבון. נסה שנית.');
     } finally {

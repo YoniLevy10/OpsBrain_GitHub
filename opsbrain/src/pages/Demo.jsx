@@ -1,26 +1,79 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function DemoPage() {
   const isMobile = useIsMobile();
   const [count, setCount] = useState(0);
+  const { user, loading } = useAuth();
+  const ctaHref = useMemo(() => {
+    if (loading) return '/Login';
+    return user ? '/app/Dashboard' : '/Login';
+  }, [loading, user]);
+  const ctaLabel = loading ? 'כניסה' : user ? 'היכנס לאפליקציה' : 'כניסה';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" dir="rtl">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            OPSBRAIN Demo 🚀
-          </h1>
-          <p className="text-sm md:text-base text-gray-600 mt-2">
-            {isMobile ? '📱 Mobile View' : '🖥️ Desktop View'}
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">OpsBrain</h1>
+              <p className="text-sm md:text-base text-gray-600 mt-2">
+                {isMobile ? 'תצוגת מובייל' : 'תצוגת דסקטופ'} · ניהול עסקי עם AI במקום אחד
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link
+                to={ctaHref}
+                className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                {ctaLabel}
+              </Link>
+              {!user && (
+                <Link
+                  to="/Register"
+                  className="px-4 py-2 rounded-lg bg-white text-gray-900 font-semibold border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  הרשמה
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+        <div className="bg-white rounded-xl shadow-md p-6 md:p-8 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900">בוא נעבור מ״דמו״ למוצר עובד</h2>
+              <p className="text-gray-600 mt-2 leading-relaxed">
+                התחבר/הירשם ותראה מיד דשבורד, ניווט, ומשם נתחיל לשפר מסכים ותהליכים לפי מה שהכי חשוב לך.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Link
+                to={ctaHref}
+                className="px-5 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                {ctaLabel}
+              </Link>
+              {!user && (
+                <Link
+                  to="/Register"
+                  className="px-5 py-3 rounded-lg bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100 transition-colors"
+                >
+                  צור חשבון
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
         
         {/* Grid Layout - Responsive */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">

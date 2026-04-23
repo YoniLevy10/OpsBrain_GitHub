@@ -54,30 +54,30 @@ function LayoutContent() {
   const isChildRoute = !mainPages.includes(currentPageName);
 
   const navItems = [
-    { name: 'דף הבית', href: '/Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
-    { name: 'צ׳אט צוות', href: '/TeamChat', icon: MessageSquare, page: 'TeamChat' },
-    { name: 'אנליטיקה', href: '/Analytics', icon: TrendingUp, page: 'Analytics' },
-    { name: 'אוטומציות', href: '/Automations', icon: RefreshCw, page: 'Automations' },
-    { name: 'פיננסים', href: '/Finance', icon: DollarSign, page: 'Finance' },
-    { name: 'לקוחות', href: '/Clients', icon: Users, page: 'Clients' },
-    { name: 'פרויקטים', href: '/Projects', icon: FolderKanban, page: 'Projects' },
-    { name: 'מסמכים', href: '/Documents', icon: FileText, page: 'Documents' },
-    { name: 'העוזר האישי', href: '/FinancialAssistant', icon: Bot, page: 'FinancialAssistant' },
+    { name: 'דף הבית', href: '/app/Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
+    { name: 'צ׳אט צוות', href: '/app/TeamChat', icon: MessageSquare, page: 'TeamChat' },
+    { name: 'אנליטיקה', href: '/app/Analytics', icon: TrendingUp, page: 'Analytics' },
+    { name: 'אוטומציות', href: '/app/Automations', icon: RefreshCw, page: 'Automations' },
+    { name: 'פיננסים', href: '/app/Finance', icon: DollarSign, page: 'Finance' },
+    { name: 'לקוחות', href: '/app/Clients', icon: Users, page: 'Clients' },
+    { name: 'פרויקטים', href: '/app/Projects', icon: FolderKanban, page: 'Projects' },
+    { name: 'מסמכים', href: '/app/Documents', icon: FileText, page: 'Documents' },
+    { name: 'העוזר האישי', href: '/app/FinancialAssistant', icon: Bot, page: 'FinancialAssistant' },
   ];
 
   const moreItems = [
-    { name: 'משימות', href: '/Tasks', icon: CheckSquare, page: 'Tasks' },
-    { name: 'אנשי קשר (CRM)', href: '/Contacts', icon: BookUser, page: 'Contacts' },
-    { name: 'יומן', href: '/Calendar', icon: Calendar, page: 'Calendar' },
-    { name: 'עוזר AI (מודול)', href: '/AIAgent', icon: Brain, page: 'AIAgent' },
-    { name: 'אינטגרציות', href: '/Integrations', icon: RefreshCw, page: 'Integrations' },
+    { name: 'משימות', href: '/app/Tasks', icon: CheckSquare, page: 'Tasks' },
+    { name: 'אנשי קשר (CRM)', href: '/app/Contacts', icon: BookUser, page: 'Contacts' },
+    { name: 'יומן', href: '/app/Calendar', icon: Calendar, page: 'Calendar' },
+    { name: 'עוזר AI (מודול)', href: '/app/AIAgent', icon: Brain, page: 'AIAgent' },
+    { name: 'אינטגרציות', href: '/app/Integrations', icon: RefreshCw, page: 'Integrations' },
   ];
 
-  const teamNav = [{ name: 'צוות והרשאות', href: '/TeamPermissions', icon: Users, page: 'TeamPermissions' }];
+  const teamNav = [{ name: 'צוות והרשאות', href: '/app/TeamPermissions', icon: Users, page: 'TeamPermissions' }];
 
   const settingsNav = [
-    { name: 'הגדרות', href: '/Settings', icon: Settings, page: 'Settings' },
-    { name: 'דיווח על בעיה (במקור)', href: '/Bamakor', icon: Building2, page: 'Bamakor' },
+    { name: 'הגדרות', href: '/app/Settings', icon: Settings, page: 'Settings' },
+    { name: 'דיווח על בעיה (במקור)', href: '/app/Bamakor', icon: Building2, page: 'Bamakor' },
   ];
 
   const NavLink = ({ item }) => {
@@ -113,7 +113,7 @@ function LayoutContent() {
               <Menu className="w-5 h-5 text-white" />
             </button>
           )}
-          <Link to="/Dashboard" className="flex items-center gap-2">
+          <Link to="/app/Dashboard" className="flex items-center gap-2">
             <Brain className="w-5 h-5 text-[#8B5CF6]" />
             <span className="font-bold text-white">OpsBrain</span>
           </Link>
@@ -127,10 +127,10 @@ function LayoutContent() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1A1A2E] border-t border-white/10">
         <div className="grid grid-cols-4 h-16">
           {[
-            { icon: LayoutDashboard, label: 'בית', page: 'Dashboard', href: '/Dashboard' },
-            { icon: CheckSquare, label: 'משימות', page: 'Tasks', href: '/Tasks' },
-            { icon: DollarSign, label: 'כספים', page: 'Finance', href: '/Finance' },
-            { icon: Settings, label: 'הגדרות', page: 'Settings', href: '/Settings' },
+            { icon: LayoutDashboard, label: 'בית', page: 'Dashboard', href: '/app/Dashboard' },
+            { icon: CheckSquare, label: 'משימות', page: 'Tasks', href: '/app/Tasks' },
+            { icon: DollarSign, label: 'כספים', page: 'Finance', href: '/app/Finance' },
+            { icon: Settings, label: 'הגדרות', page: 'Settings', href: '/app/Settings' },
           ].map(({ icon: Icon, label, page, href }) => (
             <button
               key={page}

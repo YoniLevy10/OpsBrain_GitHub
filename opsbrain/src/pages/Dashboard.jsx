@@ -195,7 +195,7 @@ export default function Dashboard() {
             <h2 className="font-semibold text-white">חדש היום</h2>
             <button
               type="button"
-              onClick={() => navigate('/Tasks')}
+              onClick={() => navigate('/app/Tasks')}
               className="text-xs px-3 py-1 rounded-full bg-[#6B46C1] text-white"
             >
               +

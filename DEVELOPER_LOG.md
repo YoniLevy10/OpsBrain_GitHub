@@ -24,8 +24,8 @@
 
 ## עדכון אחרון
 
-- **תאריך:** 2026-04-22  
-- **תקציר (v0 — הודעת פתיחה ב-Login):** נוספה פונקציית Vercel `opsbrain/api/v0-welcome.js` (קריאה ל־`https://api.v0.dev/v1/chat/completions`, מודל `v0-1.5-md`, `max_completion_tokens` נמוך). `opsbrain/vercel.json` + `vercel.json` בשורש — SPA rewrite עם `source` שמחריג `api/` (negative lookahead; **ללא** `handle` — Vercel דוחה את המפתח הזה ב־`rewrites`). `Login.jsx` — טוען `/api/v0-welcome` פעם אחת לדפדפן (מטמון `localStorage` ~30 יום) + טקסט גיבוי בעברית אם אין מפתח או שגיאה. **ב-Vercel:** `V0_API_KEY` (Production) + Redeploy; **Root Directory מומלץ:** `opsbrain` כדי שה־`api/` ייפרס מהתיקייה הזו.  
+- **תאריך:** 2026-04-23  
+- **תקציר (SaaS/Multi-tenant foundation):** נוספה הפרדה ברורה בין דף נחיתה ציבורי (`/` → `Demo`) לבין האפליקציה המוגנת (`/app/*`). כל הניווט/redirects עודכנו בהתאם. בנוסף, אוחד “מקור האמת” ל-workspaces בתוך `AuthContext`: טעינת כל ה-workspaces של המשתמש, שמירת `active_workspace_id` ב-`user_workspace_states`, ו-API ל-`switchWorkspace`/`createWorkspace`. `WorkspaceContext` הוחלף לשכבת תאימות שמבוססת על `AuthContext` כדי למנוע שכבת API כפולה ולצמצם סיכון לטעויות tenant.
 - **תקציר (סביבה — v0 API):** נוסף placeholder `V0_API_KEY` ל־`opsbrain/.env.example` (בלי ערך סודי); תוקן `opsbrain/.gitignore` כך ש־`.env.example` לא נחסם על ידי `.env.*` — **אל תשתמש ב־`VITE_*` למפתחות v0** (חשיפה לדפדפן); מפתח אמיתי רק ב־`.env.local` / משתני Vercel / Edge Function.  
 - **תקציר (V2 — צ׳אט / Kanban / CRM / AI):**  
   - `Chat.jsx` — הודעות + Realtime הופרדו ל־hook `src/hooks/useMessages.js` (`useChannelMessages`).  
@@ -116,6 +116,14 @@ OPSBRAIN/
 ---
 
 ## יומן שינויים (כרונולוגי)
+
+### 2026-04-23 (SaaS routing + Multi-tenant workspace state)
+
+- `opsbrain/src/App.jsx`: דף נחיתה ציבורי ב-`/` (Demo), אפליקציה מוגנת תחת ` /app/* `, ו-redirects מ-URLים ישנים (`/dashboard` וכו') לנתיבי ` /app/... `.
+- `opsbrain/src/lib/AuthContext.jsx`: טעינת כל ה-workspaces של המשתמש, בחירת active workspace שמורה ב-`user_workspace_states`, פעולות `switchWorkspace`/`createWorkspace`.
+- `opsbrain/src/components/workspace/WorkspaceContext.jsx`: שכבת תאימות שמגישה `activeWorkspace/workspaces` מתוך `AuthContext`.
+- `opsbrain/src/Layout.jsx` + `Login/Register/Dashboard`: עדכון נתיבי ניווט ל-`/app/*`.
+- `opsbrain/.env.example`: הוסר ערך מפתח v0 (placeholder בלבד).
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 
