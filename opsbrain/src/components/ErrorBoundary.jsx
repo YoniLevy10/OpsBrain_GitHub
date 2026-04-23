@@ -33,8 +33,8 @@ class ErrorBoundary extends React.Component {
                 אירעה שגיאה בלתי צפויה. אנא נסה לרענן את הדף.
               </p>
               {this.state.error && (
-                <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-48 whitespace-pre-wrap">
-                  {this.state.error?.stack || this.state.error.toString()}
+                <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-32">
+                  {this.state.error.toString()}
                 </pre>
               )}
               <Button
