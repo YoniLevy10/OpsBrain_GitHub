@@ -282,7 +282,7 @@ export function AuthProvider({ children }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [ensurePersonalWorkspace, loadWorkspace]);
+  }, [ensurePersonalWorkspace, loadWorkspaces]);
 
   const signIn = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
