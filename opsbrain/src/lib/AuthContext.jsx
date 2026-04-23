@@ -95,7 +95,7 @@ export function AuthProvider({ children }) {
         });
       }
     }
-  }, [loadWorkspaces]);
+  }, []);
 
   const ensurePersonalWorkspace = useCallback(async (authUser) => {
     if (!authUser?.id) return;
@@ -135,7 +135,7 @@ export function AuthProvider({ children }) {
     await loadWorkspaces(authUser.id);
     setWorkspaceId(workspace.id);
     setWorkspaceName(workspace.name);
-  }, []);
+  }, [loadWorkspaces]);
 
   const switchWorkspace = useCallback(
     async (nextWorkspaceId) => {
