@@ -35,7 +35,9 @@ function LayoutContent() {
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const currentPageName = location.pathname.split('/').filter(Boolean)[0] || 'Dashboard';
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const currentPageName =
+    pathParts[0] === 'app' && pathParts[1] ? pathParts[1] : pathParts[0] || 'Dashboard';
 
   const fullName = user?.user_metadata?.full_name || user?.email || 'משתמש';
   const initial = fullName[0]?.toUpperCase() || '?';
@@ -91,8 +93,8 @@ function LayoutContent() {
         className={cn(
           "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-sm",
           isActive
-            ? "bg-[#6B46C1] text-white shadow-lg shadow-[#6B46C1]/30"
-            : "text-gray-300 hover:bg-white/10 hover:text-white"
+            ? "bg-slate-900 text-white shadow-sm"
+            : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
         )}
       >
         <item.icon className="w-4 h-4 shrink-0" />
@@ -102,22 +104,22 @@ function LayoutContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F0F1A] text-white" dir="rtl">
+    <div className="min-h-screen bg-slate-50 text-slate-900" dir="rtl">
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#1A1A2E] border-b border-white/10">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
         <div className="flex items-center justify-between px-4 h-14">
           {isChildRoute ? (
             <button onClick={() => navigate(-1)} className="p-2">
-              <ChevronLeft className="w-5 h-5 text-white" />
+              <ChevronLeft className="w-5 h-5 text-slate-900" />
             </button>
           ) : (
             <button onClick={() => setSidebarOpen(true)} className="p-2">
-              <Menu className="w-5 h-5 text-white" />
+              <Menu className="w-5 h-5 text-slate-900" />
             </button>
           )}
           <Link to="/app/Dashboard" className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-[#8B5CF6]" />
-            <span className="font-bold text-white">OpsBrain</span>
+            <Brain className="w-5 h-5 text-indigo-600" />
+            <span className="font-bold text-slate-900">OpsBrain</span>
           </Link>
           <div className="flex items-center">
             <NotificationCenter />
@@ -126,7 +128,7 @@ function LayoutContent() {
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1A1A2E] border-t border-white/10">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur border-t border-slate-200">
         <div className="grid grid-cols-4 h-16">
           {[
             { icon: LayoutDashboard, label: 'בית', page: 'Dashboard', href: '/app/Dashboard' },
@@ -139,7 +141,7 @@ function LayoutContent() {
               onClick={() => navigate(href)}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 transition-colors",
-                currentPageName === page ? "text-[#8B5CF6]" : "text-gray-500"
+                currentPageName === page ? "text-indigo-600" : "text-slate-500"
               )}
             >
               <Icon className="w-5 h-5" />
@@ -156,33 +158,33 @@ function LayoutContent() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed top-0 right-0 z-50 h-full w-64 bg-[#1A1A2E] flex flex-col transform transition-transform duration-300",
+        "fixed top-0 right-0 z-50 h-full w-72 bg-white/90 backdrop-blur flex flex-col transform transition-transform duration-300 border-l border-slate-200",
         "lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"
       )}>
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5 border-b border-white/10">
+        <div className="flex items-center justify-between px-5 py-5 border-b border-slate-200">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#6B46C1] rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
               <Brain className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-white text-sm">OpsBrain</h1>
-              <p className="text-xs text-gray-500">AI לניהול עסקי</p>
+              <h1 className="font-bold text-slate-900 text-sm">OpsBrain</h1>
+              <p className="text-xs text-slate-500">AI לניהול עסקי</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <div className="hidden lg:block [&_button]:text-gray-300 [&_button:hover]:bg-white/10">
+            <div className="hidden lg:block [&_button]:text-slate-700 [&_button:hover]:bg-slate-100">
               <NotificationCenter />
             </div>
             <button
               onClick={() => setSearchOpen(true)}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
             >
-              <Search className="w-4 h-4 text-gray-400" />
+              <Search className="w-4 h-4 text-slate-500" />
             </button>
-            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1.5 hover:bg-white/10 rounded-lg">
-              <X className="w-4 h-4 text-gray-400" />
+            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1.5 hover:bg-slate-100 rounded-lg">
+              <X className="w-4 h-4 text-slate-500" />
             </button>
           </div>
         </div>
@@ -192,35 +194,35 @@ function LayoutContent() {
           <div className="px-3 pt-2 pb-3">
             <WorkspaceSelector />
           </div>
-          <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-1">ראשי</p>
+          <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-1">ראשי</p>
           {navItems.map(item => <NavLink key={item.page} item={item} />)}
 
-          <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-4">נוסף</p>
+          <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-4">נוסף</p>
           {moreItems.map(item => <NavLink key={item.page} item={item} />)}
 
-          <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-4">צוות</p>
+          <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-4">צוות</p>
           {teamNav.map(item => <NavLink key={item.page} item={item} />)}
 
-          <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 mt-4">מערכת</p>
+          <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-4">מערכת</p>
           {settingsNav.map(item => <NavLink key={item.page} item={item} />)}
         </nav>
 
         {/* User */}
         {user && (
-          <div className="p-3 border-t border-white/10">
-            <div className="bg-white/5 rounded-xl p-3">
+          <div className="p-3 border-t border-slate-200">
+            <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 bg-[#6B46C1] rounded-full flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 bg-indigo-600 rounded-full flex items-center justify-center shrink-0">
                   <span className="text-sm font-bold text-white">{initial}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{fullName}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <p className="text-sm font-medium text-slate-900 truncate">{fullName}</p>
+                  <p className="text-xs text-slate-500 truncate">{user.email}</p>
                 </div>
               </div>
               <button
                 onClick={async () => { await signOut(); navigate('/Login'); }}
-                className="w-full px-3 py-2 bg-white/5 hover:bg-white/10 text-gray-300 rounded-lg text-xs font-medium transition-colors border border-white/10"
+                className="w-full px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-medium transition-colors border border-slate-200"
               >
                 יציאה מהחשבון
               </button>
@@ -230,19 +232,19 @@ function LayoutContent() {
       </aside>
 
       {/* Main Content */}
-      <main className="lg:mr-64 pt-14 lg:pt-0 pb-16 lg:pb-0 min-h-screen bg-[#0F0F1A]">
+      <main className="lg:mr-72 pt-14 lg:pt-0 pb-16 lg:pb-0 min-h-screen">
         {/* Desktop topbar */}
-        <div className="hidden lg:flex items-center justify-between px-6 py-4 border-b border-[#2A2A45] bg-[#0F0F1A]/80 backdrop-blur">
+        <div className="hidden lg:flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white/75 backdrop-blur">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center ring-1 ring-white/10">
-              <Brain className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center ring-1 ring-slate-200 shadow-sm">
+              <Brain className="w-5 h-5 text-indigo-600" />
             </div>
             <div className="min-w-0">
-              <div className="text-sm text-[#A0A0C0]">OpsBrain</div>
+              <div className="text-sm text-slate-500">OpsBrain</div>
               <div className="flex items-center gap-2 min-w-0">
-                <div className="font-semibold truncate">{workspaceName || 'מרחב עבודה'}</div>
+                <div className="font-semibold truncate text-slate-900">{workspaceName || 'מרחב עבודה'}</div>
                 {activeWorkspace?.plan && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#6B46C1]/15 border border-[#6B46C1]/25 text-[#C8B6FF] shrink-0">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 shrink-0">
                     {String(activeWorkspace.plan).toUpperCase()}
                   </span>
                 )}
@@ -257,7 +259,7 @@ function LayoutContent() {
             <button
               type="button"
               onClick={() => navigate('/app/Subscriptions')}
-              className="hidden xl:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1E1E35] border border-[#2A2A45] text-gray-200 hover:bg-white/5"
+              className="hidden xl:inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 hover:bg-slate-50"
             >
               <DollarSign className="w-4 h-4" />
               <span className="text-sm font-medium">Billing</span>
@@ -265,13 +267,13 @@ function LayoutContent() {
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              className="hidden xl:flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1E1E35] border border-[#2A2A45] text-[#A0A0C0] w-[420px] justify-start"
+              className="hidden xl:flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 w-[420px] justify-start hover:bg-slate-50"
             >
               <Search className="w-4 h-4" />
               <span className="text-sm">חיפוש…</span>
-              <span className="mr-auto text-xs text-[#A0A0C0]/70">Ctrl K</span>
+              <span className="mr-auto text-xs text-slate-400">Ctrl K</span>
             </button>
-            <div className="[&_button]:text-gray-200 [&_button:hover]:bg-white/10">
+            <div className="[&_button]:text-slate-700 [&_button:hover]:bg-slate-100">
               <NotificationCenter />
             </div>
           </div>

@@ -25,6 +25,7 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-23  
+- **תקציר (Layout — מסך “לבן” מקומי / ניווט תחת `/app`):** ב־`Layout.jsx` תוקן חישוב `currentPageName` כך שבנתיבים מסוג `/app/Dashboard` מזוהה העמוד האמיתי (ולא המקטע `app`) — זה משפיע על הדגשת פריטים, מצב מובייל “child route”, ועוד. בנוסף, אזור המשתמש בתחתית הסיידבר וה-shell עברו לצבעי slate/indigo יציבים (במקום `text-white` על רקע בהיר), כדי למנוע טקסט בלתי נראה אחרי מעבר לתימה בהירה. `npm run build` נשאר ירוק.
 - **תקציר (SaaS/Multi-tenant foundation):** נוספה הפרדה ברורה בין דף נחיתה ציבורי (`/` → `Demo`) לבין האפליקציה המוגנת (`/app/*`). כל הניווט/redirects עודכנו בהתאם. בנוסף, אוחד “מקור האמת” ל-workspaces בתוך `AuthContext`: טעינת כל ה-workspaces של המשתמש, שמירת `active_workspace_id` ב-`user_workspace_states`, ו-API ל-`switchWorkspace`/`createWorkspace`. `WorkspaceContext` הוחלף לשכבת תאימות שמבוססת על `AuthContext` כדי למנוע שכבת API כפולה ולצמצם סיכון לטעויות tenant.
 - **תקציר (סביבה — v0 API):** נוסף placeholder `V0_API_KEY` ל־`opsbrain/.env.example` (בלי ערך סודי); תוקן `opsbrain/.gitignore` כך ש־`.env.example` לא נחסם על ידי `.env.*` — **אל תשתמש ב־`VITE_*` למפתחות v0** (חשיפה לדפדפן); מפתח אמיתי רק ב־`.env.local` / משתני Vercel / Edge Function.  
 - **תקציר (V2 — צ׳אט / Kanban / CRM / AI):**  
@@ -131,6 +132,10 @@ OPSBRAIN/
 - `opsbrain/src/Layout.jsx`: נקודת כניסה ל-Billing בניווט + כפתור בטופ־בר (Desktop) + Badge תכנית (`workspace.plan`).
 - `opsbrain/src/pages/Subscriptions.jsx`: מסך Billing עם Empty State כשאין workspace פעיל.
 - `opsbrain/src/components/finance/MRRDashboard.jsx` + `opsbrain/src/components/payments/SubscriptionManager.jsx`: סינון נתונים לפי `workspace_id` כדי למנוע ערבוב לקוחות בין חברות.
+
+### 2026-04-23 (Layout — תאימות `/app/*` + קונטרסט בתימה בהירה)
+
+- `opsbrain/src/Layout.jsx`: `currentPageName` נגזר מ־`/app/<Page>` (ולא מ־`app`); עיצוב shell/sidebar/topbar/user-footer עם `slate`/`indigo` כדי למנוע “מסך לבן” שנגרם מטקסט בהיר על רקע בהיר אחרי שינוי תימה.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 
@@ -280,6 +285,7 @@ OPSBRAIN/
 - [x] `NotificationCenter.jsx` — מחובר ל-`notifications` ב-Supabase + `useAuth` (דורש עמודות `user_id`/`title`/`body` אחרי מיגרציית master build).
 - [ ] הוספת `VITE_OPENAI_KEY` ב-Vercel לפרודקשן (AI Agent).
 - [ ] (אופציונלי) README בשורש — `README.md` קצר עם הפניה ל-`DEVELOPER_LOG.md` ול-`opsbrain/`.
+- [ ] **UI בתימה בהירה:** דפים פנימיים רבים עדיין עם רקע/טקסט כהה קשיח (`bg-[#…]`, `text-white`) — להעביר בהדרגה לטוקנים/צבעי `slate` כדי שיישבו על ה-shell החדש.
 
 ---
 
