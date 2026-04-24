@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (Performance):** שופרה טעינת Dashboard: `@vercel/analytics` נטען רק בפרודקשן וב־idle (עם אפשרות כיבוי דרך `VITE_DISABLE_VERCEL_ANALYTICS=1`) כדי לא לחסום LCP; עבודת `detectPatterns` בדשבורד נדחתה ל־idle; טעינת Google Fonts הוחלפה ל־`preload`+`onload` כדי להפחית render-blocking.
+- **תאריך:** 2026-04-24  
 - **תקציר (Stability/Tooling):** תוקנה קריסה ב־Realtime Notifications (`NotificationCenter.jsx`) שנגרמה מהוספת `postgres_changes` אחרי `subscribe()` + מניעת subscribe כפול (HMR/StrictMode) ע״י ניקוי channels קיימים. עודכן ניתוב: `/` מפנה ל־`/Login` כשלא מחוברים ול־`/app/Dashboard` כשמחוברים; `*` מפנה ל־`/Login`. נוסף מנגנון anti-hang ב־`AuthContext.jsx`: timeout 5 שניות לאתחול auth + `authError` + `retryAuth`, ו־`ProtectedRoute` מציג מסך שגיאה ידידותי במקום ספינר אינסופי. הוגדרו כלי איכות קוד: `.cursorrules`, Prettier + `format`/`format:check`, Knip (`knip.json`) לסריקת dead-code, bundle analyzer (`npm run analyze`), והותקן Lefthook (`lefthook.yml`) להרצת lint+build לפני commit.
 - **תאריך:** 2026-04-24  
 - **תקציר (UI — לב המערכת / תימה בהירה):** דשבורד, משימות, פיננסים, הגדרות, צ׳אט צוות (`Chat`/`TeamChat`), במקור (`Bamakor`) ומסמכים עברו לשפה ויזואלית אחידה עם ה־Layout: כרטיסים לבנים, `slate`/`indigo`, בלי רקע כהה קשיח. בדשבורד תוקנו קישורי **פעולות מהירות** ל־`/app/Tasks` וכו׳ (במקום נתיבים שבורים). `npm run build` ירוק.

@@ -20,7 +20,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!workspaceId) return;
-    detectPatterns(workspaceId, supabase);
+    // Defer non-critical analysis work off the critical render path.
+    const idle =
+      window.requestIdleCallback ||
+      ((cb) => {
+        const id = window.setTimeout(() => cb(), 1500);
+        return id;
+      });
+    const cancelIdle = window.cancelIdleCallback || ((id) => window.clearTimeout(id));
+    const id = idle(() => detectPatterns(workspaceId, supabase));
+    return () => cancelIdle(id);
   }, [workspaceId]);
 
   useEffect(() => {
