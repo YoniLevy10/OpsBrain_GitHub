@@ -20,6 +20,10 @@ dist-ssr
 # Local debug / sourcemap dumps (do not commit)
 tmp-main*.js.map
 
+# Local CLIs / temp artifacts
+.tools/
+supabase/.temp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

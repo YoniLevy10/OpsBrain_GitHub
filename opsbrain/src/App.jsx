@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from '@/components/ui/sonner';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from './Layout';
 import { FullPageLoader } from '@/components/Spinner';
+import PageLoader from '@/components/PageLoader';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
@@ -101,7 +102,14 @@ function App() {
               ))}
 
               <Route path="/" element={<HomeRedirect />} />
-              <Route path="/demo" element={<Demo />} />
+              <Route
+                path="/demo"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <Demo />
+                  </Suspense>
+                }
+              />
               <Route path="/login" element={<Login />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -134,30 +142,198 @@ function App() {
                 }
               >
                 <Route index element={<Navigate to="/app/Dashboard" replace />} />
-                <Route path="Dashboard" element={<Dashboard />} />
-                <Route path="Tasks" element={<Tasks />} />
-                <Route path="Contacts" element={<Contacts />} />
-                <Route path="Documents" element={<Documents />} />
-                <Route path="Finance" element={<Finance />} />
-                <Route path="Chat" element={<Chat />} />
-                <Route path="TeamChat" element={<TeamChat />} />
-                <Route path="AIAgent" element={<AIAgent />} />
-                <Route path="AIAssistant" element={<AIAssistant />} />
-                <Route path="Bamakor" element={<Bamakor />} />
-                <Route path="Calendar" element={<Calendar />} />
-                <Route path="Settings" element={<Settings />} />
-                <Route path="Analytics" element={<Analytics />} />
-                <Route path="Automations" element={<Automations />} />
-                <Route path="Clients" element={<Clients />} />
-                <Route path="FinancialAssistant" element={<FinancialAssistant />} />
-                <Route path="Integrations" element={<Integrations />} />
-                <Route path="Invoices" element={<Invoices />} />
-                <Route path="Subscriptions" element={<Subscriptions />} />
-                <Route path="Marketplace" element={<Marketplace />} />
-                <Route path="Projects" element={<Projects />} />
-                <Route path="Reports" element={<Reports />} />
-                <Route path="Team" element={<Team />} />
-                <Route path="TeamPermissions" element={<TeamPermissions />} />
+                <Route
+                  path="Dashboard"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Dashboard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Tasks"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Tasks />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Contacts"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Contacts />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Documents"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Documents />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Finance"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Finance />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Chat"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Chat />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="TeamChat"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TeamChat />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="AIAgent"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AIAgent />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="AIAssistant"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <AIAssistant />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Bamakor"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Bamakor />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Calendar"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Calendar />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Settings"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Settings />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Analytics"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Analytics />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Automations"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Automations />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Clients"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Clients />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="FinancialAssistant"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <FinancialAssistant />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Integrations"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Integrations />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Invoices"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Invoices />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Subscriptions"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Subscriptions />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Marketplace"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Marketplace />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Projects"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Projects />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Reports"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Reports />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="Team"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <Team />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="TeamPermissions"
+                  element={
+                    <Suspense fallback={<PageLoader />}>
+                      <TeamPermissions />
+                    </Suspense>
+                  }
+                />
               </Route>
 
               <Route path="*" element={<UnknownRouteRedirect />} />

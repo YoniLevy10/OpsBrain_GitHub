@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (Performance — lazy routes + UI pruning):** `pages.config.js` עבר ל־`React.lazy()` כדי להימנע מטעינת כל הדפים upfront; איחוד Toast ל־`sonner` בלבד (הוסרו `toast/use-toast/toaster` הישנים); נוספה טעינת דפים עם `Suspense` פר־Route ו־`PageLoader` (Skeleton) כדי שהמעבר בין דפים “ירגיש” מהיר; הוסרו רכיבי `src/components/ui/*` שלא בשימוש כדי לצמצם קוד בלקוח.
+- **תאריך:** 2026-04-24  
 - **תקציר (Performance):** שופרה טעינת Dashboard: `@vercel/analytics` נטען רק בפרודקשן וב־idle (עם אפשרות כיבוי דרך `VITE_DISABLE_VERCEL_ANALYTICS=1`) כדי לא לחסום LCP; עבודת `detectPatterns` בדשבורד נדחתה ל־idle; טעינת Google Fonts הוחלפה ל־`preload`+`onload` כדי להפחית render-blocking.
 - **תאריך:** 2026-04-24  
 - **תקציר (Stability/Tooling):** תוקנה קריסה ב־Realtime Notifications (`NotificationCenter.jsx`) שנגרמה מהוספת `postgres_changes` אחרי `subscribe()` + מניעת subscribe כפול (HMR/StrictMode) ע״י ניקוי channels קיימים. עודכן ניתוב: `/` מפנה ל־`/Login` כשלא מחוברים ול־`/app/Dashboard` כשמחוברים; `*` מפנה ל־`/Login`. נוסף מנגנון anti-hang ב־`AuthContext.jsx`: timeout 5 שניות לאתחול auth + `authError` + `retryAuth`, ו־`ProtectedRoute` מציג מסך שגיאה ידידותי במקום ספינר אינסופי. הוגדרו כלי איכות קוד: `.cursorrules`, Prettier + `format`/`format:check`, Knip (`knip.json`) לסריקת dead-code, bundle analyzer (`npm run analyze`), והותקן Lefthook (`lefthook.yml`) להרצת lint+build לפני commit.
@@ -163,6 +165,13 @@ OPSBRAIN/
 ### 2026-04-24 (מסכי ליבה — תימה בהירה + ניווט דשבורד)
 
 - `opsbrain/src/pages/Dashboard.jsx`, `Tasks.jsx`, `Finance.jsx`, `Settings.jsx`, `Chat.jsx`, `Bamakor.jsx`, `Documents.jsx`: יישור עיצוב ל־SaaS בהיר; תיקון `navigate` בדשבורד לנתיבי `/app/...`.
+
+### 2026-04-24 (Performance — lazy routes + cleanup)
+
+- `opsbrain/src/pages.config.js`: מעבר ל־`React.lazy()` כדי להימנע מייבוא eager של כל הדפים (משפר bundle ו-TTI בפרוד).
+- `opsbrain/src/App.jsx`: `Suspense` פר־Route עם `PageLoader` (Skeleton) במקום spinner כללי, כדי להרגיש מהר במעברים בין מסכים.
+- `opsbrain/src/components/ui/*`: הוסרו רכיבי UI שלא בשימוש (Radix/shadcn) כדי לצמצם קוד ותלויות בלקוח.
+- Toast: אוחד ל־`sonner` בלבד; הוסרו קבצי `toast/use-toast/toaster` הישנים.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 

@@ -47,28 +47,33 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Analytics from './pages/Analytics';
-import AppWrapper from './pages/AppWrapper';
-import Automations from './pages/Automations';
-import Calendar from './pages/Calendar';
-import Chat from './pages/Chat';
-import Clients from './pages/Clients';
-import Dashboard from './pages/Dashboard';
-import Demo from './pages/Demo';
-import Documents from './pages/Documents';
-import Finance from './pages/Finance';
-import FinancialAssistant from './pages/FinancialAssistant';
-import Integrations from './pages/Integrations';
-import Invoices from './pages/Invoices';
-import Marketplace from './pages/Marketplace';
-import Onboarding from './pages/Onboarding';
-import Pricing from './pages/Pricing';
-import Projects from './pages/Projects';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
-import Subscriptions from './pages/Subscriptions';
-import Team from './pages/Team';
-import __Layout from './Layout.jsx';
+import { lazy } from 'react';
+
+// NOTE: This file was previously eager-importing every page, which forces large bundles in production.
+// We intentionally lazy-load all pages so this config can be used for metadata/tracking without
+// pulling the entire app into the initial chunk.
+const Analytics = lazy(() => import('./pages/Analytics'));
+const AppWrapper = lazy(() => import('./pages/AppWrapper'));
+const Automations = lazy(() => import('./pages/Automations'));
+const Calendar = lazy(() => import('./pages/Calendar'));
+const Chat = lazy(() => import('./pages/Chat'));
+const Clients = lazy(() => import('./pages/Clients'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Demo = lazy(() => import('./pages/Demo'));
+const Documents = lazy(() => import('./pages/Documents'));
+const Finance = lazy(() => import('./pages/Finance'));
+const FinancialAssistant = lazy(() => import('./pages/FinancialAssistant'));
+const Integrations = lazy(() => import('./pages/Integrations'));
+const Invoices = lazy(() => import('./pages/Invoices'));
+const Marketplace = lazy(() => import('./pages/Marketplace'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const Projects = lazy(() => import('./pages/Projects'));
+const Reports = lazy(() => import('./pages/Reports'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Subscriptions = lazy(() => import('./pages/Subscriptions'));
+const Team = lazy(() => import('./pages/Team'));
+const __Layout = lazy(() => import('./Layout.jsx'));
 
 
 export const PAGES = {
