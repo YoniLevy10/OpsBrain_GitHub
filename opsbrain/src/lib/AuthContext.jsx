@@ -6,6 +6,8 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
+  const [authInitNonce, setAuthInitNonce] = useState(0);
   const [workspaces, setWorkspaces] = useState([]);
   const [workspaceId, setWorkspaceId] = useState(null); // active workspace id
   const [workspaceName, setWorkspaceName] = useState(null); // active workspace name
@@ -237,27 +239,56 @@ export function AuthProvider({ children }) {
       setWorkspaces([]);
       setWorkspaceId(null);
       setWorkspaceName(null);
+      setAuthError({
+        kind: 'missing_env',
+        message:
+          'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment.',
+      });
       setLoading(false);
       return () => {};
     }
 
     let mounted = true;
     let subscription = { unsubscribe: () => {} };
+    let timeoutId = null;
 
     const finishLoading = () => {
       if (mounted) setLoading(false);
     };
 
+    const failAuth = (e) => {
+      if (!mounted) return;
+      setUser(null);
+      setWorkspaces([]);
+      setWorkspaceId(null);
+      setWorkspaceName(null);
+      setAuthError({
+        kind: 'auth_init_failed',
+        message: e?.message || 'Auth initialization failed',
+        details: e,
+      });
+    };
+
+    const withTimeout = (promise, ms, label) =>
+      Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(label ? `${label} timed out` : 'Timed out')), ms)
+        ),
+      ]);
+
     const applySession = async (session) => {
       setUser(session?.user ?? null);
+      setAuthError(null);
       if (session?.user) {
         await loadWorkspaces(session.user.id);
-        const { data: membership } = await supabase
+        const { data: membership, error: membershipErr } = await supabase
           .from('workspace_members')
           .select('workspace_id')
           .eq('user_id', session.user.id)
           .limit(1)
           .maybeSingle();
+        if (membershipErr) console.warn('[AuthContext] workspace_members', membershipErr);
         if (!membership?.workspace_id) await ensurePersonalWorkspace(session.user);
       } else {
         setWorkspaces([]);
@@ -266,23 +297,31 @@ export function AuthProvider({ children }) {
       }
     };
 
+    // Hard timeout so the app never spins forever on auth init.
+    timeoutId = setTimeout(() => {
+      if (!mounted) return;
+      failAuth(new Error('Auth initialization timed out (5s). Check Supabase env/migrations/RLS.'));
+      finishLoading();
+    }, 5000);
+
     supabase.auth
       .getSession()
       .then(async ({ data: { session } }) => {
         if (!mounted) return;
         try {
-          await applySession(session);
+          await withTimeout(applySession(session), 4500, 'applySession');
         } catch (e) {
           console.error('[AuthContext] getSession handler', e);
-          setUser(null);
-          setWorkspaceId(null);
-          setWorkspaceName(null);
+          failAuth(e);
         } finally {
+          if (timeoutId) clearTimeout(timeoutId);
           finishLoading();
         }
       })
       .catch((e) => {
         console.error('[AuthContext] getSession', e);
+        failAuth(e);
+        if (timeoutId) clearTimeout(timeoutId);
         finishLoading();
       });
 
@@ -290,24 +329,29 @@ export function AuthProvider({ children }) {
       const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!mounted) return;
         try {
-          await applySession(session);
+          await withTimeout(applySession(session), 4500, 'applySession');
         } catch (e) {
           console.error('[AuthContext] onAuthStateChange handler', e);
+          failAuth(e);
         } finally {
+          if (timeoutId) clearTimeout(timeoutId);
           finishLoading();
         }
       });
       subscription = data?.subscription ?? { unsubscribe: () => {} };
     } catch (e) {
       console.error('[AuthContext] onAuthStateChange subscribe', e);
+      failAuth(e);
+      if (timeoutId) clearTimeout(timeoutId);
       finishLoading();
     }
 
     return () => {
       mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [ensurePersonalWorkspace, loadWorkspaces]);
+  }, [ensurePersonalWorkspace, loadWorkspaces, authInitNonce]);
 
   const signIn = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -357,6 +401,12 @@ export function AuthProvider({ children }) {
     setWorkspaceName(null);
   };
 
+  const retryAuth = useCallback(() => {
+    setAuthError(null);
+    setLoading(true);
+    setAuthInitNonce((n) => n + 1);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -375,12 +425,13 @@ export function AuthProvider({ children }) {
         isLoadingAuth: loading,
         isLoadingPublicSettings: false,
         isAuthenticated: !!user,
-        authError: null,
+        authError,
         appPublicSettings: null,
         navigateToLogin: () => {
           window.location.href = '/Login';
         },
         logout: signOut,
+        retryAuth,
       }}
     >
       {children}
