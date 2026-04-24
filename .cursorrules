@@ -1,0 +1,16 @@
+- You are working on the OpsBrain monorepo. The actual app lives in `opsbrain/` (Vite + React).
+- Prefer editing code under `opsbrain/src/**` unless the user explicitly asks otherwise.
+- Prefer named exports; avoid default exports except for route-level pages/components already using defaults.
+- Use early returns to reduce nesting.
+- Never leave async operations without explicit loading/error states in the UI.
+- For data fetching and caching, prefer `@tanstack/react-query` over ad-hoc `useEffect + useState` when touching or adding new flows.
+- Always scope Supabase queries by `workspace_id` when the table is multi-tenant.
+- When working with Supabase Realtime channels:
+  - Attach `.on('postgres_changes', ...)` handlers before calling `.subscribe()`.
+  - Always cleanup channels in `useEffect` cleanup to avoid duplicate subscriptions during HMR/StrictMode.
+- Routing/auth:
+  - `/app/*` must be protected; signed-out users must be redirected to `/Login`.
+  - `/` should redirect to `/Login` when signed out and to `/app/Dashboard` when signed in.
+- Keep components small: if a component grows beyond ~150–200 lines, extract subcomponents.
+- Avoid `any` unless there is no viable alternative (prefer `unknown` + narrowing).
+- Always run `npm run build` after meaningful changes; run `npm run lint` after refactors.

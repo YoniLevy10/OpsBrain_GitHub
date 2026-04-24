@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": ["src/main.jsx", "index.html"],
+  "project": ["src/**/*.{js,jsx,ts,tsx}"],
+  "ignore": ["dist/**", "node_modules/**"]
+}
+

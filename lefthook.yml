@@ -1,0 +1,8 @@
+pre-commit:
+  parallel: true
+  commands:
+    opsbrain-lint:
+      run: npm --prefix ./opsbrain run lint
+    opsbrain-build:
+      run: npm --prefix ./opsbrain run build
+

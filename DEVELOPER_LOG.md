@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (Stability/Tooling):** תוקנה קריסה ב־Realtime Notifications (`NotificationCenter.jsx`) שנגרמה מהוספת `postgres_changes` אחרי `subscribe()` + מניעת subscribe כפול (HMR/StrictMode) ע״י ניקוי channels קיימים. עודכן ניתוב: `/` מפנה ל־`/Login` כשלא מחוברים ול־`/app/Dashboard` כשמחוברים; `*` מפנה ל־`/Login`. נוסף מנגנון anti-hang ב־`AuthContext.jsx`: timeout 5 שניות לאתחול auth + `authError` + `retryAuth`, ו־`ProtectedRoute` מציג מסך שגיאה ידידותי במקום ספינר אינסופי. הוגדרו כלי איכות קוד: `.cursorrules`, Prettier + `format`/`format:check`, Knip (`knip.json`) לסריקת dead-code, bundle analyzer (`npm run analyze`), והותקן Lefthook (`lefthook.yml`) להרצת lint+build לפני commit.
+- **תאריך:** 2026-04-24  
 - **תקציר (UI — לב המערכת / תימה בהירה):** דשבורד, משימות, פיננסים, הגדרות, צ׳אט צוות (`Chat`/`TeamChat`), במקור (`Bamakor`) ומסמכים עברו לשפה ויזואלית אחידה עם ה־Layout: כרטיסים לבנים, `slate`/`indigo`, בלי רקע כהה קשיח. בדשבורד תוקנו קישורי **פעולות מהירות** ל־`/app/Tasks` וכו׳ (במקום נתיבים שבורים). `npm run build` ירוק.
 - **תאריך:** 2026-04-24  
 - **תקציר (OAuth — `/auth/callback`):** נוסף `opsbrain/src/pages/AuthCallback.jsx` + נתיב ב־`App.jsx`; `Login.jsx` מפנה את `signInWithOAuth` ל־`redirectTo` של `/auth/callback` כדי למנוע מרוץ עם `ProtectedRoute` אחרי Google. ב־Supabase → Redirect URLs יש להוסיף `http://localhost:5173/auth/callback` וכן כתובת Vercel מקבילה. **עודכן בפרויקט:** Redirect URLs ב־Supabase הוגדרו; `AuthCallback` תומך גם ב־PKCE (`exchangeCodeForSession` כשיש `?code=`). `opsbrain/.env.example` — הערות Dashboard לגוגל/Supabase.

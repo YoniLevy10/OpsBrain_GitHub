@@ -1,0 +1,7 @@
+dist
+node_modules
+.vercel
+.vite
+coverage
+*.min.js
+
