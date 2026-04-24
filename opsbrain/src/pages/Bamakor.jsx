@@ -2,6 +2,9 @@ import { useMemo, useState } from 'react';
 import { bamakorSupabase, isBamakorConfigured } from '@/lib/bamakorSupabase';
 import { toast } from 'sonner';
 
+const inputClass =
+  'mt-1 w-full rounded-xl bg-white border border-slate-200 px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400';
+
 export default function Bamakor() {
   const client = useMemo(() => (isBamakorConfigured ? bamakorSupabase : null), []);
   const [title, setTitle] = useState('');
@@ -13,14 +16,14 @@ export default function Bamakor() {
   if (!client) {
     return (
       <div dir="rtl" className="max-w-2xl space-y-4">
-        <h1 className="text-2xl font-bold text-white">במקור — דיווח על בעיה</h1>
-        <div className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-6 text-[#A0A0C0]">
+        <h1 className="text-2xl font-bold text-slate-900">במקור — דיווח על בעיה</h1>
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-600 shadow-sm">
           <p className="mb-3">כדי לשמור דיווחים בפרויקט Supabase נפרד של במקור, הוסף ל־`.env.local`:</p>
-          <div className="rounded-xl bg-[#0F0F1A] border border-[#2A2A45] p-4 font-mono text-xs text-white space-y-1">
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 font-mono text-xs text-slate-800 space-y-1">
             <div>VITE_BAMAKOR_URL=https://your-bamakor-project.supabase.co</div>
             <div>VITE_BAMAKOR_KEY=your_bamakor_anon_key</div>
           </div>
-          <p className="text-xs mt-3">
+          <p className="text-xs mt-3 text-slate-500">
             ואז הרץ SQL ליצירת טבלת `bug_reports` (ראו `opsbrain/supabase/bamakor_bug_reports.sql` בריפו).
           </p>
         </div>
@@ -67,38 +70,34 @@ export default function Bamakor() {
   return (
     <div dir="rtl" className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">במקור — דיווח על בעיה</h1>
-        <p className="text-[#A0A0C0] mt-1">שולח לפרויקט Supabase של במקור (לא לפרויקט הראשי)</p>
+        <h1 className="text-2xl font-bold text-slate-900">במקור — דיווח על בעיה</h1>
+        <p className="text-slate-500 mt-1">שולח לפרויקט Supabase של במקור (לא לפרויקט הראשי)</p>
       </div>
 
-      <div className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-6 space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
         <div>
-          <label className="text-xs text-[#A0A0C0]">כותרת</label>
+          <label className="text-xs text-slate-500 font-medium">כותרת</label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1 w-full rounded-xl bg-[#0F0F1A] border border-[#2A2A45] px-3 py-2 text-sm text-white"
+            className={inputClass}
             placeholder="תקציר קצר של הבעיה"
           />
         </div>
 
         <div>
-          <label className="text-xs text-[#A0A0C0]">תיאור</label>
+          <label className="text-xs text-slate-500 font-medium">תיאור</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 w-full min-h-[120px] rounded-xl bg-[#0F0F1A] border border-[#2A2A45] px-3 py-2 text-sm text-white"
+            className={`${inputClass} min-h-[120px]`}
             placeholder="צעדים לשחזור, מה ציפית לראות, מה קרה בפועל…"
           />
         </div>
 
         <div>
-          <label className="text-xs text-[#A0A0C0]">חומרה</label>
-          <select
-            value={severity}
-            onChange={(e) => setSeverity(e.target.value)}
-            className="mt-1 w-full rounded-xl bg-[#0F0F1A] border border-[#2A2A45] px-3 py-2 text-sm text-white"
-          >
+          <label className="text-xs text-slate-500 font-medium">חומרה</label>
+          <select value={severity} onChange={(e) => setSeverity(e.target.value)} className={inputClass}>
             <option value="low">נמוכה</option>
             <option value="medium">בינונית</option>
             <option value="high">גבוהה</option>
@@ -107,13 +106,9 @@ export default function Bamakor() {
         </div>
 
         <div>
-          <label className="text-xs text-[#A0A0C0]">צילום מסך (אופציונלי)</label>
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="mt-2 block w-full text-sm text-[#A0A0C0]"
-          />
-          <p className="text-xs text-[#A0A0C0]/80 mt-2">
+          <label className="text-xs text-slate-500 font-medium">צילום מסך (אופציונלי)</label>
+          <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="mt-2 block w-full text-sm text-slate-600" />
+          <p className="text-xs text-slate-500 mt-2">
             מועלה ל-bucket `documents` בפרויקט במקור תחת `bug-reports/…` (דורש מדיניות Storage מתאימה).
           </p>
         </div>
@@ -122,7 +117,7 @@ export default function Bamakor() {
           type="button"
           disabled={saving}
           onClick={submit}
-          className="w-full rounded-xl bg-[#6B46C1] py-3 font-semibold text-white disabled:opacity-50"
+          className="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
         >
           {saving ? 'שולח…' : 'שלח דיווח'}
         </button>

@@ -100,12 +100,12 @@ export default function Finance() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">פיננסים</h1>
+    <div dir="rtl" className="space-y-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h1 className="text-2xl font-bold text-slate-900">פיננסים</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#6C63FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 shadow-sm"
         >
           + הוסף רשומה
         </button>
@@ -132,8 +132,8 @@ export default function Finance() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 p-4 overflow-x-auto">
-        <h2 className="font-semibold text-gray-700 mb-4">6 חודשים אחרונים</h2>
+      <div className="bg-white rounded-xl border border-slate-200 p-4 overflow-x-auto shadow-sm">
+        <h2 className="font-semibold text-slate-800 mb-4">6 חודשים אחרונים</h2>
         <svg viewBox={`0 0 ${chartW} ${chartH + 30}`} className="w-full min-w-[320px]">
           {chartData.map((d, i) => {
             const x = i * (barW * 2 + gap) + 10;
@@ -162,8 +162,8 @@ export default function Finance() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100">
-        <div className="flex border-b border-gray-100 overflow-x-auto">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex border-b border-slate-100 overflow-x-auto">
           {[
             ['income', 'הכנסות'],
             ['expense', 'הוצאות'],
@@ -171,7 +171,7 @@ export default function Finance() {
             <button
               key={val}
               onClick={() => setTab(val)}
-              className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${tab === val ? 'border-b-2 border-[#6C63FF] text-[#6C63FF]' : 'text-gray-500'}`}
+              className={`px-6 py-3 text-sm font-medium whitespace-nowrap ${tab === val ? 'border-b-2 border-indigo-600 text-indigo-700' : 'text-slate-500'}`}
             >
               {label} ({records.filter((r) => r.type === val).length})
             </button>
@@ -278,7 +278,7 @@ export default function Finance() {
               <button
                 onClick={save}
                 disabled={saving}
-                className="flex-1 bg-[#6C63FF] text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+                className="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
               >
                 {saving ? 'שומר...' : 'שמור'}
               </button>

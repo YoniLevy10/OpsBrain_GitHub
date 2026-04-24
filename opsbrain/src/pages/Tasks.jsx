@@ -14,17 +14,17 @@ import {
 } from '@dnd-kit/core';
 
 const COLUMNS = [
-  { id: 'todo', label: 'לביצוע', accent: 'border-blue-500/40 bg-blue-500/5' },
-  { id: 'in_progress', label: 'בתהליך', accent: 'border-amber-500/40 bg-amber-500/5' },
-  { id: 'done', label: 'הושלם', accent: 'border-emerald-500/40 bg-emerald-500/5' },
-  { id: 'blocked', label: 'חסום', accent: 'border-red-500/40 bg-red-500/5' },
+  { id: 'todo', label: 'לביצוע', accent: 'border-sky-200 bg-sky-50/80' },
+  { id: 'in_progress', label: 'בתהליך', accent: 'border-amber-200 bg-amber-50/80' },
+  { id: 'done', label: 'הושלם', accent: 'border-emerald-200 bg-emerald-50/80' },
+  { id: 'blocked', label: 'חסום', accent: 'border-red-200 bg-red-50/80' },
 ];
 
 const PRIORITY = {
-  low: { label: 'נמוך', color: 'bg-white/10 text-[#C4C4E0]' },
-  medium: { label: 'בינוני', color: 'bg-yellow-500/15 text-yellow-200' },
-  high: { label: 'גבוה', color: 'bg-orange-500/15 text-orange-200' },
-  urgent: { label: 'דחוף', color: 'bg-red-500/15 text-red-200' },
+  low: { label: 'נמוך', color: 'bg-slate-100 text-slate-600' },
+  medium: { label: 'בינוני', color: 'bg-amber-100 text-amber-800' },
+  high: { label: 'גבוה', color: 'bg-orange-100 text-orange-800' },
+  urgent: { label: 'דחוף', color: 'bg-red-100 text-red-800' },
 };
 
 const NEXT_STATUS = { todo: 'in_progress', in_progress: 'done', done: 'done', blocked: 'todo' };
@@ -45,12 +45,12 @@ function DroppableColumn({ id, label, count, accent, children }) {
     <div ref={setNodeRef} className="min-w-[260px] flex-1">
       <div
         className={`rounded-2xl border p-3 min-h-[520px] transition-colors ${
-          isOver ? 'border-[#8B5CF6] bg-[#6B46C1]/10' : 'border-[#2A2A45] bg-[#0F0F1A]/35'
+          isOver ? 'border-indigo-400 bg-indigo-50/90 shadow-sm' : 'border-slate-200 bg-white'
         } ${accent}`}
       >
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-white">{label}</h3>
-          <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-[#C4C4E0] font-medium">{count}</span>
+          <h3 className="font-semibold text-slate-900">{label}</h3>
+          <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 font-medium">{count}</span>
         </div>
         <div className="space-y-2">{children}</div>
       </div>
@@ -182,12 +182,12 @@ export default function Tasks() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="p-6 max-w-[1600px] mx-auto">
+    <div dir="rtl" className="max-w-[1600px] mx-auto">
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-white">משימות</h1>
+        <h1 className="text-2xl font-bold text-slate-900">משימות</h1>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-[#6B46C1] text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-[#5a3aad]"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 shadow-sm"
         >
           + משימה חדשה
         </button>
@@ -198,12 +198,12 @@ export default function Tasks() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="חיפוש משימה..."
-          className="border border-[#2A2A45] bg-[#0F0F1A] rounded-xl px-3 py-2 text-sm flex-1 min-w-48 text-white placeholder:text-[#6B6B8A]"
+          className="border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm flex-1 min-w-48 text-slate-900 placeholder:text-slate-400 shadow-sm"
         />
         <select
           value={filterPriority}
           onChange={(e) => setFilterPriority(e.target.value)}
-          className="border border-[#2A2A45] bg-[#0F0F1A] rounded-xl px-3 py-2 text-sm text-white"
+          className="border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900 shadow-sm"
         >
           <option value="all">כל העדיפויות</option>
           <option value="urgent">דחוף</option>
@@ -227,11 +227,11 @@ export default function Tasks() {
             const colTasks = filtered.filter((t) => t.status === col.id);
             return (
               <DroppableColumn key={col.id} id={col.id} label={col.label} count={colTasks.length} accent={col.accent}>
-                {colTasks.length === 0 && <p className="text-[#6B6B8A] text-xs text-center py-10">גרור משימה לכאן</p>}
+                {colTasks.length === 0 && <p className="text-slate-400 text-xs text-center py-10">גרור משימה לכאן</p>}
                 {colTasks.map((task) => (
                   <DraggableTask key={task.id} task={task}>
                     {({ dragProps }) => (
-                      <div className="bg-[#1E1E35] rounded-xl p-3 border border-[#2A2A45] shadow-sm">
+                      <div className="bg-white rounded-xl p-3 border border-slate-200 shadow-sm hover:border-slate-300 transition-colors">
                         <div className="flex items-start justify-between gap-2">
                           <button
                             type="button"
@@ -239,7 +239,7 @@ export default function Tasks() {
                             {...dragProps}
                             title="גרור בין עמודות"
                           >
-                            <p className="text-sm font-medium text-white">{task.title}</p>
+                            <p className="text-sm font-medium text-slate-900">{task.title}</p>
                           </button>
                         </div>
                         <div className="flex items-center gap-1 flex-wrap mt-2">
@@ -249,7 +249,7 @@ export default function Tasks() {
                             </span>
                           )}
                           {task.due_date && (
-                            <span className="text-xs text-[#A0A0C0]">{new Date(task.due_date).toLocaleDateString('he-IL')}</span>
+                            <span className="text-xs text-slate-500">{new Date(task.due_date).toLocaleDateString('he-IL')}</span>
                           )}
                         </div>
                         <div className="flex gap-2 mt-2">
@@ -257,12 +257,12 @@ export default function Tasks() {
                             <button
                               type="button"
                               onClick={() => moveTask(task.id, task.status)}
-                              className="text-xs text-[#A78BFA] hover:underline"
+                              className="text-xs text-indigo-600 hover:underline font-medium"
                             >
                               העבר ▶
                             </button>
                           )}
-                          <button type="button" onClick={() => deleteTask(task.id)} className="text-xs text-red-300 hover:underline mr-auto">
+                          <button type="button" onClick={() => deleteTask(task.id)} className="text-xs text-red-600 hover:underline mr-auto">
                             מחק
                           </button>
                         </div>
@@ -277,36 +277,36 @@ export default function Tasks() {
 
         <DragOverlay dropAnimation={null}>
           {activeTask ? (
-            <div className="w-[280px] bg-[#1E1E35] rounded-xl p-3 border border-[#6B46C1]/40 shadow-2xl">
-              <p className="text-sm font-medium text-white">{activeTask.title}</p>
-              <div className="mt-2 text-xs text-[#A0A0C0]">{PRIORITY[activeTask.priority]?.label}</div>
+            <div className="w-[280px] bg-white rounded-xl p-3 border-2 border-indigo-300 shadow-2xl">
+              <p className="text-sm font-medium text-slate-900">{activeTask.title}</p>
+              <div className="mt-2 text-xs text-slate-500">{PRIORITY[activeTask.priority]?.label}</div>
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div dir="rtl" className="bg-[#1E1E35] border border-[#2A2A45] rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-bold mb-4 text-white">משימה חדשה</h2>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div dir="rtl" className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-bold mb-4 text-slate-900">משימה חדשה</h2>
             <div className="space-y-3">
               <input
                 value={form.title}
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
                 placeholder="כותרת המשימה *"
-                className="w-full border border-[#2A2A45] bg-[#0F0F1A] rounded-xl px-3 py-2 text-sm text-white"
+                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900"
               />
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                 placeholder="תיאור (אופציונלי)"
                 rows={3}
-                className="w-full border border-[#2A2A45] bg-[#0F0F1A] rounded-xl px-3 py-2 text-sm resize-none text-white"
+                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm resize-none text-slate-900"
               />
               <select
                 value={form.priority}
                 onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))}
-                className="w-full border border-[#2A2A45] bg-[#0F0F1A] rounded-xl px-3 py-2 text-sm text-white"
+                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900"
               >
                 <option value="low">עדיפות נמוכה</option>
                 <option value="medium">עדיפות בינונית</option>
@@ -317,18 +317,18 @@ export default function Tasks() {
                 type="date"
                 value={form.due_date}
                 onChange={(e) => setForm((p) => ({ ...p, due_date: e.target.value }))}
-                className="w-full border border-[#2A2A45] bg-[#0F0F1A] rounded-xl px-3 py-2 text-sm text-white"
+                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900"
               />
             </div>
             <div className="flex gap-2 mt-4">
               <button
                 onClick={addTask}
                 disabled={saving}
-                className="flex-1 bg-[#6B46C1] text-white py-2 rounded-xl text-sm font-medium hover:bg-[#5a3aad] disabled:opacity-50"
+                className="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
               >
                 {saving ? 'שומר...' : 'הוסף משימה'}
               </button>
-              <button onClick={() => setShowModal(false)} className="flex-1 border border-[#2A2A45] py-2 rounded-xl text-sm text-[#C4C4E0]">
+              <button onClick={() => setShowModal(false)} className="flex-1 border border-slate-200 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-50">
                 ביטול
               </button>
             </div>

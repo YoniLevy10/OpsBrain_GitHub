@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (UI — לב המערכת / תימה בהירה):** דשבורד, משימות, פיננסים, הגדרות, צ׳אט צוות (`Chat`/`TeamChat`), במקור (`Bamakor`) ומסמכים עברו לשפה ויזואלית אחידה עם ה־Layout: כרטיסים לבנים, `slate`/`indigo`, בלי רקע כהה קשיח. בדשבורד תוקנו קישורי **פעולות מהירות** ל־`/app/Tasks` וכו׳ (במקום נתיבים שבורים). `npm run build` ירוק.
+- **תאריך:** 2026-04-24  
 - **תקציר (OAuth — `/auth/callback`):** נוסף `opsbrain/src/pages/AuthCallback.jsx` + נתיב ב־`App.jsx`; `Login.jsx` מפנה את `signInWithOAuth` ל־`redirectTo` של `/auth/callback` כדי למנוע מרוץ עם `ProtectedRoute` אחרי Google. ב־Supabase → Redirect URLs יש להוסיף `http://localhost:5173/auth/callback` וכן כתובת Vercel מקבילה. **עודכן בפרויקט:** Redirect URLs ב־Supabase הוגדרו; `AuthCallback` תומך גם ב־PKCE (`exchangeCodeForSession` כשיש `?code=`). `opsbrain/.env.example` — הערות Dashboard לגוגל/Supabase.
 - **תאריך:** 2026-04-23  
 - **תקציר (Auth routes — `/login` מסך ריק):** ב־`App.jsx` הוסרו redirects מבוססי `<Navigate>` ל־`/login` ו־`/register`; במקום זאת מוגדרים ישירות ארבעה נתיבים (`/login`, `/Login`, `/register`, `/Register`) לאותו קומפוננטה, כדי למנוע מצב שבו הדפדפן נשאר על URL אותיות קטנות בלי תוכן (במיוחד ב-preview של IDE). בנוסף, `Login` ו־`Register` נטענים כ-import רגיל (לא `lazy`) כדי שלא ייתקעו על טעינת chunk בנקודת הכניסה. `opsbrain/.gitignore` — התעלמות מ־`tmp-main*.js.map`.
@@ -153,6 +155,10 @@ OPSBRAIN/
 
 - `opsbrain/src/pages/AuthCallback.jsx`: קריאה ל־`exchangeCodeForSession` כשיש `code` ב־query (זרימת PKCE).
 - `opsbrain/.env.example`: הערות ל־Supabase Redirect URLs ול־Google redirect ל־`…/auth/v1/callback`.
+
+### 2026-04-24 (מסכי ליבה — תימה בהירה + ניווט דשבורד)
+
+- `opsbrain/src/pages/Dashboard.jsx`, `Tasks.jsx`, `Finance.jsx`, `Settings.jsx`, `Chat.jsx`, `Bamakor.jsx`, `Documents.jsx`: יישור עיצוב ל־SaaS בהיר; תיקון `navigate` בדשבורד לנתיבי `/app/...`.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 

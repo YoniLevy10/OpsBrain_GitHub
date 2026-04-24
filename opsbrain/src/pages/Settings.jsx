@@ -89,14 +89,14 @@ export default function Settings() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="p-6 max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">הגדרות</h1>
-      <div className="flex gap-0 border-b border-gray-100 mb-6 overflow-x-auto">
+    <div dir="rtl" className="max-w-2xl">
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">הגדרות</h1>
+      <div className="flex gap-0 border-b border-slate-200 mb-6 overflow-x-auto">
         {TABS.map(([key, label]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`px-5 py-3 text-sm font-medium whitespace-nowrap ${tab === key ? 'border-b-2 border-[#6C63FF] text-[#6C63FF]' : 'text-gray-500'}`}
+            className={`px-5 py-3 text-sm font-medium whitespace-nowrap ${tab === key ? 'border-b-2 border-indigo-600 text-indigo-700' : 'text-slate-500'}`}
           >
             {label}
           </button>
@@ -132,7 +132,7 @@ export default function Settings() {
           <button
             onClick={saveProfile}
             disabled={saving}
-            className="bg-[#6C63FF] text-white px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
           >
             {saving ? 'שומר...' : 'שמור שינויים'}
           </button>
@@ -153,7 +153,7 @@ export default function Settings() {
           <button
             onClick={saveWorkspace}
             disabled={saving}
-            className="bg-[#6C63FF] text-white px-6 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="bg-indigo-600 text-white px-6 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
           >
             {saving ? 'שומר...' : 'שמור'}
           </button>
@@ -192,7 +192,7 @@ export default function Settings() {
               />
               <button
                 onClick={inviteMember}
-                className="bg-[#6C63FF] text-white px-4 py-2 rounded-lg text-sm font-medium"
+                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700"
               >
                 שלח הזמנה
               </button>

@@ -117,7 +117,7 @@ export default function Documents() {
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="bg-[#6C63FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
         >
           {uploading ? 'מעלה...' : '+ העלה קובץ'}
         </button>

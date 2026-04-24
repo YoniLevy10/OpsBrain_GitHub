@@ -170,30 +170,30 @@ export default function Chat() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="flex h-[calc(100vh-120px)] lg:h-[calc(100vh-104px)] rounded-2xl border border-[#2A2A45] bg-[#1E1E35] overflow-hidden">
-      <div className="w-64 bg-[#0F0F1A]/40 border-l border-[#2A2A45] flex flex-col shrink-0">
-        <div className="p-3 border-b border-[#2A2A45] flex items-center justify-between">
-          <span className="text-sm font-semibold text-white">צ׳אט צוות</span>
-          <button onClick={() => setShowNewChannel(true)} className="text-[#8B5CF6] text-lg font-bold">
+    <div dir="rtl" className="flex h-[calc(100vh-120px)] lg:h-[calc(100vh-104px)] rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+      <div className="w-64 bg-slate-50 border-l border-slate-200 flex flex-col shrink-0">
+        <div className="p-3 border-b border-slate-200 flex items-center justify-between">
+          <span className="text-sm font-semibold text-slate-900">צ׳אט צוות</span>
+          <button onClick={() => setShowNewChannel(true)} className="text-indigo-600 text-lg font-bold hover:text-indigo-700">
             +
           </button>
         </div>
 
         {showNewChannel && (
-          <div className="p-2 border-b border-[#2A2A45]">
+          <div className="p-2 border-b border-slate-200">
             <input
               value={newChannelName}
               onChange={(e) => setNewChannelName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && createChannel()}
               placeholder="שם ערוץ"
-              className="w-full bg-[#0F0F1A] border border-[#2A2A45] rounded-lg px-2 py-2 text-sm text-white mb-2"
+              className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-sm text-slate-900 mb-2"
               autoFocus
             />
             <div className="flex gap-2">
-              <button onClick={createChannel} className="flex-1 bg-[#6B46C1] text-white text-xs py-2 rounded-lg">
+              <button onClick={createChannel} className="flex-1 bg-indigo-600 text-white text-xs py-2 rounded-lg hover:bg-indigo-700">
                 צור
               </button>
-              <button onClick={() => setShowNewChannel(false)} className="flex-1 border border-[#2A2A45] text-xs py-2 rounded-lg text-[#A0A0C0]">
+              <button onClick={() => setShowNewChannel(false)} className="flex-1 border border-slate-200 text-xs py-2 rounded-lg text-slate-600 hover:bg-slate-100">
                 ביטול
               </button>
             </div>
@@ -201,14 +201,14 @@ export default function Chat() {
         )}
 
         <div className="flex-1 overflow-y-auto">
-          <div className="px-3 py-2 text-xs text-[#A0A0C0]">ערוצים</div>
+          <div className="px-3 py-2 text-xs text-slate-500">ערוצים</div>
           <div className="px-2 pb-2 space-y-1">
             {channels.map((ch) => (
               <button
                 key={ch.id}
                 onClick={() => setActiveChannel(ch.id)}
                 className={`w-full text-right px-3 py-2 rounded-xl text-sm ${
-                  activeChannel === ch.id ? 'bg-[#6B46C1] text-white' : 'text-[#A0A0C0] hover:bg-white/5'
+                  activeChannel === ch.id ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 # {ch.name}
@@ -216,13 +216,13 @@ export default function Chat() {
             ))}
           </div>
 
-          <div className="px-3 py-2 text-xs text-[#A0A0C0]">הודעות ישירות</div>
+          <div className="px-3 py-2 text-xs text-slate-500">הודעות ישירות</div>
           <div className="px-2 pb-3 space-y-1">
             {members.map((m) => (
               <button
                 key={m.user_id}
                 onClick={() => openOrCreateDm(m.user_id)}
-                className="w-full text-right px-3 py-2 rounded-xl text-sm text-[#A0A0C0] hover:bg-white/5"
+                className="w-full text-right px-3 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-100"
               >
                 {m.profiles?.full_name || 'משתמש'}
               </button>
@@ -232,7 +232,7 @@ export default function Chat() {
                 key={ch.id}
                 onClick={() => setActiveChannel(ch.id)}
                 className={`w-full text-right px-3 py-2 rounded-xl text-sm ${
-                  activeChannel === ch.id ? 'bg-[#6B46C1] text-white' : 'text-[#A0A0C0] hover:bg-white/5'
+                  activeChannel === ch.id ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 {ch.name}
@@ -243,29 +243,29 @@ export default function Chat() {
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="p-3 border-b border-[#2A2A45] bg-[#0F0F1A]/30">
-          <span className="font-semibold text-white">{activeName ? `# ${activeName}` : 'בחר ערוץ'}</span>
+        <div className="p-3 border-b border-slate-200 bg-slate-50/80">
+          <span className="font-semibold text-slate-900">{activeName ? `# ${activeName}` : 'בחר ערוץ'}</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
           {messages.length === 0 && (
-            <div className="text-center text-[#A0A0C0] py-16 text-sm">תחילת השיחה — שלח הודעה ראשונה!</div>
+            <div className="text-center text-slate-500 py-16 text-sm">תחילת השיחה — שלח הודעה ראשונה!</div>
           )}
           {messages.map((msg) => {
             const isMe = msg.sender_id === user?.id;
             return (
               <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-bold flex-shrink-0">
                   {msg.profiles?.full_name?.charAt(0) || '?'}
                 </div>
                 <div className={`max-w-xs lg:max-w-md ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
-                  <div className="text-xs text-[#A0A0C0] mb-1">
+                  <div className="text-xs text-slate-500 mb-1">
                     {!isMe && <span className="ml-2">{msg.profiles?.full_name || 'משתמש'}</span>}
                     {new Date(msg.created_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                   <div
                     className={`px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
-                      isMe ? 'bg-[#6B46C1] text-white rounded-tl-sm' : 'bg-[#0F0F1A] text-white border border-[#2A2A45] rounded-tr-sm'
+                      isMe ? 'bg-indigo-600 text-white rounded-tl-sm' : 'bg-white text-slate-800 border border-slate-200 rounded-tr-sm shadow-sm'
                     }`}
                   >
                     {msg.content}
@@ -273,7 +273,7 @@ export default function Chat() {
                   {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {msg.attachments.map((a) => (
-                        <div key={a.path} className="text-xs text-[#A0A0C0]">
+                        <div key={a.path} className="text-xs text-slate-500">
                           קובץ: {a.name}
                         </div>
                       ))}
@@ -286,13 +286,13 @@ export default function Chat() {
           <div ref={bottomRef} />
         </div>
 
-        <div className="p-3 border-t border-[#2A2A45] bg-[#0F0F1A]/30">
+        <div className="p-3 border-t border-slate-200 bg-white">
           {showEmoji && (
             <div className="mb-2 relative">
               <div className="absolute bottom-14 left-0 z-20">
                 <Picker
                   data={data}
-                  theme="dark"
+                  theme="light"
                   onEmojiSelect={(e) => {
                     setInput((p) => p + (e.native || ''));
                     setShowEmoji(false);
@@ -303,7 +303,7 @@ export default function Chat() {
           )}
 
           {pendingFiles.length > 0 && (
-            <div className="mb-2 text-xs text-[#A0A0C0]">
+            <div className="mb-2 text-xs text-slate-500">
               קבצים מצורפים: {pendingFiles.map((f) => f.name).join(', ')}
             </div>
           )}
@@ -313,12 +313,12 @@ export default function Chat() {
               <button
                 type="button"
                 onClick={() => setShowEmoji((v) => !v)}
-                className="h-10 w-10 rounded-xl border border-[#2A2A45] bg-[#0F0F1A] text-white flex items-center justify-center"
+                className="h-10 w-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center hover:bg-slate-100"
                 aria-label="אימוג׳י"
               >
                 <Smile className="w-4 h-4" />
               </button>
-              <label className="h-10 w-10 rounded-xl border border-[#2A2A45] bg-[#0F0F1A] text-white flex items-center justify-center cursor-pointer">
+              <label className="h-10 w-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center cursor-pointer hover:bg-slate-100">
                 <Paperclip className="w-4 h-4" />
                 <input
                   type="file"
@@ -339,12 +339,12 @@ export default function Chat() {
               }}
               rows={2}
               placeholder="הקלד הודעה… (Enter לשליחה, Shift+Enter לשורה חדשה)"
-              className="flex-1 bg-[#0F0F1A] border border-[#2A2A45] rounded-xl px-4 py-2 text-sm text-white resize-none"
+              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-900 resize-none shadow-sm"
             />
             <button
               onClick={() => void send()}
               disabled={sending || !input.trim()}
-              className="bg-[#6B46C1] text-white px-4 py-2 rounded-xl text-sm disabled:opacity-50 h-[84px]"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700 disabled:opacity-50 h-[84px]"
             >
               שלח
             </button>
