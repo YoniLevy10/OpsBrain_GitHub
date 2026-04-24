@@ -32,7 +32,7 @@ export default function AgentOrchestrator() {
         workspace_id: activeWorkspace?.id
       });
 
-      setResult(response.data);
+      setResult(response);
       toast.success('המשימה הופעלה בהצלחה!');
     } catch (error) {
       console.error('Orchestration error:', error);

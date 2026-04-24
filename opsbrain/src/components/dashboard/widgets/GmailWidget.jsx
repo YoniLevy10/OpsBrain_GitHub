@@ -22,7 +22,7 @@ export default function GmailWidget({ size = 'medium' }) {
           workspace_id: activeWorkspace.id,
           max_results: 5
         });
-        return response.data;
+        return response;
       } catch (error) {
         console.error('Gmail sync error:', error);
         return null;
@@ -41,7 +41,7 @@ export default function GmailWidget({ size = 'medium' }) {
         action: 'mark_read',
         email_id: emailId
       });
-      return response.data;
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['gmail-emails']);
@@ -56,7 +56,7 @@ export default function GmailWidget({ size = 'medium' }) {
         action: 'archive',
         email_id: emailId
       });
-      return response.data;
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['gmail-emails']);

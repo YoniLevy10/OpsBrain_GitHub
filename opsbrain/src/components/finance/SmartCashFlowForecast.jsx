@@ -19,7 +19,7 @@ export default function SmartCashFlowForecast() {
       const response = await opsbrain.functions.invoke('predictCashFlow', {
         workspace_id: activeWorkspace.id
       });
-      return response.data;
+      return response;
     },
     enabled: !!activeWorkspace,
     refetchInterval: 60 * 60 * 1000 // רענון כל שעה

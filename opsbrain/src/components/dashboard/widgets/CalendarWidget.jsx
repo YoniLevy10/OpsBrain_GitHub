@@ -30,7 +30,7 @@ export default function CalendarWidget({ size = 'medium' }) {
         const response = await opsbrain.functions.invoke('syncCalendar', {
           workspace_id: activeWorkspace.id
         });
-        return response.data;
+        return response;
       } catch (error) {
         console.error('Calendar sync error:', error);
         return null;
@@ -55,7 +55,7 @@ export default function CalendarWidget({ size = 'medium' }) {
         action: 'create',
         event: eventData
       });
-      return response.data;
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['calendar-events']);
@@ -72,7 +72,7 @@ export default function CalendarWidget({ size = 'medium' }) {
         action: 'delete',
         event_id: eventId
       });
-      return response.data;
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['calendar-events']);

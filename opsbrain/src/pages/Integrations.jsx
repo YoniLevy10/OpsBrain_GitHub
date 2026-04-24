@@ -64,7 +64,7 @@ export default function Integrations() {
         product,
         redirect_uri: `${window.location.origin}/auth/integrations/google/callback`,
       });
-      const url = res?.data?.url || res?.data?.authUrl;
+      const url = res?.url || res?.authUrl;
       if (!url) throw new Error('Missing OAuth URL (google-oauth-start)');
       window.location.href = url;
     } catch (e) {

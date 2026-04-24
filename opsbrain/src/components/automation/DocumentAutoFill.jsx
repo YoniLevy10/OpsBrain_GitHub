@@ -32,7 +32,7 @@ export default function DocumentAutoFill() {
         entity_type: entityType,
         entity_id: entityId
       });
-      return response.data;
+      return response;
     },
     onSuccess: (data) => {
       toast.success(language === 'he' ? 'המסמך נוצר בהצלחה!' : 'Document generated successfully!');

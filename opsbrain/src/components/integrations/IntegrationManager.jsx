@@ -21,7 +21,7 @@ export default function IntegrationManager({ integration, onConnected, onRequest
     queryKey: ['workspace-integrations', activeWorkspace?.id],
     queryFn: async () => {
       const result = await opsbrain.functions.invoke('getWorkspaceIntegrations');
-      return result.data.integrations || [];
+      return result?.integrations || [];
     },
     enabled: !!activeWorkspace?.id
   });
