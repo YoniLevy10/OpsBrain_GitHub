@@ -34,6 +34,59 @@ export default function Integrations() {
     enabled: !!activeWorkspace
   });
 
+  const { data: workspaceIntegrations = [], isLoading: isLoadingWorkspaceIntegrations } = useQuery({
+    queryKey: ['workspace-integrations', activeWorkspace?.id],
+    queryFn: async () => {
+      if (!activeWorkspace) return [];
+      return await opsbrain.entities.WorkspaceIntegration.filter({ workspace_id: activeWorkspace.id }, '-created_at');
+    },
+    enabled: !!activeWorkspace,
+  });
+
+  const googleConnections = useMemo(() => {
+    const byProduct = { gmail: null, calendar: null };
+    for (const row of workspaceIntegrations) {
+      const product = row?.product || row?.data?.product;
+      const provider = row?.provider || row?.data?.provider;
+      if (provider !== 'google') continue;
+      if (product === 'gmail') byProduct.gmail = row;
+      if (product === 'calendar') byProduct.calendar = row;
+    }
+    return byProduct;
+  }, [workspaceIntegrations]);
+
+  const startGoogleConnect = async (product) => {
+    if (!activeWorkspace?.id) return;
+    try {
+      // Ask Supabase Edge Function for an OAuth URL.
+      const res = await opsbrain.functions.invoke('googleOAuthStart', {
+        workspace_id: activeWorkspace.id,
+        product,
+        redirect_uri: `${window.location.origin}/auth/integrations/google/callback`,
+      });
+      const url = res?.data?.url || res?.data?.authUrl;
+      if (!url) throw new Error('Missing OAuth URL (googleOAuthStart)');
+      window.location.href = url;
+    } catch (e) {
+      console.error('[Integrations] googleOAuthStart', e);
+      toast.error(language === 'he' ? 'שגיאה בהתחלת חיבור ל-Google' : 'Failed to start Google connect');
+    }
+  };
+
+  const disconnectGoogle = async (product) => {
+    if (!activeWorkspace?.id) return;
+    const row = product === 'gmail' ? googleConnections.gmail : googleConnections.calendar;
+    if (!row?.id) return;
+    try {
+      await opsbrain.entities.WorkspaceIntegration.delete(row.id);
+      toast.success(language === 'he' ? 'החיבור נותק' : 'Disconnected');
+      queryClient.invalidateQueries(['workspace-integrations']);
+    } catch (e) {
+      console.error('[Integrations] disconnect', e);
+      toast.error(language === 'he' ? 'שגיאה בניתוק' : 'Failed to disconnect');
+    }
+  };
+
   const createIntegrationMutation = useMutation({
     mutationFn: (data) => opsbrain.entities.Integration.create({
       workspace_id: activeWorkspace.id,
@@ -199,6 +252,66 @@ export default function Integrations() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Google quick connections (real OAuth) */}
+      <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          {
+            key: 'gmail',
+            title: 'Gmail',
+            subtitle: language === 'he' ? 'גישה לקריאת הודעות וסימון/ארכוב' : 'Read and manage messages',
+            Icon: Plug,
+          },
+          {
+            key: 'calendar',
+            title: language === 'he' ? 'Google Calendar' : 'Google Calendar',
+            subtitle: language === 'he' ? 'סנכרון אירועים ויצירת פגישות' : 'Sync and create events',
+            Icon: Plug,
+          },
+        ].map(({ key, title, subtitle, Icon }) => {
+          const connectedRow = key === 'gmail' ? googleConnections.gmail : googleConnections.calendar;
+          const isConnected = Boolean(connectedRow?.id);
+          return (
+            <Card key={key} className="border-slate-200 shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-indigo-700" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-slate-900">{title}</div>
+                      <div className="text-sm text-slate-500 mt-1">{subtitle}</div>
+                      {isConnected && (
+                        <div className="text-xs text-slate-400 mt-2">
+                          {language === 'he' ? 'מחובר' : 'Connected'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {isConnected ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => disconnectGoogle(key)}
+                          className="border-slate-200"
+                        >
+                          {language === 'he' ? 'נתק' : 'Disconnect'}
+                        </Button>
+                      </>
+                    ) : (
+                      <Button onClick={() => startGoogleConnect(key)} className="bg-indigo-600 hover:bg-indigo-700">
+                        {language === 'he' ? 'חבר' : 'Connect'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
