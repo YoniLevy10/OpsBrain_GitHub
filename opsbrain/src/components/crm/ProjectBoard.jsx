@@ -17,12 +17,12 @@ function DroppableColumn({ id, title, count, accent, children }) {
   return (
     <div ref={setNodeRef} className="min-h-[420px]">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-white">{title}</h3>
+        <h3 className="font-semibold text-slate-900">{title}</h3>
         <Badge className={accent}>{count}</Badge>
       </div>
       <div
         className={`rounded-2xl border p-2 space-y-3 min-h-[360px] transition-colors ${
-          isOver ? 'border-[#8B5CF6] bg-[#6B46C1]/10' : 'border-[#2A2A45] bg-[#0F0F1A]/40'
+          isOver ? 'border-indigo-200 bg-indigo-50/60' : 'border-slate-200 bg-white'
         }`}
       >
         {children}
@@ -64,10 +64,10 @@ export default function ProjectBoard({ projects, clients, onProjectClick, onDele
   };
 
   const statusColors = {
-    planning: 'bg-blue-500/20 text-blue-200 border border-blue-500/30',
-    active: 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30',
-    on_hold: 'bg-amber-500/20 text-amber-200 border border-amber-500/30',
-    completed: 'bg-white/10 text-[#E6E6F0] border border-[#2A2A45]',
+    planning: 'bg-blue-50 text-blue-700 border border-blue-200',
+    active: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    on_hold: 'bg-amber-50 text-amber-700 border border-amber-200',
+    completed: 'bg-slate-50 text-slate-700 border border-slate-200',
   };
 
   const getClientName = (clientId) => {
@@ -110,18 +110,18 @@ export default function ProjectBoard({ projects, clients, onProjectClick, onDele
 
   const renderCard = (project, { inOverlay } = {}) => (
     <Card
-      className={`mb-0 transition-all group relative border-[#2A2A45] bg-[#1E1E35] ${
-        inOverlay ? 'shadow-2xl ring-1 ring-[#6B46C1]/40' : 'hover:border-[#6B46C1]/50'
+      className={`mb-0 transition-all group relative border-slate-200 bg-white shadow-sm ${
+        inOverlay ? 'shadow-2xl ring-1 ring-indigo-200' : 'hover:border-indigo-300'
       }`}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h4 className="font-semibold text-white leading-snug">{project.name}</h4>
+          <h4 className="font-semibold text-slate-900 leading-snug">{project.name}</h4>
           <div className="flex items-center gap-1 shrink-0">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-[#C4C4E0] hover:text-white hover:bg-white/5"
+              className="h-8 w-8 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
               onClick={(e) => {
                 e.stopPropagation();
                 onProjectClick(project);
@@ -134,7 +134,7 @@ export default function ProjectBoard({ projects, clients, onProjectClick, onDele
               variant="ghost"
               size="icon"
               onClick={(e) => handleDelete(e, project)}
-              className="h-8 w-8 text-red-300 hover:bg-red-500/10"
+              className="h-8 w-8 text-rose-700 hover:bg-rose-50"
               aria-label="מחק פרויקט"
             >
               <Trash2 className="w-4 h-4" />
@@ -143,18 +143,18 @@ export default function ProjectBoard({ projects, clients, onProjectClick, onDele
         </div>
 
         <div className="space-y-2 text-sm">
-          <div className="flex items-center gap-2 text-[#A0A0C0]">
+          <div className="flex items-center gap-2 text-slate-600">
             <User className="w-4 h-4" />
             <span>{getClientName(project.client_id)}</span>
           </div>
           {project.end_date && (
-            <div className="flex items-center gap-2 text-[#A0A0C0]">
+            <div className="flex items-center gap-2 text-slate-600">
               <Calendar className="w-4 h-4" />
               <span>{format(new Date(project.end_date), 'dd MMM yyyy', { locale: he })}</span>
             </div>
           )}
           {project.budget != null && (
-            <div className="flex items-center gap-2 text-[#A0A0C0]">
+            <div className="flex items-center gap-2 text-slate-600">
               <DollarSign className="w-4 h-4" />
               <span>₪{Number(project.budget).toLocaleString()}</span>
             </div>
@@ -162,7 +162,7 @@ export default function ProjectBoard({ projects, clients, onProjectClick, onDele
         </div>
         {project.progress > 0 && (
           <div className="mt-3">
-            <div className="flex justify-between text-xs text-[#A0A0C0] mb-1">
+            <div className="flex justify-between text-xs text-slate-600 mb-1">
               <span>התקדמות</span>
               <span>{project.progress}%</span>
             </div>

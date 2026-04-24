@@ -103,7 +103,7 @@ export default function NotificationCenter() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+        className="relative p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100"
         aria-label="התראות"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,18 +122,18 @@ export default function NotificationCenter() {
       </button>
 
       {open && (
-        <div className="absolute start-0 top-12 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-100 shadow-lg z-50">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <span className="font-semibold text-gray-700">התראות</span>
+        <div className="absolute start-0 top-12 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-slate-200 shadow-lg z-50">
+          <div className="flex items-center justify-between p-4 border-b border-slate-200">
+            <span className="font-semibold text-slate-900">התראות</span>
             {unread > 0 && (
-              <button type="button" onClick={markAllRead} className="text-xs text-[#6C63FF] hover:underline">
+              <button type="button" onClick={markAllRead} className="text-xs text-indigo-700 hover:underline">
                 סמן הכל כנקרא
               </button>
             )}
           </div>
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="text-center py-8 text-gray-300 text-sm">אין התראות</div>
+              <div className="text-center py-8 text-slate-500 text-sm">אין התראות</div>
             ) : (
               notifications.map((n) => (
                 <div
@@ -142,16 +142,16 @@ export default function NotificationCenter() {
                   tabIndex={0}
                   onClick={() => markRead(n.id)}
                   onKeyDown={(e) => e.key === 'Enter' && markRead(n.id)}
-                  className={`p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 ${!n.is_read ? 'bg-purple-50' : ''}`}
+                  className={`p-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50 ${!n.is_read ? 'bg-indigo-50' : ''}`}
                 >
                   <div className="flex gap-2">
                     {!n.is_read && (
-                      <div className="w-2 h-2 bg-[#6C63FF] rounded-full mt-1.5 flex-shrink-0" />
+                      <div className="w-2 h-2 bg-indigo-600 rounded-full mt-1.5 flex-shrink-0" />
                     )}
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{n.title || 'התראה'}</p>
-                      {n.body && <p className="text-xs text-gray-500 mt-0.5">{n.body}</p>}
-                      <p className="text-xs text-gray-300 mt-1">
+                      <p className="text-sm font-medium text-slate-900">{n.title || 'התראה'}</p>
+                      {n.body && <p className="text-xs text-slate-600 mt-0.5">{n.body}</p>}
+                      <p className="text-xs text-slate-400 mt-1">
                         {n.created_at ? new Date(n.created_at).toLocaleDateString('he-IL') : ''}
                       </p>
                     </div>

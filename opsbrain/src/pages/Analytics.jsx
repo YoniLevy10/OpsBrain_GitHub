@@ -104,10 +104,10 @@ export default function Analytics() {
       else counts.other += 1;
     }
     return [
-      { name: 'לביצוע', value: counts.todo, color: '#6B46C1' },
-      { name: 'בתהליך', value: counts.in_progress, color: '#8B5CF6' },
-      { name: 'הושלם', value: counts.done, color: '#10B981' },
-      { name: 'אחר', value: counts.other, color: '#A0A0C0' },
+      { name: 'לביצוע', value: counts.todo, color: '#4f46e5' },
+      { name: 'בתהליך', value: counts.in_progress, color: '#7c3aed' },
+      { name: 'הושלם', value: counts.done, color: '#16a34a' },
+      { name: 'אחר', value: counts.other, color: '#64748b' },
     ].filter((x) => x.value > 0);
   }, [tasks]);
 
@@ -116,8 +116,8 @@ export default function Analytics() {
   return (
     <div dir="rtl" className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">ניתוח עסקי</h1>
-        <p className="text-[#A0A0C0] mt-1">תובנות ומדדים בזמן אמת מהנתונים שלך ב-Supabase</p>
+        <h1 className="text-2xl font-bold text-slate-900">ניתוח עסקי</h1>
+        <p className="text-slate-600 mt-1">תובנות ומדדים בזמן אמת מהנתונים שלך ב-Supabase</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -127,34 +127,34 @@ export default function Analytics() {
           { label: 'הכנסות החודש', value: `₪${monthIncome.toLocaleString()}` },
           { label: 'משימות פתוחות', value: openTasks },
         ].map((k) => (
-          <div key={k.label} className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-4">
-            <div className="text-sm text-[#A0A0C0]">{k.label}</div>
-            <div className="text-3xl font-bold text-white mt-2">{k.value}</div>
+          <div key={k.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-sm text-slate-600">{k.label}</div>
+            <div className="text-3xl font-bold text-slate-900 mt-2">{k.value}</div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-4">
-          <div className="text-white font-semibold mb-3">הכנסות לפי חודש</div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-slate-900 font-semibold mb-3">הכנסות לפי חודש</div>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={incomeByMonth}>
-                <CartesianGrid stroke="#2A2A45" strokeDasharray="3 3" />
-                <XAxis dataKey="label" stroke="#A0A0C0" />
-                <YAxis stroke="#A0A0C0" />
+                <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+                <XAxis dataKey="label" stroke="#64748b" />
+                <YAxis stroke="#64748b" />
                 <Tooltip
-                  contentStyle={{ background: '#0F0F1A', border: '1px solid #2A2A45', borderRadius: 12 }}
-                  labelStyle={{ color: '#fff' }}
+                  contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12 }}
+                  labelStyle={{ color: '#0f172a' }}
                 />
-                <Line type="monotone" dataKey="income" stroke="#8B5CF6" strokeWidth={3} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="income" stroke="#4f46e5" strokeWidth={3} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#2A2A45] bg-[#1E1E35] p-4">
-          <div className="text-white font-semibold mb-3">משימות לפי סטטוס</div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="text-slate-900 font-semibold mb-3">משימות לפי סטטוס</div>
           <div className="h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -164,8 +164,8 @@ export default function Analytics() {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ background: '#0F0F1A', border: '1px solid #2A2A45', borderRadius: 12 }}
-                  labelStyle={{ color: '#fff' }}
+                  contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12 }}
+                  labelStyle={{ color: '#0f172a' }}
                 />
               </PieChart>
             </ResponsiveContainer>

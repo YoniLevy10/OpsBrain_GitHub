@@ -132,7 +132,7 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex bg-gradient-to-br from-[#0B0B14] via-[#0F0F1A] to-[#141437]"
+      className="min-h-screen flex bg-slate-50"
       dir="rtl"
     >
       {/* Hero Section - Desktop Only */}
@@ -150,30 +150,30 @@ export default function Login() {
         </div>
 
         {/* Gradient Orbs */}
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#6B46C1]/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-[#4C1D95]/30 rounded-full blur-[100px]" />
-        <div className="absolute top-2/3 right-1/3 w-64 h-64 bg-[#7C3AED]/15 rounded-full blur-[80px]" />
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-indigo-200/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-purple-200/50 rounded-full blur-[100px]" />
+        <div className="absolute top-2/3 right-1/3 w-64 h-64 bg-sky-200/40 rounded-full blur-[80px]" />
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 py-16">
           {/* Logo */}
           <div className="flex items-center gap-4 mb-12">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#1E1E35] to-[#0F0F1A] rounded-2xl flex items-center justify-center ring-1 ring-white/10 shadow-xl">
-              <Brain className="text-[#A78BFA] w-7 h-7" aria-hidden />
+            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
+              <Brain className="text-white w-7 h-7" aria-hidden />
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">OpsBrain</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">OpsBrain</span>
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6 text-balance">
+          <h1 className="text-4xl xl:text-5xl font-bold text-slate-900 leading-tight mb-6 text-balance">
             מרכז הפעילות העסקית
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#A78BFA] to-[#6B46C1]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-indigo-500 to-purple-600">
               במקום אחד
             </span>
           </h1>
 
-          <p className="text-lg text-[#A0A0C0] mb-12 max-w-lg leading-relaxed">
+          <p className="text-lg text-slate-600 mb-12 max-w-lg leading-relaxed">
             נהלו לקוחות, משימות, מסמכים וכספים בפלטפורמה אחת חכמה.
             עם בינה מלאכותית שעובדת בשבילכם.
           </p>
@@ -183,38 +183,38 @@ export default function Login() {
             {features.map((f, i) => (
               <div
                 key={i}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.05] hover:border-[#6B46C1]/30 group"
+                className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm transition-colors hover:bg-slate-50 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#6B46C1]/10 flex items-center justify-center ring-1 ring-[#6B46C1]/20 group-hover:ring-[#6B46C1]/40 transition-all">
-                  <f.icon className="w-5 h-5 text-[#A78BFA]" aria-hidden />
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center border border-indigo-100 transition-colors">
+                  <f.icon className="w-5 h-5 text-indigo-700" aria-hidden />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white text-sm">{f.title}</h3>
-                  <p className="text-[#6B6B8A] text-sm">{f.desc}</p>
+                  <h3 className="font-semibold text-slate-900 text-sm">{f.title}</h3>
+                  <p className="text-slate-600 text-sm">{f.desc}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* Stats */}
-          <div className="flex gap-8 mt-12 pt-8 border-t border-white/[0.06]">
+          <div className="flex gap-8 mt-12 pt-8 border-t border-slate-200">
             <div>
-              <p className="text-2xl font-bold text-white">500+</p>
-              <p className="text-sm text-[#6B6B8A]">עסקים פעילים</p>
+              <p className="text-2xl font-bold text-slate-900">500+</p>
+              <p className="text-sm text-slate-600">עסקים פעילים</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-white">99.9%</p>
-              <p className="text-sm text-[#6B6B8A]">זמינות מערכת</p>
+              <p className="text-2xl font-bold text-slate-900">99.9%</p>
+              <p className="text-sm text-slate-600">זמינות מערכת</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-white">24/7</p>
-              <p className="text-sm text-[#6B6B8A]">תמיכה טכנית</p>
+              <p className="text-2xl font-bold text-slate-900">24/7</p>
+              <p className="text-sm text-slate-600">תמיכה טכנית</p>
             </div>
           </div>
         </div>
 
         {/* Edge Gradient */}
-        <div className="absolute left-0 inset-y-0 w-32 bg-gradient-to-r from-transparent to-[#0B0B14]/80" />
+        <div className="absolute left-0 inset-y-0 w-32 bg-gradient-to-r from-transparent to-slate-50" />
       </div>
 
       {/* Login Form Section */}
@@ -222,50 +222,50 @@ export default function Login() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="flex flex-col items-center mb-8 lg:hidden">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#1E1E35] to-[#0F0F1A] rounded-2xl flex items-center justify-center mb-4 ring-1 ring-white/10 shadow-xl">
-              <Brain className="text-[#A78BFA] w-8 h-8" aria-hidden />
+            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <Brain className="text-white w-8 h-8" aria-hidden />
             </div>
-            <h1 className="text-2xl font-bold text-white text-center">ברוכים הבאים ל-OpsBrain</h1>
+            <h1 className="text-2xl font-bold text-slate-900 text-center">ברוכים הבאים ל-OpsBrain</h1>
           </div>
 
           {/* Card */}
-          <div className="rounded-3xl border border-[#2A2A45]/80 bg-[#1E1E35]/90 shadow-2xl backdrop-blur-xl p-8 sm:p-10">
+          <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-8 sm:p-10">
             {/* Desktop Heading */}
             <div className="hidden lg:block mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">התחברות לחשבון</h2>
-              <p className="text-[#A0A0C0] text-sm">הזינו את הפרטים כדי להמשיך</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">התחברות לחשבון</h2>
+              <p className="text-slate-600 text-sm">הזינו את הפרטים כדי להמשיך</p>
             </div>
 
             {/* Mobile Subtitle */}
-            <p className="text-[#A0A0C0] text-sm text-center mb-6 lg:hidden">התחבר כדי להמשיך</p>
+            <p className="text-slate-600 text-sm text-center mb-6 lg:hidden">התחבר כדי להמשיך</p>
 
             {/* v0 Welcome Strip */}
-            <div className="mb-6 text-center text-sm leading-relaxed text-[#C8C8E4] border border-[#6B46C1]/20 rounded-2xl bg-gradient-to-r from-[#6B46C1]/10 to-[#4C1D95]/10 px-4 py-4">
+            <div className="mb-6 text-center text-sm leading-relaxed text-slate-700 border border-slate-200 rounded-2xl bg-slate-50 px-4 py-4">
               {v0Status === 'loading' && !v0Line.trim() ? (
-                <span className="text-[#A0A0C0]">טוען הודעה...</span>
+                <span className="text-slate-500">טוען הודעה...</span>
               ) : (
                 v0Line.trim() || V0_FALLBACK
               )}
             </div>
             {v0Status === 'no_key' && (
-              <p className="mb-4 text-center text-xs text-[#6B6B8A]">
-                להפעלת v0: הוסף <code className="rounded bg-black/40 px-1.5 py-0.5 font-mono text-[#A78BFA]">V0_API_KEY</code> ב-Vercel → Redeploy
+              <p className="mb-4 text-center text-xs text-slate-500">
+                להפעלת v0: הוסף <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-slate-900">V0_API_KEY</code> ב-Vercel → Redeploy
               </p>
             )}
 
             {!isSupabaseConfigured ? (
               <div
                 role="alert"
-                className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-5 py-4 text-sm text-amber-100 text-right"
+                className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900 text-right"
               >
                 <p className="font-semibold mb-2 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   חסר חיבור ל-Supabase
                 </p>
-                <p className="text-amber-100/80 leading-relaxed">
+                <p className="text-amber-800 leading-relaxed">
                   ב-Vercel → Settings → Environment Variables (Production) הוסף{' '}
-                  <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono">VITE_SUPABASE_URL</code> ו־
-                  <code className="rounded bg-black/30 px-1.5 py-0.5 font-mono">VITE_SUPABASE_ANON_KEY</code>, ואז Redeploy.
+                  <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono">VITE_SUPABASE_URL</code> ו־
+                  <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono">VITE_SUPABASE_ANON_KEY</code>, ואז Redeploy.
                 </p>
               </div>
             ) : (
@@ -275,7 +275,7 @@ export default function Login() {
                   type="button"
                   onClick={() => void onGoogle()}
                   disabled={googleLoading || submitting}
-                  className="w-full mb-5 flex items-center justify-center gap-3 rounded-xl border border-[#2A2A45] bg-[#0F0F1A] py-3.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#1a1a2e] hover:border-[#3A3A55] focus:outline-none focus:ring-2 focus:ring-[#6B46C1]/50 focus:ring-offset-2 focus:ring-offset-[#1E1E35] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mb-5 flex items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white py-3.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden>
                     <path
@@ -301,17 +301,17 @@ export default function Login() {
                 {/* Divider */}
                 <div className="relative mb-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#2A2A45]" />
+                    <div className="w-full border-t border-slate-200" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-[#1E1E35] px-3 text-[#6B6B8A] font-medium">או</span>
+                    <span className="bg-white px-3 text-slate-500 font-medium">או</span>
                   </div>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={onEmailLogin} className="space-y-5">
                   <div>
-                    <label htmlFor="login-email" className="mb-2 block text-sm font-medium text-[#C4C4E0]">
+                    <label htmlFor="login-email" className="mb-2 block text-sm font-medium text-slate-700">
                       אימייל
                     </label>
                     <input
@@ -321,12 +321,12 @@ export default function Login() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="w-full rounded-xl border border-[#2A2A45] bg-[#0F0F1A] px-4 py-3.5 text-sm text-white placeholder:text-[#6B6B8A] transition-all duration-200 focus:border-[#6B46C1] focus:outline-none focus:ring-2 focus:ring-[#6B46C1]/30 hover:border-[#3A3A55]"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 hover:border-slate-300"
                       placeholder="you@company.com"
                     />
                   </div>
                   <div>
-                    <label htmlFor="login-password" className="mb-2 block text-sm font-medium text-[#C4C4E0]">
+                    <label htmlFor="login-password" className="mb-2 block text-sm font-medium text-slate-700">
                       סיסמה
                     </label>
                     <input
@@ -336,7 +336,7 @@ export default function Login() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="w-full rounded-xl border border-[#2A2A45] bg-[#0F0F1A] px-4 py-3.5 text-sm text-white placeholder:text-[#6B6B8A] transition-all duration-200 focus:border-[#6B46C1] focus:outline-none focus:ring-2 focus:ring-[#6B46C1]/30 hover:border-[#3A3A55]"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 hover:border-slate-300"
                       placeholder="........"
                     />
                   </div>
@@ -353,7 +353,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={submitting || googleLoading}
-                    className="w-full rounded-xl bg-gradient-to-l from-[#6B46C1] to-[#7C3AED] py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#6B46C1]/25 transition-all duration-200 hover:from-[#5a3aad] hover:to-[#6B46C1] hover:shadow-[#6B46C1]/40 focus:outline-none focus:ring-2 focus:ring-[#6B46C1] focus:ring-offset-2 focus:ring-offset-[#1E1E35] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {submitting ? 'מתחבר...' : 'כניסה'}
                   </button>
@@ -362,11 +362,11 @@ export default function Login() {
             )}
 
             {/* Footer */}
-            <p className="mt-8 text-center text-sm text-[#6B6B8A]">
+            <p className="mt-8 text-center text-sm text-slate-600">
               אין לך חשבון?{' '}
               <Link
                 to="/Register"
-                className="font-semibold text-[#A78BFA] transition-colors duration-200 hover:text-white"
+                className="font-semibold text-indigo-700 transition-colors duration-200 hover:text-indigo-800"
               >
                 הירשם עכשיו
               </Link>
@@ -374,7 +374,7 @@ export default function Login() {
           </div>
 
           {/* Trust Badge */}
-          <p className="mt-6 text-center text-xs text-[#6B6B8A]">
+          <p className="mt-6 text-center text-xs text-slate-500">
             מאובטח עם הצפנת SSL. הנתונים שלכם בטוחים.
           </p>
         </div>

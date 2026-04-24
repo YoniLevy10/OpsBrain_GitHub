@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { Brain, User as UserIcon } from 'lucide-react';
 
 const QUICK_PROMPTS = [
   'סכם את המצב העסקי שלי',
@@ -132,26 +133,31 @@ export default function AIWorkspaceAssistant({ mode = 'agent' }) {
   };
 
   const SEVERITY_STYLE = {
-    info: 'border-blue-500/30 bg-blue-500/10 text-blue-100',
-    warning: 'border-amber-500/30 bg-amber-500/10 text-amber-100',
-    critical: 'border-red-500/30 bg-red-500/10 text-red-100',
+    info: 'border-blue-200 bg-blue-50 text-slate-800',
+    warning: 'border-amber-200 bg-amber-50 text-slate-800',
+    critical: 'border-rose-200 bg-rose-50 text-slate-800',
   };
 
   return (
     <div dir="rtl" className="flex flex-col lg:flex-row h-[calc(100vh-120px)] lg:h-[calc(100vh-104px)] gap-4 p-4 max-w-[1400px] mx-auto">
-      <div className="flex-1 flex flex-col bg-[#1E1E35] rounded-2xl border border-[#2A2A45] overflow-hidden min-h-[50vh]">
-        <div className="p-4 border-b border-[#2A2A45] bg-[#0F0F1A]/40">
-          <h2 className="text-white font-semibold">🧠 {title}</h2>
-          <p className="text-[#A0A0C0] text-xs mt-1">
+      <div className="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[50vh]">
+        <div className="p-4 border-b border-slate-200 bg-white">
+          <h2 className="text-slate-900 font-semibold flex items-center gap-2">
+            <span className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center">
+              <Brain className="w-5 h-5" />
+            </span>
+            {title}
+          </h2>
+          <p className="text-slate-600 text-xs mt-1">
             {import.meta.env.VITE_OPENAI_KEY ? 'מחובר ל-OpenAI' : 'מצב demo — הוסף VITE_OPENAI_KEY לחיבור אמיתי'}
           </p>
         </div>
-        <div className="p-3 border-b border-[#2A2A45] flex gap-2 flex-wrap bg-[#0F0F1A]/20">
+        <div className="p-3 border-b border-slate-200 flex gap-2 flex-wrap bg-slate-50">
           {QUICK_PROMPTS.map((p, i) => (
             <button
               key={i}
               onClick={() => send(p)}
-              className="text-xs px-3 py-1.5 bg-[#6B46C1]/20 text-[#E9D5FF] rounded-full hover:bg-[#6B46C1]/30 border border-[#6B46C1]/30"
+              className="text-xs px-3 py-1.5 bg-white text-slate-700 rounded-full hover:bg-slate-100 border border-slate-200"
             >
               {p}
             </button>
@@ -162,16 +168,18 @@ export default function AIWorkspaceAssistant({ mode = 'agent' }) {
             <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${
-                  m.role === 'assistant' ? 'bg-[#0F0F1A] text-[#A78BFA] border border-[#2A2A45]' : 'bg-[#6B46C1] text-white'
+                  m.role === 'assistant'
+                    ? 'bg-white text-indigo-700 border border-slate-200'
+                    : 'bg-indigo-600 text-white'
                 }`}
               >
-                {m.role === 'assistant' ? '🧠' : '👤'}
+                {m.role === 'assistant' ? <Brain className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
               </div>
               <div
                 className={`max-w-md px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${
                   m.role === 'assistant'
-                    ? 'bg-[#0F0F1A] text-white border border-[#2A2A45] rounded-tr-sm'
-                    : 'bg-[#6B46C1] text-white rounded-tl-sm'
+                    ? 'bg-white text-slate-900 border border-slate-200 rounded-tr-sm'
+                    : 'bg-indigo-600 text-white rounded-tl-sm'
                 }`}
               >
                 {m.content}
@@ -180,27 +188,29 @@ export default function AIWorkspaceAssistant({ mode = 'agent' }) {
           ))}
           {loading && (
             <div className="flex gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#0F0F1A] border border-[#2A2A45] flex items-center justify-center text-sm">🧠</div>
-              <div className="bg-[#0F0F1A] border border-[#2A2A45] px-4 py-3 rounded-2xl rounded-tr-sm">
-                <span className="animate-pulse text-[#A0A0C0] text-sm">חושב...</span>
+              <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-sm text-indigo-700">
+                <Brain className="w-4 h-4" />
+              </div>
+              <div className="bg-white border border-slate-200 px-4 py-3 rounded-2xl rounded-tr-sm">
+                <span className="animate-pulse text-slate-600 text-sm">חושב...</span>
               </div>
             </div>
           )}
           <div ref={bottomRef} />
         </div>
-        <div className="p-3 border-t border-[#2A2A45] bg-[#0F0F1A]/20">
+        <div className="p-3 border-t border-slate-200 bg-white">
           <div className="flex gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder="שאל אותי כל דבר על העסק..."
-              className="flex-1 border border-[#2A2A45] bg-[#0F0F1A] rounded-xl px-4 py-2 text-sm text-white placeholder:text-[#6B6B8A]"
+              className="flex-1 border border-slate-200 bg-white rounded-xl px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             />
             <button
               onClick={() => send()}
               disabled={loading || !input.trim()}
-              className="bg-[#6B46C1] text-white px-4 py-2 rounded-xl text-sm disabled:opacity-50"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700 disabled:opacity-50"
             >
               שלח
             </button>
@@ -208,15 +218,15 @@ export default function AIWorkspaceAssistant({ mode = 'agent' }) {
         </div>
       </div>
 
-      <div className="w-full lg:w-72 bg-[#1E1E35] rounded-2xl border border-[#2A2A45] flex flex-col overflow-hidden max-h-80 lg:max-h-none">
-        <div className="p-4 border-b border-[#2A2A45]">
-          <h3 className="font-semibold text-white">תובנות עסקיות</h3>
-          <p className="text-xs text-[#A0A0C0] mt-0.5">{insights.length} לא נקראו</p>
+      <div className="w-full lg:w-72 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden max-h-80 lg:max-h-none">
+        <div className="p-4 border-b border-slate-200">
+          <h3 className="font-semibold text-slate-900">תובנות עסקיות</h3>
+          <p className="text-xs text-slate-600 mt-0.5">{insights.length} לא נקראו</p>
         </div>
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {loadingInsights && <div className="text-center py-4 text-[#6B6B8A] text-sm">טוען...</div>}
+          {loadingInsights && <div className="text-center py-4 text-slate-500 text-sm">טוען...</div>}
           {!loadingInsights && insights.length === 0 && (
-            <div className="text-center py-8 text-[#6B6B8A] text-sm">אין תובנות חדשות</div>
+            <div className="text-center py-8 text-slate-500 text-sm">אין תובנות חדשות</div>
           )}
           {insights.map((ins) => (
             <div
@@ -224,9 +234,9 @@ export default function AIWorkspaceAssistant({ mode = 'agent' }) {
               className={`border rounded-xl p-3 text-xs ${SEVERITY_STYLE[ins.severity] || SEVERITY_STYLE.info}`}
             >
               <p className="mb-2">{ins.content}</p>
-              <div className="flex items-center justify-between text-[#C4C4E0]">
-                <span>{ins.source_module}</span>
-                <button type="button" onClick={() => markRead(ins.id)} className="underline text-white">
+              <div className="flex items-center justify-between text-slate-500">
+                <span className="truncate">{ins.source_module}</span>
+                <button type="button" onClick={() => markRead(ins.id)} className="underline text-indigo-700">
                   סמן כנקרא
                 </button>
               </div>

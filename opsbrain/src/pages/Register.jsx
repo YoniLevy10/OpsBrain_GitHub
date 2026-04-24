@@ -43,7 +43,7 @@ export default function Register() {
   ];
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-[#0B0B14] via-[#0F0F1A] to-[#141437]" dir="rtl">
+    <div className="min-h-screen flex bg-slate-50" dir="rtl">
       {/* Hero - desktop */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]">
@@ -57,26 +57,26 @@ export default function Register() {
           />
         </div>
 
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#6B46C1]/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-[#4C1D95]/30 rounded-full blur-[100px]" />
-        <div className="absolute top-2/3 right-1/3 w-64 h-64 bg-[#7C3AED]/15 rounded-full blur-[80px]" />
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-indigo-200/50 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-purple-200/50 rounded-full blur-[100px]" />
+        <div className="absolute top-2/3 right-1/3 w-64 h-64 bg-sky-200/40 rounded-full blur-[80px]" />
 
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 py-16">
           <div className="flex items-center gap-4 mb-12">
-            <div className="w-14 h-14 bg-gradient-to-br from-[#1E1E35] to-[#0F0F1A] rounded-2xl flex items-center justify-center ring-1 ring-white/10 shadow-xl">
-              <Brain className="text-[#A78BFA] w-7 h-7" aria-hidden />
+            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
+              <Brain className="text-white w-7 h-7" aria-hidden />
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">OpsBrain</span>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">OpsBrain</span>
           </div>
 
-          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6 text-balance">
+          <h1 className="text-4xl xl:text-5xl font-bold text-slate-900 leading-tight mb-6 text-balance">
             בונים SaaS אמיתי
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#A78BFA] to-[#6B46C1]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-indigo-500 to-purple-600">
               לעסק שלך
             </span>
           </h1>
-          <p className="text-lg text-[#A0A0C0] mb-10 max-w-lg leading-relaxed">
+          <p className="text-lg text-slate-600 mb-10 max-w-lg leading-relaxed">
             הרשמה מהירה, בחירת חברה, וניהול משימות/מסמכים/כספים במקום אחד.
           </p>
 
@@ -84,38 +84,38 @@ export default function Register() {
             {features.map((f, i) => (
               <div
                 key={i}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.05] hover:border-[#6B46C1]/30 group"
+                className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm transition-colors hover:bg-slate-50 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#6B46C1]/10 flex items-center justify-center ring-1 ring-[#6B46C1]/20 group-hover:ring-[#6B46C1]/40 transition-all">
-                  <f.icon className="w-5 h-5 text-[#A78BFA]" aria-hidden />
+                <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center border border-indigo-100 transition-colors">
+                  <f.icon className="w-5 h-5 text-indigo-700" aria-hidden />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white text-sm">{f.title}</h3>
-                  <p className="text-[#6B6B8A] text-sm">{f.desc}</p>
+                  <h3 className="font-semibold text-slate-900 text-sm">{f.title}</h3>
+                  <p className="text-slate-600 text-sm">{f.desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="absolute left-0 inset-y-0 w-32 bg-gradient-to-r from-transparent to-[#0B0B14]/80" />
+        <div className="absolute left-0 inset-y-0 w-32 bg-gradient-to-r from-transparent to-slate-50" />
       </div>
 
       {/* Form */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
           <div className="flex flex-col items-center mb-8 lg:hidden">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#1E1E35] to-[#0F0F1A] rounded-2xl flex items-center justify-center mb-4 ring-1 ring-white/10 shadow-xl">
-              <Brain className="text-[#A78BFA] w-8 h-8" aria-hidden />
+            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+              <Brain className="text-white w-8 h-8" aria-hidden />
             </div>
-            <h1 className="text-2xl font-bold text-white text-center">יצירת חשבון OpsBrain</h1>
-            <p className="text-[#A0A0C0] text-sm mt-2 text-center">דקה ואתה בפנים</p>
+            <h1 className="text-2xl font-bold text-slate-900 text-center">יצירת חשבון OpsBrain</h1>
+            <p className="text-slate-600 text-sm mt-2 text-center">דקה ואתה בפנים</p>
           </div>
 
-          <div className="rounded-3xl border border-[#2A2A45]/80 bg-[#1E1E35]/90 shadow-2xl backdrop-blur-xl p-8 sm:p-10">
+          <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-8 sm:p-10">
             <div className="hidden lg:block mb-8">
-              <h2 className="text-2xl font-bold text-white mb-2">הרשמה</h2>
-              <p className="text-[#A0A0C0] text-sm">פתח חשבון וצור חברה ראשונה</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">הרשמה</h2>
+              <p className="text-slate-600 text-sm">פתח חשבון וצור חברה ראשונה</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -126,7 +126,7 @@ export default function Register() {
                 { label: 'שם העסק', field: 'businessName', type: 'text', placeholder: 'העסק שלי בע\"מ', ac: 'organization' },
               ].map(({ label, field, type, placeholder, ac }) => (
                 <div key={field}>
-                  <label className="mb-2 block text-sm font-medium text-[#C4C4E0]">{label}</label>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
                   <input
                     type={type}
                     value={form[field]}
@@ -134,7 +134,7 @@ export default function Register() {
                     required
                     autoComplete={ac}
                     placeholder={placeholder}
-                    className="w-full rounded-xl border border-[#2A2A45] bg-[#0F0F1A] px-4 py-3.5 text-sm text-white placeholder:text-[#6B6B8A] transition-all duration-200 focus:border-[#6B46C1] focus:outline-none focus:ring-2 focus:ring-[#6B46C1]/30 hover:border-[#3A3A55]"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 hover:border-slate-300"
                   />
                 </div>
               ))}
@@ -149,15 +149,15 @@ export default function Register() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-gradient-to-l from-[#6B46C1] to-[#7C3AED] py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#6B46C1]/25 transition-all duration-200 hover:from-[#5a3aad] hover:to-[#6B46C1] hover:shadow-[#6B46C1]/40 focus:outline-none focus:ring-2 focus:ring-[#6B46C1] focus:ring-offset-2 focus:ring-offset-[#1E1E35] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'יוצר חשבון...' : 'יצירת חשבון'}
               </button>
             </form>
 
-            <p className="mt-8 text-center text-sm text-[#6B6B8A]">
+            <p className="mt-8 text-center text-sm text-slate-600">
               יש לך חשבון?{' '}
-              <Link to="/Login" className="font-semibold text-[#A78BFA] transition-colors duration-200 hover:text-white">
+              <Link to="/Login" className="font-semibold text-indigo-700 transition-colors duration-200 hover:text-indigo-800">
                 התחבר
               </Link>
             </p>

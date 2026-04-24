@@ -13,7 +13,7 @@ export default function Spinner({ size = 'md', className = '' }) {
 
 export function PageLoader() {
   return (
-    <div className="min-h-[16rem] flex items-center justify-center bg-gray-50 rounded-2xl">
+    <div className="min-h-[16rem] flex items-center justify-center bg-slate-50 rounded-2xl">
       <Spinner size="lg" />
     </div>
   );
@@ -21,7 +21,7 @@ export function PageLoader() {
 
 export function FullPageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <Spinner size="lg" />
     </div>
   );

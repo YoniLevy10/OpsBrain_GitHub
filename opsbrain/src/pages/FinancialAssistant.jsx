@@ -92,23 +92,28 @@ export default function FinancialAssistantPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-96px)] rounded-2xl border border-[#2A2A45] bg-[#1E1E35] overflow-hidden">
-        <header className="border-b border-[#2A2A45] p-4 flex items-center gap-3 bg-[#0F0F1A]/40">
-            <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center ring-1 ring-white/10">
-                <Bot className="w-6 h-6 text-white" />
-            </div>
-            <div>
-                <h1 className="text-xl font-bold text-white">העוזר הפיננסי</h1>
-                <p className="text-sm text-[#A0A0C0]">שאל שאלות על חשבוניות, לקוחות, תקציבים ועוד</p>
-            </div>
-        </header>
-        <main className="flex-1 overflow-y-auto p-4 space-y-6">
-            {messages.map((msg, index) => (
-                <MessageBubble key={index} message={msg} />
-            ))}
-            <div ref={messagesEndRef} />
-        </main>
-        <ChatInput onSendMessage={handleSendMessage} isLoading={messages[messages.length - 1]?.role !== 'user' && messages.length > 0} />
+    <div className="flex flex-col h-[calc(100vh-96px)] rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <header className="border-b border-slate-200 p-4 flex items-center gap-3 bg-white">
+        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+          <Bot className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">העוזר הפיננסי</h1>
+          <p className="text-sm text-slate-600">שאל שאלות על חשבוניות, לקוחות, תקציבים ועוד</p>
+        </div>
+      </header>
+      <main className="flex-1 overflow-y-auto p-4 space-y-6 bg-slate-50">
+        {messages.map((msg, index) => (
+          <MessageBubble key={index} message={msg} />
+        ))}
+        <div ref={messagesEndRef} />
+      </main>
+      <div className="bg-white">
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          isLoading={messages[messages.length - 1]?.role !== 'user' && messages.length > 0}
+        />
+      </div>
     </div>
   );
 }
