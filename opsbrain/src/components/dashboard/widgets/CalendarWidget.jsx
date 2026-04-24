@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Calendar, Clock, Loader2, RefreshCw, Plus, Trash2, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageContext';
 import { useWorkspace } from '@/components/workspace/WorkspaceContext';
@@ -187,6 +187,11 @@ export default function CalendarWidget({ size = 'medium' }) {
         <DialogContent dir="rtl" className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{language === 'he' ? 'אירוע חדש' : 'New Event'}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {language === 'he'
+                ? 'טופס ליצירת אירוע חדש ביומן'
+                : 'Form to create a new calendar event'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
