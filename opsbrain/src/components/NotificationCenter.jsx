@@ -7,6 +7,7 @@ export default function NotificationCenter() {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+  const channelRef = useRef(null);
 
   const loadNotifications = useCallback(async () => {
     if (!user?.id) return;
@@ -33,25 +34,42 @@ export default function NotificationCenter() {
 
   useEffect(() => {
     if (!workspaceId || !user?.id) return;
-    const sub = supabase
-      .channel('user-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          setNotifications((p) => [payload.new, ...p]);
-        }
-      )
-      .subscribe();
+    // Prevent duplicate subscriptions (HMR / strict-mode / remounts)
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const channel = supabase.channel(`user-notifications:${user.id}`);
+    channelRef.current = channel;
+
+    // IMPORTANT: add callbacks BEFORE subscribe()
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      },
+      (payload) => {
+        setNotifications((p) => [payload.new, ...p]);
+      }
+    );
+
+    channel.subscribe((status) => {
+      // Optional: refresh on successful subscribe
+      if (status === 'SUBSCRIBED') {
+        void loadNotifications();
+      }
+    });
     return () => {
-      supabase.removeChannel(sub);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, [workspaceId, user?.id]);
+  }, [workspaceId, user?.id, loadNotifications]);
 
   const markRead = async (id) => {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
