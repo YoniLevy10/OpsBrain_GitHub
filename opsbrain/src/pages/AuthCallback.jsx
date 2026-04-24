@@ -20,6 +20,16 @@ export default function AuthCallback() {
         return data?.session ?? null;
       };
 
+      try {
+        const href = window.location.href;
+        if (href.includes('code=')) {
+          const { error } = await supabase.auth.exchangeCodeForSession(href);
+          if (error) console.error('[AuthCallback] exchangeCodeForSession', error);
+        }
+      } catch (e) {
+        console.error('[AuthCallback] OAuth code exchange', e);
+      }
+
       let session = await trySession();
       if (!session) {
         await new Promise((r) => setTimeout(r, 200));
