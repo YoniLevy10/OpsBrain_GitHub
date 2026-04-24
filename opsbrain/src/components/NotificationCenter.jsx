@@ -34,13 +34,27 @@ export default function NotificationCenter() {
 
   useEffect(() => {
     if (!workspaceId || !user?.id) return;
-    // Prevent duplicate subscriptions (HMR / strict-mode / remounts)
+    const channelName = `user-notifications:${user.id}`;
+
+    // Prevent duplicate subscriptions (HMR / strict-mode / remounts).
+    // Supabase may reuse an existing channel instance for the same topic; adding
+    // postgres_changes handlers after subscribe() will throw.
+    try {
+      const existing = typeof supabase.getChannels === 'function' ? supabase.getChannels() : [];
+      for (const ch of existing) {
+        if (typeof ch?.topic === 'string' && ch.topic.includes(channelName)) {
+          supabase.removeChannel(ch);
+        }
+      }
+    } catch {
+      // ignore
+    }
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
 
-    const channel = supabase.channel(`user-notifications:${user.id}`);
+    const channel = supabase.channel(channelName);
     channelRef.current = channel;
 
     // IMPORTANT: add callbacks BEFORE subscribe()
