@@ -9,6 +9,7 @@ import Layout from './Layout';
 import { FullPageLoader } from '@/components/Spinner';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AuthCallback from './pages/AuthCallback';
 
 const Demo = lazy(() => import('./pages/Demo'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -43,7 +44,8 @@ function UnknownRouteRedirect() {
     pathname === '/Login' ||
     pathname === '/login' ||
     pathname === '/Register' ||
-    pathname === '/register'
+    pathname === '/register' ||
+    pathname === '/auth/callback'
   ) {
     window.location.replace(pathname);
     return null;
@@ -94,6 +96,7 @@ function App() {
               <Route path="/Login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/Register" element={<Register />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
 
               <Route
                 path="/app"

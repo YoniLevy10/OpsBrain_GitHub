@@ -24,6 +24,8 @@
 
 ## עדכון אחרון
 
+- **תאריך:** 2026-04-24  
+- **תקציר (OAuth — `/auth/callback`):** נוסף `opsbrain/src/pages/AuthCallback.jsx` + נתיב ב־`App.jsx`; `Login.jsx` מפנה את `signInWithOAuth` ל־`redirectTo` של `/auth/callback` כדי למנוע מרוץ עם `ProtectedRoute` אחרי Google. ב־Supabase → Redirect URLs יש להוסיף `http://localhost:5173/auth/callback` וכן כתובת Vercel מקבילה.
 - **תאריך:** 2026-04-23  
 - **תקציר (Auth routes — `/login` מסך ריק):** ב־`App.jsx` הוסרו redirects מבוססי `<Navigate>` ל־`/login` ו־`/register`; במקום זאת מוגדרים ישירות ארבעה נתיבים (`/login`, `/Login`, `/register`, `/Register`) לאותו קומפוננטה, כדי למנוע מצב שבו הדפדפן נשאר על URL אותיות קטנות בלי תוכן (במיוחד ב-preview של IDE). בנוסף, `Login` ו־`Register` נטענים כ-import רגיל (לא `lazy`) כדי שלא ייתקעו על טעינת chunk בנקודת הכניסה. `opsbrain/.gitignore` — התעלמות מ־`tmp-main*.js.map`.
 - **תקציר (Layout — מסך “לבן” מקומי / ניווט תחת `/app`):** ב־`Layout.jsx` תוקן חישוב `currentPageName` כך שבנתיבים מסוג `/app/Dashboard` מזוהה העמוד האמיתי (ולא המקטע `app`) — זה משפיע על הדגשת פריטים, מצב מובייל “child route”, ועוד. בנוסף, אזור המשתמש בתחתית הסיידבר וה-shell עברו לצבעי slate/indigo יציבים (במקום `text-white` על רקע בהיר), כדי למנוע טקסט בלתי נראה אחרי מעבר לתימה בהירה. `npm run build` נשאר ירוק.
@@ -142,6 +144,10 @@ OPSBRAIN/
 
 - `opsbrain/src/App.jsx`: נתיבים ישירים ל־`/login` ו־`/Login` (וגם register) במקום redirect בלבד; `Login`/`Register` כ-import סטטי כדי לצמצם כשלון טעינת chunk/HMR בכניסה.
 - `opsbrain/.gitignore`: `tmp-main*.js.map`.
+
+### 2026-04-24 (OAuth callback route)
+
+- `opsbrain/src/pages/AuthCallback.jsx` + `App.jsx` (`/auth/callback`); `Login.jsx` — `redirectTo` אחרי Google ל־`/auth/callback` ואז ניווט ל־`/app/Dashboard`.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 
