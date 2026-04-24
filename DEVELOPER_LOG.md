@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (Deployment stability + DB catch-up):** אומת ש־Vercel rewrites הם SPA-only גם בשורש הריפו וגם ב־`opsbrain/vercel.json`. `supabase.js` כבר מגן על פרוד בלי env כדי למנוע מסך שחור. `AuthContext` כולל timeout + מסך שגיאה ב־`ProtectedRoute`. נוסף catch-up migration (`20260424000002_catchup_core_policies_orders_agents.sql`) שמוסיף טבלת `orders` ומקשיח RLS קריטי (workspaces/tasks/documents/events/user_workspace_states/agent tables) על בסיס `auth.uid()` וחברות ב־workspace.
+- **תאריך:** 2026-04-24  
 - **תקציר (Module Bank + Nav דינמי):** נוסף `src/lib/moduleRegistry.js` שמגדיר את כל המודולים (id/name/icon/route/category) + קריאה/כתיבה של `opsbrain_workspace_config`. `Layout.jsx` משתמש בהגדרה כדי לבנות ניווט דינמי לפי המודולים הפעילים. `Settings.jsx` קיבל טאב “Module Bank” עם הפעלה/כיבוי + גרירה לשינוי סדר, ושמירה מיידית ל־localStorage.
 - **תאריך:** 2026-04-24  
 - **תקציר (OpsAgent MVP):** נוסף `OpsAgent` ככפתור צף בכל האפליקציה (ב־`Layout.jsx`) עם פאנל צ׳אט. נוצר conversation דרך `opsbrain.agents.*` (טבלאות `agent_conversations/agent_messages`) ומופעלת פונקציית Edge אופציונלית `agent-reply` אם קיימת. נוספה התראה פרואקטיבית בסיסית: badge עם מספר משימות overdue.
@@ -194,6 +196,13 @@ OPSBRAIN/
 - `opsbrain/src/lib/moduleRegistry.js`: רישום מודולים + helper לקריאה/כתיבה של `opsbrain_workspace_config` (כולל נרמול IDs מה־wizard).
 - `opsbrain/src/Layout.jsx`: ניווט דינמי על בסיס `opsbrain_workspace_config` + עדכון live באמצעות event.
 - `opsbrain/src/pages/Settings.jsx`: טאב “Module Bank” עם Switch לכל מודול + Drag & Drop לסידור סדר הניווט.
+
+### 2026-04-24 (Deployment stability + DB catch-up)
+
+- `opsbrain/vercel.json` + `vercel.json` בשורש: rewrites ל-SPA בלבד (`/((?!api/).*)` → `/index.html`) + cron endpoint נשאר.
+- `opsbrain/src/lib/supabase.js`: guard קיים ל-env חסר כדי לא לקרוס ב-import (מונע מסך שחור בפרוד).
+- `opsbrain/src/lib/AuthContext.jsx` + `ProtectedRoute.jsx`: timeout + error UI מונעים spinner אינסופי.
+- `opsbrain/supabase/migrations/20260424000002_catchup_core_policies_orders_agents.sql`: catch-up idempotent שמוסיף `orders` ומקשיח RLS קריטי על בסיס membership/user.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 
