@@ -5,7 +5,7 @@ import { PageLoader } from '@/components/Spinner';
 import { toast } from 'sonner';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
-import { Paperclip, Smile } from 'lucide-react';
+import { Paperclip, Smile, X } from 'lucide-react';
 import { useChannelMessages } from '@/hooks/useMessages';
 
 export default function Chat() {
@@ -94,8 +94,19 @@ export default function Chat() {
     return uploaded;
   };
 
+  const openAttachment = async (path) => {
+    try {
+      const { data, error } = await supabase.storage.from('documents').createSignedUrl(path, 60);
+      if (error) throw error;
+      if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      console.error(e);
+      toast.error('שגיאה בפתיחת הקובץ');
+    }
+  };
+
   const send = async () => {
-    if (!input.trim() || !activeChannel || !user) return;
+    if ((!input.trim() && pendingFiles.length === 0) || !activeChannel || !user) return;
     setSending(true);
     try {
       const attachments = pendingFiles.length ? await uploadPendingFiles() : [];
@@ -273,9 +284,15 @@ export default function Chat() {
                   {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {msg.attachments.map((a) => (
-                        <div key={a.path} className="text-xs text-slate-500">
-                          קובץ: {a.name}
-                        </div>
+                        <button
+                          key={a.path}
+                          type="button"
+                          onClick={() => openAttachment(a.path)}
+                          className="text-xs text-indigo-700 hover:underline text-right"
+                          title="פתח קובץ"
+                        >
+                          {a.name}
+                        </button>
                       ))}
                     </div>
                   )}
@@ -303,8 +320,23 @@ export default function Chat() {
           )}
 
           {pendingFiles.length > 0 && (
-            <div className="mb-2 text-xs text-slate-500">
-              קבצים מצורפים: {pendingFiles.map((f) => f.name).join(', ')}
+            <div className="mb-2 flex flex-wrap gap-2">
+              {pendingFiles.map((f) => (
+                <span
+                  key={f.name}
+                  className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200"
+                >
+                  {f.name}
+                  <button
+                    type="button"
+                    onClick={() => setPendingFiles((p) => p.filter((x) => x !== f))}
+                    className="text-slate-500 hover:text-slate-900"
+                    aria-label="הסר קובץ"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
             </div>
           )}
 
@@ -323,7 +355,10 @@ export default function Chat() {
                 <input
                   type="file"
                   className="hidden"
-                  onChange={(e) => setPendingFiles(Array.from(e.target.files || []))}
+                  multiple
+                  onChange={(e) =>
+                    setPendingFiles((p) => [...p, ...Array.from(e.target.files || [])])
+                  }
                 />
               </label>
             </div>
@@ -343,7 +378,7 @@ export default function Chat() {
             />
             <button
               onClick={() => void send()}
-              disabled={sending || !input.trim()}
+              disabled={sending || (!input.trim() && pendingFiles.length === 0)}
               className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700 disabled:opacity-50 h-[84px]"
             >
               שלח

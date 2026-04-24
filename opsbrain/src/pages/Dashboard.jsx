@@ -6,6 +6,8 @@ import { PageLoader } from '../components/Spinner';
 import { detectPatterns } from '../lib/aiPatterns';
 import { startOfDay } from 'date-fns';
 import { CheckSquare, Users, FileText, DollarSign, Brain } from 'lucide-react';
+import GmailWidget from '@/components/dashboard/widgets/GmailWidget';
+import CalendarWidget from '@/components/dashboard/widgets/CalendarWidget';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -256,24 +258,9 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-slate-900">Gmail</h2>
-            <span className="text-xs text-slate-400">אינטגרציה (בקרוב)</span>
-          </div>
-          <div className="text-sm text-slate-600 mt-1">
-            עדיין לא מחובר. כשתהיה אינטגרציה אמיתית נציג כאן הודעות חדשות.
-          </div>
-          <div className="mt-3">
-            <button
-              type="button"
-              onClick={() => navigate('/app/Integrations')}
-              className="text-xs px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-            >
-              נהל אינטגרציות
-            </button>
-          </div>
-        </div>
+        <GmailWidget />
+
+        <CalendarWidget />
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="font-semibold text-slate-900 mb-3">השלמות אחרונות</h2>
