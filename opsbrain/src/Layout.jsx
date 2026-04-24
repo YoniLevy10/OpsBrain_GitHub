@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import {
@@ -28,6 +28,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from './components/GlobalSearch';
 import NotificationCenter from './components/NotificationCenter';
 import WorkspaceSelector from '@/components/workspace/WorkspaceSelector';
+
+const OpsAgent = lazy(() => import('@/components/ai/OpsAgent'));
 
 function LayoutContent() {
   const { user, signOut, workspaceName, activeWorkspace } = useAuth();
@@ -298,6 +300,9 @@ function LayoutContent() {
         </AnimatePresence>
       </main>
 
+      <Suspense fallback={null}>
+        <OpsAgent />
+      </Suspense>
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );

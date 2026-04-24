@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (OpsAgent MVP):** נוסף `OpsAgent` ככפתור צף בכל האפליקציה (ב־`Layout.jsx`) עם פאנל צ׳אט. נוצר conversation דרך `opsbrain.agents.*` (טבלאות `agent_conversations/agent_messages`) ומופעלת פונקציית Edge אופציונלית `agent-reply` אם קיימת. נוספה התראה פרואקטיבית בסיסית: badge עם מספר משימות overdue.
+- **תאריך:** 2026-04-24  
 - **תקציר (Onboarding Wizard MVP):** נוסף `OnboardingWizard.jsx` (5 צעדים) ששומר הגדרת Workspace ל־`localStorage` במפתח `opsbrain_workspace_config`, כולל “Module Bank” בסיסי (Active vs Bank) ו־workspace name. נוסף route מוגן `/OnboardingWizard`.
 - **תאריך:** 2026-04-24  
 - **תקציר (Performance — lazy routes + UI pruning):** `pages.config.js` עבר ל־`React.lazy()` כדי להימנע מטעינת כל הדפים upfront; איחוד Toast ל־`sonner` בלבד (הוסרו `toast/use-toast/toaster` הישנים); נוספה טעינת דפים עם `Suspense` פר־Route ו־`PageLoader` (Skeleton) כדי שהמעבר בין דפים “ירגיש” מהיר; הוסרו רכיבי `src/components/ui/*` שלא בשימוש כדי לצמצם קוד בלקוח.
@@ -179,6 +181,11 @@ OPSBRAIN/
 
 - `opsbrain/src/pages/OnboardingWizard.jsx`: אשף “first-run” בן 5 צעדים (Business type, Team size, Core needs multi-select, Module activation, Workspace name) ושמירה ל־`localStorage` במפתח `opsbrain_workspace_config`.
 - `opsbrain/src/App.jsx`: route מוגן `/OnboardingWizard` + redirect מ־`/onboarding-wizard`.
+
+### 2026-04-24 (OpsAgent MVP — floating assistant)
+
+- `opsbrain/src/components/ai/OpsAgent.jsx`: כפתור צף + פאנל צ׳אט; יוצר conversation דרך `opsbrain.agents` ומאזין ל־Realtime על `agent_messages`. כולל פקודת fast-path ל־`Add a task: ...` ליצירת משימה גם בלי backend AI.
+- `opsbrain/src/Layout.jsx`: טעינה עצלה (`React.lazy`) של `OpsAgent` והטמעה גלובלית בכל מסכי `/app/*`.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 
