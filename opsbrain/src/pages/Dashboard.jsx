@@ -14,8 +14,9 @@ export default function Dashboard() {
   const [recentContacts, setRecentContacts] = useState([]);
   const [completedRecently, setCompletedRecently] = useState([]);
   const [createdToday, setCreatedToday] = useState([]);
-  const [gmailMock, setGmailMock] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [loadingPrompt, setLoadingPrompt] = useState(null);
 
   useEffect(() => {
     if (!workspaceId) return;
@@ -27,26 +28,33 @@ export default function Dashboard() {
     fetchAll();
   }, [workspaceId]);
 
-  useEffect(() => {
-    setGmailMock(Math.floor(3 + Math.random() * 9));
-  }, [workspaceId]);
-
   const fetchAll = async () => {
     setLoading(true);
+    setLoadError(null);
     const start = startOfDay(new Date()).toISOString();
-    const [{ data: tasks }, { data: contacts }, { data: docs }, { data: income }] = await Promise.all([
-      supabase.from('tasks').select('id,status').eq('workspace_id', workspaceId),
-      supabase.from('contacts').select('id').eq('workspace_id', workspaceId),
-      supabase.from('documents').select('id').eq('workspace_id', workspaceId),
-      supabase
-        .from('finance_records')
-        .select('amount')
-        .eq('workspace_id', workspaceId)
-        .eq('type', 'income'),
-    ]);
+    try {
+      const [
+        { data: tasks, error: tasksErr },
+        { data: contacts, error: contactsErr },
+        { data: docs, error: docsErr },
+        { data: income, error: incomeErr },
+      ] = await Promise.all([
+        supabase.from('tasks').select('id,status').eq('workspace_id', workspaceId),
+        supabase.from('contacts').select('id').eq('workspace_id', workspaceId),
+        supabase.from('documents').select('id').eq('workspace_id', workspaceId),
+        supabase
+          .from('finance_records')
+          .select('amount')
+          .eq('workspace_id', workspaceId)
+          .eq('type', 'income'),
+      ]);
 
-    const [{ data: latestTasks }, { data: latestContacts }, { data: doneRecent }, { data: todayNew }] =
-      await Promise.all([
+      const [
+        { data: latestTasks, error: latestTasksErr },
+        { data: latestContacts, error: latestContactsErr },
+        { data: doneRecent, error: doneRecentErr },
+        { data: todayNew, error: todayNewErr },
+      ] = await Promise.all([
         supabase
           .from('tasks')
           .select('id,title,status,priority,due_date')
@@ -75,17 +83,36 @@ export default function Dashboard() {
           .limit(10),
       ]);
 
-    setStats({
-      tasks: (tasks ?? []).filter((t) => t.status !== 'done' && t.status !== 'completed').length,
-      contacts: (contacts ?? []).length,
-      docs: (docs ?? []).length,
-      income: (income ?? []).reduce((s, r) => s + Number(r.amount || 0), 0),
-    });
-    setRecentTasks(latestTasks ?? []);
-    setRecentContacts(latestContacts ?? []);
-    setCompletedRecently(doneRecent ?? []);
-    setCreatedToday(todayNew ?? []);
-    setLoading(false);
+      const err =
+        tasksErr ||
+        contactsErr ||
+        docsErr ||
+        incomeErr ||
+        latestTasksErr ||
+        latestContactsErr ||
+        doneRecentErr ||
+        todayNewErr;
+      if (err) {
+        console.error('[Dashboard] fetchAll', err);
+        setLoadError(err);
+      }
+
+      setStats({
+        tasks: (tasks ?? []).filter((t) => t.status !== 'done' && t.status !== 'completed').length,
+        contacts: (contacts ?? []).length,
+        docs: (docs ?? []).length,
+        income: (income ?? []).reduce((s, r) => s + Number(r.amount || 0), 0),
+      });
+      setRecentTasks(latestTasks ?? []);
+      setRecentContacts(latestContacts ?? []);
+      setCompletedRecently(doneRecent ?? []);
+      setCreatedToday(todayNew ?? []);
+    } catch (e) {
+      console.error('[Dashboard] fetchAll exception', e);
+      setLoadError(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const hour = new Date().getHours();
@@ -107,7 +134,15 @@ export default function Dashboard() {
 
   if (loading) return <PageLoader />;
 
-  const ask = (q) => navigate(`/app/FinancialAssistant?q=${encodeURIComponent(q)}`);
+  const ask = async (q) => {
+    setLoadingPrompt(q);
+    try {
+      navigate(`/app/FinancialAssistant?q=${encodeURIComponent(q)}`);
+    } finally {
+      // keep feedback visible briefly, even with fast route transitions
+      setTimeout(() => setLoadingPrompt(null), 250);
+    }
+  };
 
   return (
     <div dir="rtl" className="space-y-6 max-w-7xl mx-auto">
@@ -140,13 +175,39 @@ export default function Dashboard() {
               key={q}
               type="button"
               onClick={() => ask(q)}
-              className="text-xs px-3 py-2 rounded-full bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-indigo-300 hover:bg-indigo-50/60 transition-colors"
+              disabled={loadingPrompt === q}
+              className="text-xs px-3 py-2 rounded-full bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-indigo-300 hover:bg-indigo-50/60 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {q}
+              {loadingPrompt === q ? 'מעבד…' : q}
             </button>
           ))}
         </div>
       </div>
+
+      {loadError && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+          <div className="font-semibold text-sm">בעיה בטעינת נתונים</div>
+          <div className="text-sm mt-1 text-amber-800">
+            נראה שיש בעיית Supabase (מיגרציות/RLS). פתח Console/Network כדי לראות את ה־400 המדויק.
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={fetchAll}
+              className="px-3 py-2 rounded-lg bg-amber-900 text-white text-sm font-semibold hover:bg-amber-950"
+            >
+              נסה שוב
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/app/Settings')}
+              className="px-3 py-2 rounded-lg bg-white text-amber-900 text-sm font-semibold border border-amber-200 hover:bg-amber-100/40"
+            >
+              להגדרות
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
@@ -172,8 +233,18 @@ export default function Dashboard() {
             <h2 className="font-semibold text-slate-900">Gmail</h2>
             <span className="text-xs text-slate-400">אינטגרציה (בקרוב)</span>
           </div>
-          <div className="text-3xl sm:text-4xl font-bold text-slate-900">{gmailMock}</div>
-          <div className="text-sm text-slate-500 mt-1">הודעות חדשות (דמו)</div>
+          <div className="text-sm text-slate-600 mt-1">
+            עדיין לא מחובר. כשתהיה אינטגרציה אמיתית נציג כאן הודעות חדשות.
+          </div>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => navigate('/app/Integrations')}
+              className="text-xs px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+            >
+              נהל אינטגרציות
+            </button>
+          </div>
         </div>
 
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -200,6 +271,8 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => navigate('/app/Tasks')}
+              title="פתח משימות"
+              aria-label="פתח משימות"
               className="text-xs px-3 py-1 rounded-full bg-indigo-600 text-white hover:bg-indigo-700"
             >
               +

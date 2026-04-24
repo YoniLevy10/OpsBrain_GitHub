@@ -221,7 +221,12 @@ function LayoutContent() {
                 </div>
               </div>
               <button
-                onClick={async () => { await signOut(); navigate('/Login'); }}
+                onClick={async () => {
+                  const ok = window.confirm('האם אתה בטוח שברצונך להתנתק?');
+                  if (!ok) return;
+                  await signOut();
+                  navigate('/Login');
+                }}
                 className="w-full px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-medium transition-colors border border-slate-200"
               >
                 יציאה מהחשבון
