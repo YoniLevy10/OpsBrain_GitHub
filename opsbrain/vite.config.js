@@ -17,7 +17,6 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
-          if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) return 'react';
           if (id.includes('@supabase/supabase-js') || id.includes('@supabase/')) return 'supabase';
           if (id.includes('@tanstack/react-query') || id.includes('@tanstack/query-core')) return 'react-query';
           if (id.includes('@radix-ui/')) return 'radix';
