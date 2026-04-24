@@ -1,8 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react';
-import { opsbrain } from '@/api/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/components/LanguageContext';
-import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, Upload, Download } from 'lucide-react';
 import ClientCard from '../components/crm/ClientCard';
@@ -11,39 +8,18 @@ import ClientStats from '../components/crm/ClientStats';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useClients } from '@/hooks/useClients';
 
 const ClientDetailView = lazy(() => import('../components/clients/ClientDetailView'));
 const DataImport = lazy(() => import('../components/onboarding/DataImport'));
 
 export default function Clients() {
   const { t } = useLanguage();
-  const { activeWorkspace } = useWorkspace();
+  const { activeWorkspace, clients, isLoading, refetch: refetchClients, create } = useClients();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedClient, setSelectedClient] = useState(null);
-  const queryClient = useQueryClient();
-
-  const { data: clients = [], isLoading, refetch: refetchClients } = useQuery({
-    queryKey: ['clients', activeWorkspace?.id],
-    queryFn: async () => {
-      if (!activeWorkspace) return [];
-      return await opsbrain.entities.Client.filter({ workspace_id: activeWorkspace.id }, '-created_date');
-    },
-    enabled: !!activeWorkspace,
-    staleTime: 3 * 60 * 1000
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => {
-      if (!activeWorkspace) throw new Error('No workspace');
-      return opsbrain.entities.Client.create({ ...data, workspace_id: activeWorkspace.id });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      setShowAddDialog(false);
-    }
-  });
 
   const filteredClients = filterStatus === 'all' 
     ? clients 
@@ -137,8 +113,8 @@ export default function Clients() {
       <AddClientDialog
         open={showAddDialog}
         onClose={() => setShowAddDialog(false)}
-        onSubmit={(data) => createMutation.mutate(data)}
-        isLoading={createMutation.isPending}
+        onSubmit={(data) => create.mutate(data, { onSuccess: () => setShowAddDialog(false) })}
+        isLoading={create.isPending}
       />
 
       {selectedClient && (
@@ -157,7 +133,7 @@ export default function Clients() {
             open={showImportDialog}
             onClose={() => {
               setShowImportDialog(false);
-              queryClient.invalidateQueries({ queryKey: ['clients'] });
+              void refetchClients();
             }}
             entityType="Client"
           />

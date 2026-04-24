@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { supabase } from './supabase';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 const AuthContext = createContext(null);
 
@@ -216,6 +216,16 @@ export function AuthProvider({ children }) {
   );
 
   useEffect(() => {
+    // Local dev safety: if Supabase env is missing/unreachable, don't hang the UI on loading.
+    if (!isSupabaseConfigured) {
+      setUser(null);
+      setWorkspaces([]);
+      setWorkspaceId(null);
+      setWorkspaceName(null);
+      setLoading(false);
+      return () => {};
+    }
+
     let mounted = true;
     let subscription = { unsubscribe: () => {} };
 

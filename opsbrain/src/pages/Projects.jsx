@@ -1,66 +1,31 @@
 import React, { useState, lazy, Suspense } from 'react';
-import { opsbrain } from '@/api/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/components/LanguageContext';
-import { useWorkspace } from '@/components/workspace/WorkspaceContext';
 import { Button } from '@/components/ui/button';
 import { Plus, Briefcase } from 'lucide-react';
 import ProjectBoard from '../components/crm/ProjectBoard';
 import AddProjectDialog from '../components/crm/AddProjectDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useProjects } from '@/hooks/useProjects';
 
 const ProjectTimeline = lazy(() => import('../components/projects/ProjectTimeline'));
 const ProjectBudgetTracker = lazy(() => import('../components/projects/ProjectBudgetTracker'));
 
 export default function Projects() {
   const { t } = useLanguage();
-  const { activeWorkspace } = useWorkspace();
+  const {
+    activeWorkspace,
+    projects,
+    projectsLoading,
+    refetchProjects,
+    clients,
+    clientsLoading,
+    tasks,
+    create,
+  } = useProjects();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [activeTab, setActiveTab] = useState('board');
-  const queryClient = useQueryClient();
-
-  const { data: projects = [], isLoading: projectsLoading, refetch: refetchProjects } = useQuery({
-    queryKey: ['projects', activeWorkspace?.id],
-    queryFn: async () => {
-      if (!activeWorkspace) return [];
-      return await opsbrain.entities.Project.filter({ workspace_id: activeWorkspace.id }, '-created_date');
-    },
-    enabled: !!activeWorkspace,
-    staleTime: 3 * 60 * 1000
-  });
-
-  const { data: clients = [], isLoading: clientsLoading } = useQuery({
-    queryKey: ['clients', activeWorkspace?.id],
-    queryFn: async () => {
-      if (!activeWorkspace) return [];
-      return await opsbrain.entities.Client.filter({ workspace_id: activeWorkspace.id });
-    },
-    enabled: !!activeWorkspace,
-    staleTime: 5 * 60 * 1000
-  });
-
-  const { data: tasks = [], isLoading: tasksLoading } = useQuery({
-    queryKey: ['tasks', activeWorkspace?.id],
-    queryFn: async () => {
-      if (!activeWorkspace) return [];
-      return await opsbrain.entities.Task.filter({ workspace_id: activeWorkspace.id });
-    },
-    enabled: !!activeWorkspace,
-    staleTime: 2 * 60 * 1000
-  });
-
-  const createMutation = useMutation({
-    mutationFn: (data) => {
-      if (!activeWorkspace) throw new Error('No workspace');
-      return opsbrain.entities.Project.create({ ...data, workspace_id: activeWorkspace.id });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      setShowAddDialog(false);
-    }
-  });
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto">
@@ -158,8 +123,8 @@ export default function Projects() {
       <AddProjectDialog
         open={showAddDialog}
         onClose={() => setShowAddDialog(false)}
-        onSubmit={(data) => createMutation.mutate(data)}
-        isLoading={createMutation.isPending}
+        onSubmit={(data) => create.mutate(data, { onSuccess: () => setShowAddDialog(false) })}
+        isLoading={create.isPending}
         clients={clients}
       />
     </div>

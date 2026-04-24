@@ -33,3 +33,4 @@ tmp-main*.js.map
 *.sw?
 
 .env
+.vercel

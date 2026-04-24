@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useMemo, useState } from 'react';
 import { PageLoader } from '../components/Spinner';
 import { toast } from 'sonner';
+import { useTasks } from '@/hooks/useTasks';
 import {
   DndContext,
   DragOverlay,
@@ -69,9 +68,7 @@ function DraggableTask({ task, children }) {
 }
 
 export default function Tasks() {
-  const { workspaceId, user } = useAuth();
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { tasks, loading, addTask: addTaskRow, updateTask, deleteTask: deleteTaskRow } = useTasks();
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState('');
   const [filterPriority, setFilterPriority] = useState('all');
@@ -81,41 +78,22 @@ export default function Tasks() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  useEffect(() => {
-    if (workspaceId) fetchTasks();
-  }, [workspaceId]);
-
-  const fetchTasks = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('tasks')
-      .select('*')
-      .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: false });
-    setTasks(data ?? []);
-    setLoading(false);
-  };
-
-  const addTask = async () => {
+  const onAddTask = async () => {
     if (!form.title.trim()) {
       toast.error('כותרת חובה');
       return;
     }
-    if (!user?.id) {
-      toast.error('יש להתחבר מחדש');
-      return;
-    }
     setSaving(true);
-    const { error } = await supabase.from('tasks').insert({
-      workspace_id: workspaceId,
-      created_by: user.id,
-      title: form.title.trim(),
-      description: form.description,
-      priority: form.priority,
-      due_date: form.due_date || null,
-      status: 'todo',
-    });
-    if (error) {
+    try {
+      await addTaskRow({
+        title: form.title.trim(),
+        description: form.description,
+        priority: form.priority,
+        due_date: form.due_date || null,
+        status: 'todo',
+      });
+    } catch (e) {
+      console.error(e);
       toast.error('שגיאה בהוספת משימה');
       setSaving(false);
       return;
@@ -124,38 +102,36 @@ export default function Tasks() {
     setForm({ title: '', description: '', priority: 'medium', due_date: '' });
     setShowModal(false);
     setSaving(false);
-    fetchTasks();
   };
 
   const moveTask = async (id, currentStatus) => {
     const next = NEXT_STATUS[currentStatus] || 'todo';
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status: next, updated_at: new Date().toISOString() })
-      .eq('id', id);
-    if (!error) fetchTasks();
+    try {
+      await updateTask(id, { status: next });
+    } catch {
+      // ignore toast spam
+    }
   };
 
   const setTaskStatus = async (taskId, nextStatus) => {
-    const prev = tasks;
-    setTasks((ts) => ts.map((t) => (t.id === taskId ? { ...t, status: nextStatus } : t)));
-    const { error } = await supabase
-      .from('tasks')
-      .update({ status: nextStatus, updated_at: new Date().toISOString() })
-      .eq('id', taskId);
-    if (error) {
-      setTasks(prev);
+    try {
+      await updateTask(taskId, { status: nextStatus });
+    } catch {
       toast.error('שגיאה בעדכון סטטוס');
       return;
     }
     toast.success('סטטוס עודכן');
   };
 
-  const deleteTask = async (id) => {
+  const onDeleteTask = async (id) => {
     if (!confirm('למחוק משימה זו?')) return;
-    await supabase.from('tasks').delete().eq('id', id);
-    fetchTasks();
-    toast.success('משימה נמחקה');
+    try {
+      await deleteTaskRow(id);
+      toast.success('משימה נמחקה');
+    } catch (e) {
+      console.error(e);
+      toast.error('שגיאה במחיקה');
+    }
   };
 
   const filtered = useMemo(() => {
@@ -262,7 +238,7 @@ export default function Tasks() {
                               העבר ▶
                             </button>
                           )}
-                          <button type="button" onClick={() => deleteTask(task.id)} className="text-xs text-red-600 hover:underline mr-auto">
+                          <button type="button" onClick={() => onDeleteTask(task.id)} className="text-xs text-red-600 hover:underline mr-auto">
                             מחק
                           </button>
                         </div>
@@ -322,7 +298,7 @@ export default function Tasks() {
             </div>
             <div className="flex gap-2 mt-4">
               <button
-                onClick={addTask}
+                onClick={onAddTask}
                 disabled={saving}
                 className="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
               >

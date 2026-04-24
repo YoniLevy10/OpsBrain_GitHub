@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useMemo, useState } from 'react';
 import { PageLoader } from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 import { toast } from 'sonner';
+import { useContacts } from '@/hooks/useContacts';
 
 const TYPE_LABELS = { client: 'לקוח', supplier: 'ספק', partner: 'שותף' };
 const TYPE_COLORS = {
@@ -15,30 +14,13 @@ const TYPE_COLORS = {
 const EMPTY_FORM = { name: '', company: '', email: '', phone: '', type: 'client', notes: '' };
 
 export default function Contacts() {
-  const { workspaceId } = useAuth();
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { contacts, loading, upsertContact, deleteContact: removeContact, refresh } = useContacts();
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (workspaceId) fetchContacts();
-  }, [workspaceId]);
-
-  const fetchContacts = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('contacts')
-      .select('*')
-      .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: false });
-    setContacts(data ?? []);
-    setLoading(false);
-  };
 
   const openAdd = () => {
     setForm(EMPTY_FORM);
@@ -64,45 +46,41 @@ export default function Contacts() {
       return;
     }
     setSaving(true);
-    if (editItem) {
-      const { error } = await supabase
-        .from('contacts')
-        .update({ ...form, updated_at: new Date().toISOString() })
-        .eq('id', editItem);
-      if (error) {
-        toast.error('שגיאה בעדכון');
-        setSaving(false);
-        return;
-      }
-      toast.success('איש קשר עודכן');
-    } else {
-      const { error } = await supabase.from('contacts').insert({ ...form, workspace_id: workspaceId });
-      if (error) {
-        toast.error('שגיאה בהוספה');
-        setSaving(false);
-        return;
-      }
-      toast.success('איש קשר נוסף');
+    try {
+      await upsertContact(editItem ? { id: editItem, ...form } : { ...form });
+      toast.success(editItem ? 'איש קשר עודכן' : 'איש קשר נוסף');
+    } catch (e) {
+      console.error(e);
+      toast.error(editItem ? 'שגיאה בעדכון' : 'שגיאה בהוספה');
+      setSaving(false);
+      return;
     }
     setSaving(false);
     setShowModal(false);
-    fetchContacts();
+    await refresh();
   };
 
   const deleteContact = async (id) => {
     if (!confirm('למחוק איש קשר זה?')) return;
-    await supabase.from('contacts').delete().eq('id', id);
-    fetchContacts();
+    try {
+      await removeContact(id);
+    } catch (e) {
+      console.error(e);
+      toast.error('שגיאה במחיקה');
+      return;
+    }
     toast.success('נמחק');
   };
 
-  const filtered = contacts.filter((c) => {
-    const matchSearch =
-      c.name?.toLowerCase().includes(search.toLowerCase()) ||
-      c.company?.toLowerCase().includes(search.toLowerCase());
-    const matchType = filterType === 'all' || c.type === filterType;
-    return matchSearch && matchType;
-  });
+  const filtered = useMemo(() => {
+    return (contacts ?? []).filter((c) => {
+      const matchSearch =
+        c.name?.toLowerCase().includes(search.toLowerCase()) ||
+        c.company?.toLowerCase().includes(search.toLowerCase());
+      const matchType = filterType === 'all' || c.type === filterType;
+      return matchSearch && matchType;
+    });
+  }, [contacts, filterType, search]);
 
   if (loading) return <PageLoader />;
 

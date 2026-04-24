@@ -1,105 +1,64 @@
-import { useEffect, useRef, useState } from 'react';
-import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useMemo, useRef, useState } from 'react';
 import { PageLoader } from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 import { toast } from 'sonner';
+import { useDocuments } from '@/hooks/useDocuments';
 
 const FILE_ICONS = { pdf: '📄', image: '🖼️', docx: '📝', xlsx: '📊', other: '📎' };
-const getType = (name) => {
-  const ext = name?.split('.').pop()?.toLowerCase();
-  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) return 'image';
-  if (ext === 'pdf') return 'pdf';
-  if (['doc', 'docx'].includes(ext)) return 'docx';
-  if (['xls', 'xlsx'].includes(ext)) return 'xlsx';
-  return 'other';
-};
-
-const docDisplayName = (d) => d.name || d.data?.title || 'מסמך';
-const docStoragePath = (d) => d.storage_path || d.data?.storage_path;
-const docFileType = (d) => d.file_type || getType(docDisplayName(d));
-const docSizeBytes = (d) => d.size_bytes ?? d.data?.file_size;
 
 export default function Documents() {
-  const { user, workspaceId } = useAuth();
-  const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const { documents, loading, uploading, upload: uploadDocument, createDownloadUrl, remove } = useDocuments();
   const [filterType, setFilterType] = useState('all');
   const [search, setSearch] = useState('');
   const fileRef = useRef();
 
-  useEffect(() => {
-    if (workspaceId) fetchDocs();
-  }, [workspaceId]);
-
-  const fetchDocs = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('workspace_id', workspaceId)
-      .order('created_at', { ascending: false });
-    setDocs(data ?? []);
-    setLoading(false);
-  };
-
-  const upload = async (e) => {
+  const onUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
-    const path = `${workspaceId}/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabase.storage.from('documents').upload(path, file);
-    if (upErr) {
-      toast.error('שגיאה בהעלאה: ' + upErr.message);
-      setUploading(false);
-      return;
+    try {
+      await uploadDocument(file);
+      toast.success(`${file.name} הועלה בהצלחה`);
+    } catch (err) {
+      console.error(err);
+      toast.error('שגיאה בהעלאה');
     }
-    const ft = getType(file.name);
-    await supabase.from('documents').insert({
-      workspace_id: workspaceId,
-      uploaded_by: user.id,
-      name: file.name,
-      file_type: ft,
-      size_bytes: file.size,
-      storage_path: path,
-      data: { title: file.name, storage_path: path, file_size: file.size, file_type: ft },
-    });
-    toast.success(`${file.name} הועלה בהצלחה`);
-    setUploading(false);
-    fetchDocs();
     if (fileRef.current) fileRef.current.value = '';
   };
 
   const download = async (doc) => {
-    const path = docStoragePath(doc);
+    const path = doc.storagePath;
     if (!path) {
       toast.error('אין נתיב קובץ לשורה זו');
       return;
     }
-    const { data, error } = await supabase.storage.from('documents').createSignedUrl(path, 60);
-    if (error || !data?.signedUrl) {
+    try {
+      const signedUrl = await createDownloadUrl(path, 60);
+      if (!signedUrl) throw new Error('missing signed url');
+      window.open(signedUrl, '_blank');
+    } catch (e) {
+      console.error(e);
       toast.error('שגיאה בהורדה');
-      return;
     }
-    window.open(data.signedUrl, '_blank');
   };
 
   const deleteDoc = async (doc) => {
     if (!confirm('למחוק קובץ זה?')) return;
-    const path = docStoragePath(doc);
-    if (path) await supabase.storage.from('documents').remove([path]);
-    await supabase.from('documents').delete().eq('id', doc.id);
-    fetchDocs();
-    toast.success('קובץ נמחק');
+    try {
+      await remove({ id: doc.id, storage_path: doc.storagePath });
+      toast.success('קובץ נמחק');
+    } catch (e) {
+      console.error(e);
+      toast.error('שגיאה במחיקה');
+    }
   };
 
-  const filtered = docs.filter((d) => {
-    const ft = docFileType(d);
-    const matchType = filterType === 'all' || ft === filterType;
-    const matchSearch = docDisplayName(d).toLowerCase().includes(search.toLowerCase());
-    return matchType && matchSearch;
-  });
+  const filtered = useMemo(() => {
+    return (documents ?? []).filter((d) => {
+      const matchType = filterType === 'all' || d.fileType === filterType;
+      const matchSearch = (d.displayName || '').toLowerCase().includes(search.toLowerCase());
+      return matchType && matchSearch;
+    });
+  }, [documents, filterType, search]);
 
   const formatSize = (bytes) => {
     if (!bytes) return '';
@@ -121,7 +80,7 @@ export default function Documents() {
         >
           {uploading ? 'מעלה...' : '+ העלה קובץ'}
         </button>
-        <input ref={fileRef} type="file" className="hidden" onChange={upload} />
+        <input ref={fileRef} type="file" className="hidden" onChange={onUpload} />
       </div>
       <div className="flex gap-3 flex-wrap">
         <input
@@ -158,10 +117,10 @@ export default function Documents() {
               key={doc.id}
               className="bg-white border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow"
             >
-              <div className="text-3xl mb-3">{FILE_ICONS[docFileType(doc)] || FILE_ICONS.other}</div>
-              <p className="text-sm font-medium text-gray-800 truncate mb-1">{docDisplayName(doc)}</p>
+              <div className="text-3xl mb-3">{FILE_ICONS[doc.fileType] || FILE_ICONS.other}</div>
+              <p className="text-sm font-medium text-gray-800 truncate mb-1">{doc.displayName}</p>
               <p className="text-xs text-gray-400 mb-3">
-                {formatSize(docSizeBytes(doc))} ·{' '}
+                {formatSize(doc.sizeBytes)} ·{' '}
                 {doc.created_at ? new Date(doc.created_at).toLocaleDateString('he-IL') : ''}
               </p>
               <div className="flex gap-2">

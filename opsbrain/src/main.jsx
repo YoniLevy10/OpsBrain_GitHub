@@ -9,7 +9,7 @@ import '@/styles/responsive.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ErrorBoundary>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <App />
       <VercelWebAnalytics />
     </ThemeProvider>

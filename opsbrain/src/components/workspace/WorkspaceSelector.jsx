@@ -41,22 +41,22 @@ export default function WorkspaceSelector() {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="w-full px-4 py-3 flex items-center justify-between rounded-xl transition-colors border border-white/10 bg-white/5 hover:bg-white/10"
+        className="w-full px-4 py-3 flex items-center justify-between rounded-xl transition-colors border border-border bg-card hover:bg-accent"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 text-primary" />
           </div>
           <div className="text-right min-w-0">
-            <p className="text-sm font-semibold text-white truncate">
+            <p className="text-sm font-semibold text-foreground truncate">
               {language === 'he' ? 'בחר חברה' : 'Select workspace'}
             </p>
-            <p className="text-xs text-[#A0A0C0]">
+            <p className="text-xs text-muted-foreground">
               {language === 'he' ? 'אין מרחב עבודה פעיל' : 'No active workspace'}
             </p>
           </div>
         </div>
-        <ChevronDown className="w-4 h-4 text-[#A0A0C0] flex-shrink-0" />
+        <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       </button>
     );
   }
@@ -64,19 +64,19 @@ export default function WorkspaceSelector() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button className="w-full px-4 py-3 flex items-center justify-between rounded-xl transition-colors border border-white/10 bg-white/5 hover:bg-white/10">
+        <button className="w-full px-4 py-3 flex items-center justify-between rounded-xl transition-colors border border-border bg-card hover:bg-accent">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              <Building2 className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Building2 className="w-4 h-4 text-primary" />
             </div>
             <div className="text-right min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{activeWorkspace.name}</p>
-              <p className="text-xs text-[#A0A0C0]">
+              <p className="text-sm font-semibold text-foreground truncate">{activeWorkspace.name}</p>
+              <p className="text-xs text-muted-foreground">
                 {language === 'he' ? 'מרחב עבודה פעיל' : 'Active workspace'}
               </p>
             </div>
           </div>
-          <ChevronDown className="w-4 h-4 text-[#A0A0C0] flex-shrink-0" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
         </button>
       </DialogTrigger>
 

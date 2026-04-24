@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../lib/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useMemo, useState } from 'react';
 import { PageLoader } from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 import { toast } from 'sonner';
+import { useFinance } from '@/hooks/useFinance';
 
 const EMPTY_FORM = {
   type: 'income',
@@ -14,28 +13,11 @@ const EMPTY_FORM = {
 };
 
 export default function Finance() {
-  const { workspaceId } = useAuth();
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { records, loading, addRecord, deleteRecord: removeRecord, totals } = useFinance();
   const [tab, setTab] = useState('income');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (workspaceId) fetchRecords();
-  }, [workspaceId]);
-
-  const fetchRecords = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from('finance_records')
-      .select('*')
-      .eq('workspace_id', workspaceId)
-      .order('date', { ascending: false });
-    setRecords(data ?? []);
-    setLoading(false);
-  };
 
   const save = async () => {
     if (!form.amount || isNaN(Number(form.amount))) {
@@ -43,15 +25,16 @@ export default function Finance() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from('finance_records').insert({
-      workspace_id: workspaceId,
-      type: form.type,
-      amount: Number(form.amount),
-      currency: form.currency,
-      description: form.description,
-      date: form.date,
-    });
-    if (error) {
+    try {
+      await addRecord({
+        type: form.type,
+        amount: Number(form.amount),
+        currency: form.currency,
+        description: form.description,
+        date: form.date,
+      });
+    } catch (e) {
+      console.error(e);
       toast.error('שגיאה בשמירה');
       setSaving(false);
       return;
@@ -60,19 +43,22 @@ export default function Finance() {
     setSaving(false);
     setShowModal(false);
     setForm(EMPTY_FORM);
-    fetchRecords();
   };
 
   const deleteRecord = async (id) => {
     if (!confirm('למחוק רשומה זו?')) return;
-    await supabase.from('finance_records').delete().eq('id', id);
-    fetchRecords();
+    try {
+      await removeRecord(id);
+    } catch (e) {
+      console.error(e);
+      toast.error('שגיאה במחיקה');
+    }
   };
 
-  const filtered = records.filter((r) => r.type === tab);
-  const total = filtered.reduce((s, r) => s + Number(r.amount || 0), 0);
-  const totalIncome = records.filter((r) => r.type === 'income').reduce((s, r) => s + Number(r.amount || 0), 0);
-  const totalExpense = records.filter((r) => r.type === 'expense').reduce((s, r) => s + Number(r.amount || 0), 0);
+  const filtered = useMemo(() => (records ?? []).filter((r) => r.type === tab), [records, tab]);
+  const total = useMemo(() => filtered.reduce((s, r) => s + Number(r.amount || 0), 0), [filtered]);
+  const totalIncome = totals.totalIncome;
+  const totalExpense = totals.totalExpense;
 
   const months = Array.from({ length: 6 }, (_, i) => {
     const d = new Date();
