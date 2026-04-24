@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/lib/AuthContext';
+import { useAuth } from '@/lib/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from './Layout';
 import { FullPageLoader } from '@/components/Spinner';
@@ -50,7 +51,13 @@ function UnknownRouteRedirect() {
     window.location.replace(pathname);
     return null;
   }
-  return <Navigate to="/app/Dashboard" replace />;
+  return <Navigate to="/Login" replace />;
+}
+
+function HomeRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return <FullPageLoader />;
+  return <Navigate to={user ? '/app/Dashboard' : '/Login'} replace />;
 }
 
 const LOWERCASE_REDIRECTS = [
@@ -91,7 +98,8 @@ function App() {
                 <Route key={from} path={`/${from}`} element={<Navigate to={to} replace />} />
               ))}
 
-              <Route path="/" element={<Demo />} />
+              <Route path="/" element={<HomeRedirect />} />
+              <Route path="/demo" element={<Demo />} />
               <Route path="/login" element={<Login />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/register" element={<Register />} />
