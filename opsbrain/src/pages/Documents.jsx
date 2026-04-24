@@ -3,8 +3,15 @@ import { PageLoader } from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 import { toast } from 'sonner';
 import { useDocuments } from '@/hooks/useDocuments';
+import { FileText, Image as ImageIcon, FileSpreadsheet, Paperclip, Upload, Search } from 'lucide-react';
 
-const FILE_ICONS = { pdf: '📄', image: '🖼️', docx: '📝', xlsx: '📊', other: '📎' };
+const FILE_ICON_MAP = {
+  pdf: FileText,
+  image: ImageIcon,
+  docx: FileText,
+  xlsx: FileSpreadsheet,
+  other: Paperclip,
+};
 
 export default function Documents() {
   const { documents, loading, uploading, upload: uploadDocument, createDownloadUrl, remove } = useDocuments();
@@ -70,29 +77,33 @@ export default function Documents() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="p-6 space-y-6">
+    <div dir="rtl" className="space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-gray-800">מסמכים</h1>
+        <h1 className="text-2xl font-bold text-slate-900">מסמכים</h1>
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
         >
-          {uploading ? 'מעלה...' : '+ העלה קובץ'}
+          <Upload className="w-4 h-4" />
+          {uploading ? 'מעלה…' : 'העלה קובץ'}
         </button>
         <input ref={fileRef} type="file" className="hidden" onChange={onUpload} />
       </div>
       <div className="flex gap-3 flex-wrap">
-        <input
+        <div className="relative flex-1 min-w-48">
+          <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+          <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="חיפוש קובץ..."
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-48"
-        />
+          placeholder="חיפוש קובץ…"
+          className="w-full border border-slate-200 rounded-lg pr-9 pl-3 py-2 text-sm"
+          />
+        </div>
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
         >
           <option value="all">כל הסוגים</option>
           <option value="pdf">PDF</option>
@@ -104,10 +115,10 @@ export default function Documents() {
       </div>
       {filtered.length === 0 ? (
         <EmptyState
-          icon="📁"
+          Icon={FileText}
           title="אין מסמכים עדיין"
           subtitle="העלה קבצים לשמירה ושיתוף עם הצוות"
-          action="+ העלה קובץ"
+          action="העלה קובץ"
           onAction={() => fileRef.current?.click()}
         />
       ) : (
@@ -115,24 +126,29 @@ export default function Documents() {
           {filtered.map((doc) => (
             <div
               key={doc.id}
-              className="bg-white border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow"
+              className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow"
             >
-              <div className="text-3xl mb-3">{FILE_ICONS[doc.fileType] || FILE_ICONS.other}</div>
-              <p className="text-sm font-medium text-gray-800 truncate mb-1">{doc.displayName}</p>
-              <p className="text-xs text-gray-400 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-3">
+                {(() => {
+                  const Icon = FILE_ICON_MAP[doc.fileType] || FILE_ICON_MAP.other;
+                  return <Icon className="w-5 h-5 text-slate-600" aria-hidden />;
+                })()}
+              </div>
+              <p className="text-sm font-medium text-slate-900 truncate mb-1">{doc.displayName}</p>
+              <p className="text-xs text-slate-500 mb-3">
                 {formatSize(doc.sizeBytes)} ·{' '}
                 {doc.created_at ? new Date(doc.created_at).toLocaleDateString('he-IL') : ''}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => download(doc)}
-                  className="flex-1 text-xs text-[#6C63FF] border border-[#6C63FF] py-1 rounded-lg hover:bg-purple-50"
+                  className="flex-1 text-xs text-indigo-700 border border-indigo-200 py-1.5 rounded-lg hover:bg-indigo-50"
                 >
                   הורד
                 </button>
                 <button
                   onClick={() => deleteDoc(doc)}
-                  className="text-xs text-red-400 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50"
+                  className="text-xs text-red-600 border border-red-200 px-2 py-1.5 rounded-lg hover:bg-red-50"
                 >
                   מחק
                 </button>

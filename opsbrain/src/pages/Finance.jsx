@@ -3,6 +3,12 @@ import { PageLoader } from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 import { toast } from 'sonner';
 import { useFinance } from '@/hooks/useFinance';
+import { DollarSign, Plus, TrendingUp, TrendingDown, Calculator } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const EMPTY_FORM = {
   type: 'income',
@@ -87,35 +93,64 @@ export default function Finance() {
 
   return (
     <div dir="rtl" className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-slate-900">פיננסים</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 shadow-sm"
-        >
-          + הוסף רשומה
-        </button>
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-indigo-700" aria-hidden />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900">פיננסים</h1>
+              <p className="text-sm text-slate-500 mt-1">תמונה פיננסית מרוכזת לפי מרחב עבודה</p>
+            </div>
+          </div>
+          <Button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-700">
+            <Plus className="w-4 h-4 ml-2" />
+            הוסף רשומה
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-green-50 border-r-4 border-green-500 rounded-xl p-4">
-          <div className="text-xs text-green-600 mb-1">סה״כ הכנסות</div>
-          <div className="text-xl font-bold text-green-700">₪{totalIncome.toLocaleString()}</div>
-        </div>
-        <div className="bg-red-50 border-r-4 border-red-500 rounded-xl p-4">
-          <div className="text-xs text-red-600 mb-1">סה״כ הוצאות</div>
-          <div className="text-xl font-bold text-red-700">₪{totalExpense.toLocaleString()}</div>
-        </div>
-        <div
-          className={`${totalIncome - totalExpense >= 0 ? 'bg-blue-50 border-blue-500' : 'bg-orange-50 border-orange-500'} border-r-4 rounded-xl p-4`}
-        >
-          <div className="text-xs text-gray-500 mb-1">רווח נקי</div>
-          <div
-            className={`text-xl font-bold ${totalIncome - totalExpense >= 0 ? 'text-blue-700' : 'text-orange-700'}`}
-          >
-            ₪{(totalIncome - totalExpense).toLocaleString()}
-          </div>
-        </div>
+        {[
+          {
+            label: 'סה״כ הכנסות',
+            value: `₪${totalIncome.toLocaleString()}`,
+            Icon: TrendingUp,
+            iconBg: 'bg-emerald-50',
+            iconText: 'text-emerald-700',
+          },
+          {
+            label: 'סה״כ הוצאות',
+            value: `₪${totalExpense.toLocaleString()}`,
+            Icon: TrendingDown,
+            iconBg: 'bg-red-50',
+            iconText: 'text-red-700',
+          },
+          {
+            label: 'רווח נקי',
+            value: `₪${(totalIncome - totalExpense).toLocaleString()}`,
+            Icon: Calculator,
+            iconBg: totalIncome - totalExpense >= 0 ? 'bg-sky-50' : 'bg-amber-50',
+            iconText: totalIncome - totalExpense >= 0 ? 'text-sky-700' : 'text-amber-700',
+          },
+        ].map((k) => (
+          <Card key={k.label} className="border-slate-200 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-slate-500">{k.label}</div>
+                  <div className="text-2xl font-bold text-slate-900 mt-2">{k.value}</div>
+                </div>
+                <div
+                  className={`w-10 h-10 rounded-xl ${k.iconBg} border border-slate-200/60 flex items-center justify-center`}
+                >
+                  <k.Icon className={`w-5 h-5 ${k.iconText}`} aria-hidden />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-4 overflow-x-auto shadow-sm">
@@ -165,9 +200,9 @@ export default function Finance() {
         </div>
         {filtered.length === 0 ? (
           <EmptyState
-            icon="💰"
+            Icon={DollarSign}
             title={`אין ${tab === 'income' ? 'הכנסות' : 'הוצאות'} עדיין`}
-            action="+ הוסף ראשון"
+            action="הוסף ראשון"
             onAction={() => {
               setForm((p) => ({ ...p, type: tab }));
               setShowModal(true);
@@ -218,66 +253,71 @@ export default function Finance() {
         )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div dir="rtl" className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-bold mb-4">רשומה חדשה</h2>
-            <div className="space-y-3">
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>רשומה חדשה</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>סוג</Label>
               <select
                 value={form.type}
                 onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="income">הכנסה</option>
                 <option value="expense">הוצאה</option>
               </select>
-              <input
+            </div>
+            <div className="space-y-2">
+              <Label>סכום</Label>
+              <Input
                 value={form.amount}
                 onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
                 placeholder="סכום *"
                 type="number"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>מטבע</Label>
               <select
                 value={form.currency}
                 onChange={(e) => setForm((p) => ({ ...p, currency: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
               >
                 <option value="ILS">₪ שקל</option>
                 <option value="USD">$ דולר</option>
                 <option value="EUR">€ אירו</option>
               </select>
-              <input
+            </div>
+            <div className="space-y-2">
+              <Label>תיאור</Label>
+              <Input
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                 placeholder="תיאור"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
               />
-              <input
+            </div>
+            <div className="space-y-2">
+              <Label>תאריך</Label>
+              <Input
                 type="date"
                 value={form.date}
                 onChange={(e) => setForm((p) => ({ ...p, date: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
               />
             </div>
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={save}
-                disabled={saving}
-                className="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-              >
-                {saving ? 'שומר...' : 'שמור'}
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 border border-gray-200 py-2 rounded-lg text-sm"
-              >
-                ביטול
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+          <div className="flex gap-2 mt-2 justify-end">
+            <Button variant="outline" onClick={() => setShowModal(false)}>
+              ביטול
+            </Button>
+            <Button disabled={saving} onClick={save} className="bg-indigo-600 hover:bg-indigo-700">
+              {saving ? 'שומר…' : 'שמור'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

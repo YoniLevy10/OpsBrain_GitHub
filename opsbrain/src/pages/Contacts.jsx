@@ -3,6 +3,7 @@ import { PageLoader } from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 import { toast } from 'sonner';
 import { useContacts } from '@/hooks/useContacts';
+import { Users, Plus } from 'lucide-react';
 
 const TYPE_LABELS = { client: 'לקוח', supplier: 'ספק', partner: 'שותף' };
 const TYPE_COLORS = {
@@ -85,14 +86,15 @@ export default function Contacts() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">לקוחות וספקים</h1>
+    <div dir="rtl" className="space-y-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h1 className="text-2xl font-bold text-slate-900">לקוחות וספקים</h1>
         <button
           onClick={openAdd}
-          className="bg-[#6C63FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700"
+          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 shadow-sm"
         >
-          + איש קשר
+          <Plus className="w-4 h-4" />
+          איש קשר
         </button>
       </div>
       <div className="flex gap-3 mb-4 flex-wrap">
@@ -100,12 +102,12 @@ export default function Contacts() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="חיפוש..."
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-48"
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-48"
         />
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
         >
           <option value="all">כולם</option>
           <option value="client">לקוחות</option>
@@ -115,19 +117,19 @@ export default function Contacts() {
       </div>
       {filtered.length === 0 ? (
         <EmptyState
-          icon="👥"
+          Icon={Users}
           title="אין אנשי קשר עדיין"
           subtitle="הוסף לקוחות וספקים לניהול קשרי עסקים"
-          action="+ הוסף ראשון"
+          action="הוסף ראשון"
           onAction={openAdd}
         />
       ) : (
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden overflow-x-auto">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto shadow-sm">
           <table className="w-full text-sm min-w-[640px]">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 {['שם', 'חברה', 'טלפון', 'אימייל', 'סוג', 'פעולות'].map((h) => (
-                  <th key={h} className="text-right px-4 py-3 font-medium text-gray-500">
+                  <th key={h} className="text-right px-4 py-3 font-medium text-slate-500">
                     {h}
                   </th>
                 ))}
@@ -135,11 +137,11 @@ export default function Contacts() {
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-800">{c.name}</td>
-                  <td className="px-4 py-3 text-gray-600">{c.company || '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{c.phone || '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{c.email || '—'}</td>
+                <tr key={c.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <td className="px-4 py-3 font-medium text-slate-900">{c.name}</td>
+                  <td className="px-4 py-3 text-slate-600">{c.company || '—'}</td>
+                  <td className="px-4 py-3 text-slate-600">{c.phone || '—'}</td>
+                  <td className="px-4 py-3 text-slate-600">{c.email || '—'}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`text-xs px-2 py-1 rounded-full font-medium ${TYPE_COLORS[c.type] || 'bg-gray-100'}`}
@@ -149,10 +151,10 @@ export default function Contacts() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      <button onClick={() => openEdit(c)} className="text-blue-500 text-xs hover:underline">
+                      <button onClick={() => openEdit(c)} className="text-indigo-700 text-xs hover:underline">
                         ערוך
                       </button>
-                      <button onClick={() => deleteContact(c.id)} className="text-red-400 text-xs hover:underline">
+                      <button onClick={() => deleteContact(c.id)} className="text-red-600 text-xs hover:underline">
                         מחק
                       </button>
                     </div>
