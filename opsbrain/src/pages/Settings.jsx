@@ -3,6 +3,8 @@ import { useAuth } from '../lib/AuthContext';
 import { supabase } from '../lib/supabase';
 import { PageLoader } from '../components/Spinner';
 import { toast } from 'sonner';
+import PageHeader from '@/components/layout/PageHeader';
+import { Settings as SettingsIcon } from 'lucide-react';
 
 export default function Settings() {
   const { user, workspaceId, workspaceName, loadWorkspace } = useAuth();
@@ -89,8 +91,8 @@ export default function Settings() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">הגדרות</h1>
+    <div dir="rtl" className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+      <PageHeader title="הגדרות" subtitle="פרופיל, עסק וצוות" Icon={SettingsIcon} />
       <div className="flex gap-0 border-b border-slate-200 mb-6 overflow-x-auto">
         {TABS.map(([key, label]) => (
           <button
@@ -106,27 +108,27 @@ export default function Settings() {
       {tab === 'profile' && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">שם מלא</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">שם מלא</label>
             <input
               value={profile.full_name}
               onChange={(e) => setProfile((p) => ({ ...p, full_name: e.target.value }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">אימייל</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">אימייל</label>
             <input
               value={user?.email || ''}
               disabled
-              className="w-full border border-gray-100 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-400"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">טלפון</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">טלפון</label>
             <input
               value={profile.phone}
               onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
             />
           </div>
           <button
@@ -142,14 +144,14 @@ export default function Settings() {
       {tab === 'business' && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">שם העסק</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">שם העסק</label>
             <input
               value={workspace.name}
               onChange={(e) => setWorkspace((p) => ({ ...p, name: e.target.value }))}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
             />
           </div>
-          <p className="text-xs text-gray-400">שם מוצג בדשבורד: {workspaceName || '—'}</p>
+          <p className="text-xs text-slate-500">שם מוצג בדשבורד: {workspaceName || '—'}</p>
           <button
             onClick={saveWorkspace}
             disabled={saving}
@@ -163,17 +165,17 @@ export default function Settings() {
       {tab === 'team' && (
         <div className="space-y-6">
           <div>
-            <h3 className="font-medium text-gray-700 mb-3">חברי הצוות ({members.length})</h3>
+            <h3 className="font-medium text-slate-700 mb-3">חברי הצוות ({members.length})</h3>
             <div className="space-y-2">
               {members.map((m, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
                   <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 text-sm font-bold">
                     {m.profiles?.full_name?.charAt(0) || '?'}
                   </div>
                   <div className="flex-1">
                     <div className="text-sm font-medium">{m.profiles?.full_name || 'משתמש'}</div>
                   </div>
-                  <span className="text-xs px-2 py-1 bg-white rounded-full border border-gray-200 text-gray-500">
+                  <span className="text-xs px-2 py-1 bg-white rounded-full border border-slate-200 text-slate-600">
                     {m.role}
                   </span>
                 </div>
@@ -181,14 +183,14 @@ export default function Settings() {
             </div>
           </div>
           <div>
-            <h3 className="font-medium text-gray-700 mb-3">הזמן חבר צוות</h3>
+            <h3 className="font-medium text-slate-700 mb-3">הזמן חבר צוות</h3>
             <div className="flex gap-2 flex-wrap">
               <input
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="אימייל"
                 type="email"
-                className="flex-1 min-w-[200px] border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                className="flex-1 min-w-[200px] border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
               />
               <button
                 onClick={inviteMember}

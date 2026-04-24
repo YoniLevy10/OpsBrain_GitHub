@@ -2,6 +2,14 @@ import { useMemo, useState } from 'react';
 import { PageLoader } from '../components/Spinner';
 import { toast } from 'sonner';
 import { useTasks } from '@/hooks/useTasks';
+import PageHeader from '@/components/layout/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CheckSquare, Plus } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -158,35 +166,38 @@ export default function Tasks() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="max-w-[1600px] mx-auto">
-      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-slate-900">משימות</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 shadow-sm"
-        >
-          + משימה חדשה
-        </button>
-      </div>
+    <div dir="rtl" className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6">
+      <PageHeader
+        title="משימות"
+        subtitle="גרור בין עמודות כדי לעדכן סטטוס"
+        Icon={CheckSquare}
+        actions={
+          <Button onClick={() => setShowModal(true)} className="bg-indigo-600 hover:bg-indigo-700">
+            <Plus className="w-4 h-4 ml-2" />
+            משימה חדשה
+          </Button>
+        }
+      />
 
       <div className="flex gap-3 mb-6 flex-wrap">
-        <input
+        <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="חיפוש משימה..."
-          className="border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm flex-1 min-w-48 text-slate-900 placeholder:text-slate-400 shadow-sm"
+          className="flex-1 min-w-48 bg-white"
         />
-        <select
-          value={filterPriority}
-          onChange={(e) => setFilterPriority(e.target.value)}
-          className="border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900 shadow-sm"
-        >
-          <option value="all">כל העדיפויות</option>
-          <option value="urgent">דחוף</option>
-          <option value="high">גבוה</option>
-          <option value="medium">בינוני</option>
-          <option value="low">נמוך</option>
-        </select>
+        <Select value={filterPriority} onValueChange={setFilterPriority}>
+          <SelectTrigger className="w-[200px] bg-white">
+            <SelectValue placeholder="כל העדיפויות" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">כל העדיפויות</SelectItem>
+            <SelectItem value="urgent">דחוף</SelectItem>
+            <SelectItem value="high">גבוה</SelectItem>
+            <SelectItem value="medium">בינוני</SelectItem>
+            <SelectItem value="low">נמוך</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <DndContext
@@ -261,56 +272,64 @@ export default function Tasks() {
         </DragOverlay>
       </DndContext>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div dir="rtl" className="bg-white border border-slate-200 rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-bold mb-4 text-slate-900">משימה חדשה</h2>
-            <div className="space-y-3">
-              <input
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent dir="rtl" className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>משימה חדשה</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label>כותרת</Label>
+              <Input
                 value={form.title}
                 onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                placeholder="כותרת המשימה *"
-                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900"
+                placeholder="כותרת המשימה"
               />
-              <textarea
+            </div>
+            <div className="grid gap-2">
+              <Label>תיאור</Label>
+              <Textarea
                 value={form.description}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                 placeholder="תיאור (אופציונלי)"
                 rows={3}
-                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm resize-none text-slate-900"
-              />
-              <select
-                value={form.priority}
-                onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))}
-                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900"
-              >
-                <option value="low">עדיפות נמוכה</option>
-                <option value="medium">עדיפות בינונית</option>
-                <option value="high">עדיפות גבוהה</option>
-                <option value="urgent">דחוף!</option>
-              </select>
-              <input
-                type="date"
-                value={form.due_date}
-                onChange={(e) => setForm((p) => ({ ...p, due_date: e.target.value }))}
-                className="w-full border border-slate-200 bg-white rounded-xl px-3 py-2 text-sm text-slate-900"
               />
             </div>
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={onAddTask}
-                disabled={saving}
-                className="flex-1 bg-indigo-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-              >
-                {saving ? 'שומר...' : 'הוסף משימה'}
-              </button>
-              <button onClick={() => setShowModal(false)} className="flex-1 border border-slate-200 py-2 rounded-xl text-sm text-slate-600 hover:bg-slate-50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>עדיפות</Label>
+                <Select value={form.priority} onValueChange={(v) => setForm((p) => ({ ...p, priority: v }))}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">נמוך</SelectItem>
+                    <SelectItem value="medium">בינוני</SelectItem>
+                    <SelectItem value="high">גבוה</SelectItem>
+                    <SelectItem value="urgent">דחוף</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label>תאריך יעד</Label>
+                <Input
+                  type="date"
+                  value={form.due_date}
+                  onChange={(e) => setForm((p) => ({ ...p, due_date: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setShowModal(false)}>
                 ביטול
-              </button>
+              </Button>
+              <Button onClick={onAddTask} disabled={saving || !form.title.trim()}>
+                {saving ? 'שומר...' : 'הוסף משימה'}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

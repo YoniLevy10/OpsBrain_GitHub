@@ -4,6 +4,13 @@ import EmptyState from '../components/EmptyState';
 import { toast } from 'sonner';
 import { useContacts } from '@/hooks/useContacts';
 import { Users, Plus } from 'lucide-react';
+import PageHeader from '@/components/layout/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const TYPE_LABELS = { client: 'לקוח', supplier: 'ספק', partner: 'שותף' };
 const TYPE_COLORS = {
@@ -86,34 +93,36 @@ export default function Contacts() {
   if (loading) return <PageLoader />;
 
   return (
-    <div dir="rtl" className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-slate-900">לקוחות וספקים</h1>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          איש קשר
-        </button>
-      </div>
+    <div dir="rtl" className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+      <PageHeader
+        title="לקוחות וספקים"
+        subtitle="ניהול אנשי קשר לפי סוג"
+        Icon={Users}
+        actions={
+          <Button onClick={openAdd} className="bg-indigo-600 hover:bg-indigo-700">
+            <Plus className="w-4 h-4 ml-2" />
+            איש קשר
+          </Button>
+        }
+      />
       <div className="flex gap-3 mb-4 flex-wrap">
-        <input
+        <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="חיפוש..."
-          className="border border-slate-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-48"
+          className="flex-1 min-w-48 bg-white"
         />
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white"
-        >
-          <option value="all">כולם</option>
-          <option value="client">לקוחות</option>
-          <option value="supplier">ספקים</option>
-          <option value="partner">שותפים</option>
-        </select>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-[180px] bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">כולם</SelectItem>
+            <SelectItem value="client">לקוחות</SelectItem>
+            <SelectItem value="supplier">ספקים</SelectItem>
+            <SelectItem value="partner">שותפים</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       {filtered.length === 0 ? (
         <EmptyState
@@ -165,71 +174,59 @@ export default function Contacts() {
           </table>
         </div>
       )}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div dir="rtl" className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-bold mb-4">{editItem ? 'עריכת איש קשר' : 'איש קשר חדש'}</h2>
-            <div className="space-y-3">
-              <input
-                value={form.name}
-                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                placeholder="שם מלא *"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              />
-              <input
-                value={form.company}
-                onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))}
-                placeholder="חברה"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              />
-              <input
-                value={form.email}
-                onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                placeholder="אימייל"
-                type="email"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              />
-              <input
-                value={form.phone}
-                onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                placeholder="טלפון"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              />
-              <select
-                value={form.type}
-                onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="client">לקוח</option>
-                <option value="supplier">ספק</option>
-                <option value="partner">שותף</option>
-              </select>
-              <textarea
-                value={form.notes}
-                onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-                placeholder="הערות"
-                rows={2}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none"
-              />
+
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent dir="rtl" className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editItem ? 'עריכת איש קשר' : 'איש קשר חדש'}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div className="grid gap-2">
+              <Label>שם</Label>
+              <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
             </div>
-            <div className="flex gap-2 mt-4">
-              <button
-                onClick={save}
-                disabled={saving}
-                className="flex-1 bg-[#6C63FF] text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
-              >
-                {saving ? 'שומר...' : 'שמור'}
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 border border-gray-200 py-2 rounded-lg text-sm"
-              >
+            <div className="grid gap-2">
+              <Label>חברה</Label>
+              <Input value={form.company} onChange={(e) => setForm((p) => ({ ...p, company: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label>אימייל</Label>
+                <Input value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+              </div>
+              <div className="grid gap-2">
+                <Label>טלפון</Label>
+                <Input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>סוג</Label>
+              <Select value={form.type} onValueChange={(v) => setForm((p) => ({ ...p, type: v }))}>
+                <SelectTrigger className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">לקוח</SelectItem>
+                  <SelectItem value="supplier">ספק</SelectItem>
+                  <SelectItem value="partner">שותף</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label>הערות</Label>
+              <Textarea value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setShowModal(false)}>
                 ביטול
-              </button>
+              </Button>
+              <Button onClick={save} disabled={saving}>
+                {saving ? 'שומר...' : 'שמור'}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
