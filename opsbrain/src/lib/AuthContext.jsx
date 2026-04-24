@@ -64,12 +64,19 @@ export function AuthProvider({ children }) {
     setWorkspaces(wsList);
 
     // read persisted active workspace from user_workspace_states (if exists)
-    const { data: stateRow, error: sErr } = await supabase
-      .from('user_workspace_states')
-      .select('id, active_workspace_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (sErr) console.warn('[AuthContext] user_workspace_states', sErr);
+    let stateRow = null;
+    try {
+      const { data, error: sErr } = await supabase
+        .from('user_workspace_states')
+        .select('id, active_workspace_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (sErr) console.warn('[AuthContext] user_workspace_states', sErr);
+      stateRow = data ?? null;
+    } catch (e) {
+      console.warn('[AuthContext] user_workspace_states (exception)', e);
+      stateRow = null;
+    }
 
     const requestedActive = stateRow?.active_workspace_id;
     const resolvedActive =
@@ -80,19 +87,23 @@ export function AuthProvider({ children }) {
 
     // ensure state exists and is valid
     if (resolvedActive) {
-      if (stateRow?.id) {
-        if (stateRow.active_workspace_id !== resolvedActive) {
-          await supabase
-            .from('user_workspace_states')
-            .update({ active_workspace_id: resolvedActive, updated_at: new Date().toISOString() })
-            .eq('id', stateRow.id);
+      try {
+        if (stateRow?.id) {
+          if (stateRow.active_workspace_id !== resolvedActive) {
+            await supabase
+              .from('user_workspace_states')
+              .update({ active_workspace_id: resolvedActive, updated_at: new Date().toISOString() })
+              .eq('id', stateRow.id);
+          }
+        } else {
+          await supabase.from('user_workspace_states').insert({
+            user_id: userId,
+            active_workspace_id: resolvedActive,
+            created_at: new Date().toISOString(),
+          });
         }
-      } else {
-        await supabase.from('user_workspace_states').insert({
-          user_id: userId,
-          active_workspace_id: resolvedActive,
-          created_at: new Date().toISOString(),
-        });
+      } catch (e) {
+        console.warn('[AuthContext] user_workspace_states write failed', e);
       }
     }
   }, []);
@@ -147,23 +158,27 @@ export function AuthProvider({ children }) {
 
       setWorkspaceId(ws.id);
       setWorkspaceName(ws.name ?? null);
-      const { data: stateRow } = await supabase
-        .from('user_workspace_states')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (stateRow?.id) {
-        await supabase
+      try {
+        const { data: stateRow } = await supabase
           .from('user_workspace_states')
-          .update({ active_workspace_id: ws.id, updated_at: new Date().toISOString() })
-          .eq('id', stateRow.id);
-      } else {
-        await supabase.from('user_workspace_states').insert({
-          user_id: user.id,
-          active_workspace_id: ws.id,
-          created_at: new Date().toISOString(),
-        });
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (stateRow?.id) {
+          await supabase
+            .from('user_workspace_states')
+            .update({ active_workspace_id: ws.id, updated_at: new Date().toISOString() })
+            .eq('id', stateRow.id);
+        } else {
+          await supabase.from('user_workspace_states').insert({
+            user_id: user.id,
+            active_workspace_id: ws.id,
+            created_at: new Date().toISOString(),
+          });
+        }
+      } catch (e) {
+        console.warn('[AuthContext] switchWorkspace persist failed', e);
       }
     },
     [user?.id, workspaceId, workspaces]

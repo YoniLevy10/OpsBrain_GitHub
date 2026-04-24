@@ -4,14 +4,17 @@ import App from '@/App.jsx'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import VercelWebAnalytics from '@/components/VercelWebAnalytics'
 import { ThemeProvider } from 'next-themes'
+import { LanguageProvider } from '@/components/LanguageContext'
 import '@/index.css'
 import '@/styles/responsive.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-      <App />
-      <VercelWebAnalytics />
+      <LanguageProvider>
+        <App />
+        <VercelWebAnalytics />
+      </LanguageProvider>
     </ThemeProvider>
   </ErrorBoundary>
 )
