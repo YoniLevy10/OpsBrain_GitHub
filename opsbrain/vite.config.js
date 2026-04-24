@@ -21,7 +21,6 @@ export default defineConfig({
           if (id.includes('@tanstack/react-query') || id.includes('@tanstack/query-core')) return 'react-query';
           if (id.includes('@radix-ui/')) return 'radix';
           if (id.includes('lucide-react')) return 'icons';
-          if (id.includes('recharts')) return 'charts';
           if (id.includes('@emoji-mart')) return 'emoji';
           if (id.includes('@dnd-kit')) return 'dnd';
           if (id.includes('framer-motion')) return 'motion';
