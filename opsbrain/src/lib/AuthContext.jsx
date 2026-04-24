@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [authInitNonce, setAuthInitNonce] = useState(0);
+  const [authAutoRetryCount, setAuthAutoRetryCount] = useState(0);
   const [workspaces, setWorkspaces] = useState([]);
   const [workspaceId, setWorkspaceId] = useState(null); // active workspace id
   const [workspaceName, setWorkspaceName] = useState(null); // active workspace name
@@ -310,6 +311,7 @@ export function AuthProvider({ children }) {
         if (!mounted) return;
         try {
           await withTimeout(applySession(session), 10000, 'applySession');
+          if (mounted) setAuthAutoRetryCount(0);
         } catch (e) {
           console.error('[AuthContext] getSession handler', e);
           failAuth(e);
@@ -330,6 +332,7 @@ export function AuthProvider({ children }) {
         if (!mounted) return;
         try {
           await withTimeout(applySession(session), 10000, 'applySession');
+          if (mounted) setAuthAutoRetryCount(0);
         } catch (e) {
           console.error('[AuthContext] onAuthStateChange handler', e);
           failAuth(e);
@@ -352,6 +355,21 @@ export function AuthProvider({ children }) {
       subscription.unsubscribe();
     };
   }, [ensurePersonalWorkspace, loadWorkspaces, authInitNonce]);
+
+  useEffect(() => {
+    if (!authError) return;
+    const msg = String(authError?.message || '');
+    const isTimeout = msg.includes('timed out') || msg.includes('timedout') || msg.includes('timeout');
+    if (!isTimeout) return;
+    if (authAutoRetryCount >= 2) return;
+    const id = setTimeout(() => {
+      setAuthAutoRetryCount((c) => c + 1);
+      setAuthError(null);
+      setLoading(true);
+      setAuthInitNonce((n) => n + 1);
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [authAutoRetryCount, authError]);
 
   const signIn = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -404,6 +422,7 @@ export function AuthProvider({ children }) {
   const retryAuth = useCallback(() => {
     setAuthError(null);
     setLoading(true);
+    setAuthAutoRetryCount(0);
     setAuthInitNonce((n) => n + 1);
   }, []);
 
