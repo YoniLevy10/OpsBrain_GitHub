@@ -300,16 +300,16 @@ export function AuthProvider({ children }) {
     // Hard timeout so the app never spins forever on auth init.
     timeoutId = setTimeout(() => {
       if (!mounted) return;
-      failAuth(new Error('Auth initialization timed out (5s). Check Supabase env/migrations/RLS.'));
+      failAuth(new Error('Auth initialization timed out. Check Supabase env/migrations/RLS.'));
       finishLoading();
-    }, 5000);
+    }, 12000);
 
     supabase.auth
       .getSession()
       .then(async ({ data: { session } }) => {
         if (!mounted) return;
         try {
-          await withTimeout(applySession(session), 4500, 'applySession');
+          await withTimeout(applySession(session), 10000, 'applySession');
         } catch (e) {
           console.error('[AuthContext] getSession handler', e);
           failAuth(e);
@@ -329,7 +329,7 @@ export function AuthProvider({ children }) {
       const { data } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!mounted) return;
         try {
-          await withTimeout(applySession(session), 4500, 'applySession');
+          await withTimeout(applySession(session), 10000, 'applySession');
         } catch (e) {
           console.error('[AuthContext] onAuthStateChange handler', e);
           failAuth(e);
