@@ -40,6 +40,7 @@ const Team = lazy(() => import('./pages/Team'));
 const TeamPermissions = lazy(() => import('./pages/TeamPermissions'));
 const GoogleIntegrationCallback = lazy(() => import('./pages/GoogleIntegrationCallback'));
 const Onboarding = lazy(() => import('./pages/Onboarding'));
+const OnboardingWizard = lazy(() => import('./pages/OnboardingWizard'));
 
 /** מניעת לולאת ניווט אם splat `*` תופס בטעות את `/Login` או `/Register` (מסך שחור בפרוד). */
 function UnknownRouteRedirect() {
@@ -124,6 +125,17 @@ function App() {
                 }
               />
               <Route path="/onboarding" element={<Navigate to="/Onboarding" replace />} />
+              <Route
+                path="/OnboardingWizard"
+                element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<PageLoader />}>
+                      <OnboardingWizard />
+                    </Suspense>
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/onboarding-wizard" element={<Navigate to="/OnboardingWizard" replace />} />
               <Route
                 path="/auth/integrations/google/callback"
                 element={

@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (Onboarding Wizard MVP):** נוסף `OnboardingWizard.jsx` (5 צעדים) ששומר הגדרת Workspace ל־`localStorage` במפתח `opsbrain_workspace_config`, כולל “Module Bank” בסיסי (Active vs Bank) ו־workspace name. נוסף route מוגן `/OnboardingWizard`.
+- **תאריך:** 2026-04-24  
 - **תקציר (Performance — lazy routes + UI pruning):** `pages.config.js` עבר ל־`React.lazy()` כדי להימנע מטעינת כל הדפים upfront; איחוד Toast ל־`sonner` בלבד (הוסרו `toast/use-toast/toaster` הישנים); נוספה טעינת דפים עם `Suspense` פר־Route ו־`PageLoader` (Skeleton) כדי שהמעבר בין דפים “ירגיש” מהיר; הוסרו רכיבי `src/components/ui/*` שלא בשימוש כדי לצמצם קוד בלקוח.
 - **תאריך:** 2026-04-24  
 - **תקציר (Performance):** שופרה טעינת Dashboard: `@vercel/analytics` נטען רק בפרודקשן וב־idle (עם אפשרות כיבוי דרך `VITE_DISABLE_VERCEL_ANALYTICS=1`) כדי לא לחסום LCP; עבודת `detectPatterns` בדשבורד נדחתה ל־idle; טעינת Google Fonts הוחלפה ל־`preload`+`onload` כדי להפחית render-blocking.
@@ -172,6 +174,11 @@ OPSBRAIN/
 - `opsbrain/src/App.jsx`: `Suspense` פר־Route עם `PageLoader` (Skeleton) במקום spinner כללי, כדי להרגיש מהר במעברים בין מסכים.
 - `opsbrain/src/components/ui/*`: הוסרו רכיבי UI שלא בשימוש (Radix/shadcn) כדי לצמצם קוד ותלויות בלקוח.
 - Toast: אוחד ל־`sonner` בלבד; הוסרו קבצי `toast/use-toast/toaster` הישנים.
+
+### 2026-04-24 (Onboarding Wizard MVP)
+
+- `opsbrain/src/pages/OnboardingWizard.jsx`: אשף “first-run” בן 5 צעדים (Business type, Team size, Core needs multi-select, Module activation, Workspace name) ושמירה ל־`localStorage` במפתח `opsbrain_workspace_config`.
+- `opsbrain/src/App.jsx`: route מוגן `/OnboardingWizard` + redirect מ־`/onboarding-wizard`.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 
