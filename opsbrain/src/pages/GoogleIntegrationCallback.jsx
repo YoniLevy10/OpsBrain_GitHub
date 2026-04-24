@@ -36,7 +36,7 @@ export default function GoogleIntegrationCallback() {
       const resolvedWorkspaceId = state?.workspace_id || workspaceId;
       const product = state?.product;
       try {
-        await opsbrain.functions.invoke('googleOAuthExchange', {
+        await opsbrain.functions.invoke('google-oauth-exchange', {
           workspace_id: resolvedWorkspaceId,
           product,
           code,

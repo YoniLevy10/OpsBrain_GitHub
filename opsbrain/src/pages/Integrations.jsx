@@ -59,16 +59,16 @@ export default function Integrations() {
     if (!activeWorkspace?.id) return;
     try {
       // Ask Supabase Edge Function for an OAuth URL.
-      const res = await opsbrain.functions.invoke('googleOAuthStart', {
+      const res = await opsbrain.functions.invoke('google-oauth-start', {
         workspace_id: activeWorkspace.id,
         product,
         redirect_uri: `${window.location.origin}/auth/integrations/google/callback`,
       });
       const url = res?.data?.url || res?.data?.authUrl;
-      if (!url) throw new Error('Missing OAuth URL (googleOAuthStart)');
+      if (!url) throw new Error('Missing OAuth URL (google-oauth-start)');
       window.location.href = url;
     } catch (e) {
-      console.error('[Integrations] googleOAuthStart', e);
+      console.error('[Integrations] google-oauth-start', e);
       toast.error(language === 'he' ? 'שגיאה בהתחלת חיבור ל-Google' : 'Failed to start Google connect');
     }
   };
