@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { PageLoader } from '../components/Spinner';
 import { detectPatterns } from '../lib/aiPatterns';
 import { startOfDay } from 'date-fns';
+import { CheckSquare, Users, FileText, DollarSign, Brain } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -167,8 +168,11 @@ export default function Dashboard() {
               {new Date().toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
           </div>
-          <div className="text-4xl sm:text-5xl opacity-80 select-none" aria-hidden>
-            🧠
+          <div
+            className="w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-200 flex items-center justify-center"
+            aria-hidden
+          >
+            <Brain className="w-6 h-6 text-indigo-700" />
           </div>
         </div>
 
@@ -233,16 +237,18 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[
-          { label: 'משימות פתוחות', value: stats.tasks, icon: '✅', ring: 'ring-indigo-100' },
-          { label: 'לקוחות', value: stats.contacts, icon: '👥', ring: 'ring-emerald-100' },
-          { label: 'מסמכים', value: stats.docs, icon: '📄', ring: 'ring-sky-100' },
-          { label: 'הכנסות (מצטבר)', value: `₪${stats.income.toLocaleString()}`, icon: '💰', ring: 'ring-amber-100' },
+          { label: 'משימות פתוחות', value: stats.tasks, Icon: CheckSquare, ring: 'ring-indigo-100', iconBg: 'bg-indigo-50', iconText: 'text-indigo-700' },
+          { label: 'לקוחות', value: stats.contacts, Icon: Users, ring: 'ring-emerald-100', iconBg: 'bg-emerald-50', iconText: 'text-emerald-700' },
+          { label: 'מסמכים', value: stats.docs, Icon: FileText, ring: 'ring-sky-100', iconBg: 'bg-sky-50', iconText: 'text-sky-700' },
+          { label: 'הכנסות (מצטבר)', value: `₪${stats.income.toLocaleString()}`, Icon: DollarSign, ring: 'ring-amber-100', iconBg: 'bg-amber-50', iconText: 'text-amber-700' },
         ].map((kpi, i) => (
           <div
             key={i}
             className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm ring-2 ${kpi.ring} ring-inset`}
           >
-            <div className="text-2xl mb-1">{kpi.icon}</div>
+            <div className={`w-10 h-10 rounded-xl ${kpi.iconBg} flex items-center justify-center mb-2 border border-slate-200/60`}>
+              <kpi.Icon className={`w-5 h-5 ${kpi.iconText}`} />
+            </div>
             <div className="text-xl sm:text-2xl font-bold text-slate-900">{kpi.value}</div>
             <div className="text-xs sm:text-sm text-slate-500 mt-1">{kpi.label}</div>
           </div>
