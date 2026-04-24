@@ -122,30 +122,81 @@ export default function Integrations() {
 
   const syncIntegrationMutation = useMutation({
     mutationFn: async (integration) => {
-      // סימולציה של סנכרון
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // יצירת לוג סנכרון
+      const provider = String(integration?.provider || '').toLowerCase();
+      const type = String(integration?.type || '').toLowerCase();
+
+      const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
+
+      // MVP: real sync only for Google Gmail/Calendar (via Edge Functions)
+      if (provider === 'google' && (type.includes('gmail') || type.includes('mail'))) {
+        const data = await opsbrain.functions.invoke('syncGmail', {
+          workspace_id: activeWorkspace.id,
+          max_results: 5,
+        });
+        const recordsSynced = Array.isArray(data?.emails) ? data.emails.length : 0;
+        const durationMs = Math.round(
+          (typeof performance !== 'undefined' ? performance.now() : Date.now()) - start
+        );
+        await opsbrain.entities.SyncLog.create({
+          workspace_id: activeWorkspace.id,
+          integration_id: integration.id,
+          integration_name: integration.name,
+          status: 'success',
+          records_synced: recordsSynced,
+          records_failed: 0,
+          duration_ms: durationMs,
+        });
+        return opsbrain.entities.Integration.update(integration.id, { last_sync: new Date().toISOString() });
+      }
+
+      if (provider === 'google' && type.includes('calendar')) {
+        const data = await opsbrain.functions.invoke('syncCalendar', {
+          workspace_id: activeWorkspace.id,
+          max_results: 10,
+        });
+        const recordsSynced = Array.isArray(data?.events) ? data.events.length : 0;
+        const durationMs = Math.round(
+          (typeof performance !== 'undefined' ? performance.now() : Date.now()) - start
+        );
+        await opsbrain.entities.SyncLog.create({
+          workspace_id: activeWorkspace.id,
+          integration_id: integration.id,
+          integration_name: integration.name,
+          status: 'success',
+          records_synced: recordsSynced,
+          records_failed: 0,
+          duration_ms: durationMs,
+        });
+        return opsbrain.entities.Integration.update(integration.id, { last_sync: new Date().toISOString() });
+      }
+
       await opsbrain.entities.SyncLog.create({
         workspace_id: activeWorkspace.id,
         integration_id: integration.id,
         integration_name: integration.name,
-        status: 'success',
-        records_synced: Math.floor(Math.random() * 100) + 10,
+        status: 'pending',
+        records_synced: 0,
         records_failed: 0,
-        duration_ms: 1500
+        duration_ms: 0,
       });
 
-      // עדכון זמן סנכרון אחרון
-      return opsbrain.entities.Integration.update(integration.id, {
-        last_sync: new Date().toISOString()
-      });
+      throw new Error('sync_not_supported');
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['integrations']);
       queryClient.invalidateQueries(['sync-logs']);
       toast.success(language === 'he' ? 'סנכרון הושלם' : 'Sync completed');
     }
+    ,
+    onError: (e) => {
+      if (String(e?.message || e) === 'sync_not_supported') {
+        toast.message(language === 'he' ? 'סנכרון לא זמין עדיין לאינטגרציה הזו' : 'Sync not available for this integration yet');
+        queryClient.invalidateQueries(['sync-logs']);
+        return;
+      }
+      console.error('[Integrations] sync failed', e);
+      toast.error(language === 'he' ? 'שגיאה בסנכרון' : 'Sync failed');
+    },
   });
 
   const deleteIntegrationMutation = useMutation({
