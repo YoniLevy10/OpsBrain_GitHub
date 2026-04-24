@@ -25,6 +25,8 @@
 ## עדכון אחרון
 
 - **תאריך:** 2026-04-24  
+- **תקציר (Module Bank + Nav דינמי):** נוסף `src/lib/moduleRegistry.js` שמגדיר את כל המודולים (id/name/icon/route/category) + קריאה/כתיבה של `opsbrain_workspace_config`. `Layout.jsx` משתמש בהגדרה כדי לבנות ניווט דינמי לפי המודולים הפעילים. `Settings.jsx` קיבל טאב “Module Bank” עם הפעלה/כיבוי + גרירה לשינוי סדר, ושמירה מיידית ל־localStorage.
+- **תאריך:** 2026-04-24  
 - **תקציר (OpsAgent MVP):** נוסף `OpsAgent` ככפתור צף בכל האפליקציה (ב־`Layout.jsx`) עם פאנל צ׳אט. נוצר conversation דרך `opsbrain.agents.*` (טבלאות `agent_conversations/agent_messages`) ומופעלת פונקציית Edge אופציונלית `agent-reply` אם קיימת. נוספה התראה פרואקטיבית בסיסית: badge עם מספר משימות overdue.
 - **תאריך:** 2026-04-24  
 - **תקציר (Onboarding Wizard MVP):** נוסף `OnboardingWizard.jsx` (5 צעדים) ששומר הגדרת Workspace ל־`localStorage` במפתח `opsbrain_workspace_config`, כולל “Module Bank” בסיסי (Active vs Bank) ו־workspace name. נוסף route מוגן `/OnboardingWizard`.
@@ -186,6 +188,12 @@ OPSBRAIN/
 
 - `opsbrain/src/components/ai/OpsAgent.jsx`: כפתור צף + פאנל צ׳אט; יוצר conversation דרך `opsbrain.agents` ומאזין ל־Realtime על `agent_messages`. כולל פקודת fast-path ל־`Add a task: ...` ליצירת משימה גם בלי backend AI.
 - `opsbrain/src/Layout.jsx`: טעינה עצלה (`React.lazy`) של `OpsAgent` והטמעה גלובלית בכל מסכי `/app/*`.
+
+### 2026-04-24 (Module Bank + Nav דינמי)
+
+- `opsbrain/src/lib/moduleRegistry.js`: רישום מודולים + helper לקריאה/כתיבה של `opsbrain_workspace_config` (כולל נרמול IDs מה־wizard).
+- `opsbrain/src/Layout.jsx`: ניווט דינמי על בסיס `opsbrain_workspace_config` + עדכון live באמצעות event.
+- `opsbrain/src/pages/Settings.jsx`: טאב “Module Bank” עם Switch לכל מודול + Drag & Drop לסידור סדר הניווט.
 
 ### 2026-04-22 (תיקון vercel.json — בלי `handle` ב-rewrites)
 

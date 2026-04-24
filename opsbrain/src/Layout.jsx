@@ -3,31 +3,22 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import {
-  LayoutDashboard,
-  MessageSquare,
   Settings,
   Menu,
   X,
   Brain,
   Users,
-  FileText,
-  TrendingUp,
-  FolderKanban,
-  RefreshCw,
   DollarSign,
   Search,
   ChevronLeft,
-  CheckSquare,
-  Bot,
   Building2,
-  Calendar,
-  BookUser,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from './components/GlobalSearch';
 import NotificationCenter from './components/NotificationCenter';
 import WorkspaceSelector from '@/components/workspace/WorkspaceSelector';
+import { getActiveNavModules, readWorkspaceConfig } from '@/lib/moduleRegistry';
 
 const OpsAgent = lazy(() => import('@/components/ai/OpsAgent'));
 
@@ -35,6 +26,7 @@ function LayoutContent() {
   const { user, signOut, workspaceName, activeWorkspace } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [workspaceConfig, setWorkspaceConfig] = useState(() => readWorkspaceConfig());
   const navigate = useNavigate();
   const location = useLocation();
   const pathParts = location.pathname.split('/').filter(Boolean);
@@ -55,28 +47,38 @@ function LayoutContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const mainPages = ['Dashboard', 'TeamChat', 'Finance', 'Settings'];
+  useEffect(() => {
+    const onCfg = () => setWorkspaceConfig(readWorkspaceConfig());
+    window.addEventListener('storage', onCfg);
+    window.addEventListener('opsbrain_workspace_config_updated', onCfg);
+    return () => {
+      window.removeEventListener('storage', onCfg);
+      window.removeEventListener('opsbrain_workspace_config_updated', onCfg);
+    };
+  }, []);
+
+  const activeNav = getActiveNavModules(workspaceConfig);
+  const mainPages = [
+    activeNav[0]?.page || 'Dashboard',
+    activeNav[1]?.page || 'TeamChat',
+    activeNav[2]?.page || 'Documents',
+    'Settings',
+  ];
   const isChildRoute = !mainPages.includes(currentPageName);
 
-  const navItems = [
-    { name: 'דף הבית', href: '/app/Dashboard', icon: LayoutDashboard, page: 'Dashboard' },
-    { name: 'צ׳אט צוות', href: '/app/TeamChat', icon: MessageSquare, page: 'TeamChat' },
-    { name: 'אנליטיקה', href: '/app/Analytics', icon: TrendingUp, page: 'Analytics' },
-    { name: 'אוטומציות', href: '/app/Automations', icon: RefreshCw, page: 'Automations' },
-    { name: 'פיננסים', href: '/app/Finance', icon: DollarSign, page: 'Finance' },
-    { name: 'לקוחות', href: '/app/Clients', icon: Users, page: 'Clients' },
-    { name: 'פרויקטים', href: '/app/Projects', icon: FolderKanban, page: 'Projects' },
-    { name: 'מסמכים', href: '/app/Documents', icon: FileText, page: 'Documents' },
-    { name: 'העוזר האישי', href: '/app/FinancialAssistant', icon: Bot, page: 'FinancialAssistant' },
-  ];
+  const navItems = activeNav.slice(0, 9).map((m) => ({
+    name: m.name,
+    href: m.route,
+    icon: m.Icon,
+    page: m.page,
+  }));
 
-  const moreItems = [
-    { name: 'משימות', href: '/app/Tasks', icon: CheckSquare, page: 'Tasks' },
-    { name: 'אנשי קשר (CRM)', href: '/app/Contacts', icon: BookUser, page: 'Contacts' },
-    { name: 'יומן', href: '/app/Calendar', icon: Calendar, page: 'Calendar' },
-    { name: 'עוזר AI (מודול)', href: '/app/AIAgent', icon: Brain, page: 'AIAgent' },
-    { name: 'אינטגרציות', href: '/app/Integrations', icon: RefreshCw, page: 'Integrations' },
-  ];
+  const moreItems = activeNav.slice(9).map((m) => ({
+    name: m.name,
+    href: m.route,
+    icon: m.Icon,
+    page: m.page,
+  }));
 
   const teamNav = [{ name: 'צוות והרשאות', href: '/app/TeamPermissions', icon: Users, page: 'TeamPermissions' }];
 
@@ -133,11 +135,11 @@ function LayoutContent() {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur border-t border-slate-200">
         <div className="grid grid-cols-4 h-16">
           {[
-            { icon: LayoutDashboard, label: 'בית', page: 'Dashboard', href: '/app/Dashboard' },
-            { icon: CheckSquare, label: 'משימות', page: 'Tasks', href: '/app/Tasks' },
-            { icon: DollarSign, label: 'כספים', page: 'Finance', href: '/app/Finance' },
-            { icon: Settings, label: 'הגדרות', page: 'Settings', href: '/app/Settings' },
-          ].map(({ icon: Icon, label, page, href }) => (
+            { Icon: navItems[0]?.icon || Brain, label: 'בית', page: navItems[0]?.page || 'Dashboard', href: navItems[0]?.href || '/app/Dashboard' },
+            { Icon: navItems[3]?.icon || Users, label: 'מודול', page: navItems[3]?.page || 'Tasks', href: navItems[3]?.href || '/app/Tasks' },
+            { Icon: DollarSign, label: 'כספים', page: 'Finance', href: '/app/Finance' },
+            { Icon: Settings, label: 'הגדרות', page: 'Settings', href: '/app/Settings' },
+          ].map(({ Icon, label, page, href }) => (
             <button
               key={page}
               onClick={() => navigate(href)}
