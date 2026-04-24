@@ -188,8 +188,21 @@ export default function Dashboard() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
           <div className="font-semibold text-sm">בעיה בטעינת נתונים</div>
           <div className="text-sm mt-1 text-amber-800">
-            נראה שיש בעיית Supabase (מיגרציות/RLS). פתח Console/Network כדי לראות את ה־400 המדויק.
+            נראה שיש בעיית Supabase (מיגרציות/RLS). פרטים מהשגיאה:
           </div>
+          <pre className="mt-3 text-xs bg-white/70 border border-amber-200 rounded-lg p-3 overflow-auto text-amber-950">
+            {JSON.stringify(
+              {
+                message: loadError?.message,
+                code: loadError?.code,
+                hint: loadError?.hint,
+                details: loadError?.details,
+                status: loadError?.status,
+              },
+              null,
+              2
+            )}
+          </pre>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
